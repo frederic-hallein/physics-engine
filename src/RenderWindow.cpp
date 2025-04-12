@@ -8,7 +8,8 @@ RenderWindow::RenderWindow(const char* title, int width, int height)
     if (SDL_Init(SDL_INIT_VIDEO) < 0)
         std::cout << "SDL could not initialize! SDL Error: " << SDL_GetError() << '\n';
 
-    m_window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height, SDL_WINDOW_SHOWN);
+    m_window = SDL_CreateWindow(title, SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, width, height,
+                                SDL_WINDOW_RESIZABLE | SDL_WINDOW_OPENGL | SDL_WINDOW_SHOWN);
     if (m_window == NULL)
         std::cout << "SDL could not create window! SDL Error: " << SDL_GetError() << '\n';
 
