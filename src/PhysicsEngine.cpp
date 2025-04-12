@@ -5,7 +5,7 @@
 PhysicsEngine::PhysicsEngine(const char* name, int width, int height) :
     m_renderWindow(name, width, height)
 {
-    SDL_Renderer* m_renderer = m_renderWindow.getRenderer();
+    m_renderer = m_renderWindow.getRenderer();
     std::cout << "PhysicsEngine created.\n";
 };
 
