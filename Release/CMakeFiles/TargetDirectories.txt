@@ -1,0 +1,3 @@
+/home/frederich/dev/physics-engine/Release/CMakeFiles/physics-engine.dir
+/home/frederich/dev/physics-engine/Release/CMakeFiles/edit_cache.dir
+/home/frederich/dev/physics-engine/Release/CMakeFiles/rebuild_cache.dir

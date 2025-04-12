@@ -1,0 +1,1 @@
+/usr/bin/c++ -g "CMakeFiles/physics-engine.dir/main.cpp.o" "CMakeFiles/physics-engine.dir/src/PhysicsEngine.cpp.o" "CMakeFiles/physics-engine.dir/src/RenderWindow.cpp.o" -o physics-engine  -lSDL2main -lSDL2 
