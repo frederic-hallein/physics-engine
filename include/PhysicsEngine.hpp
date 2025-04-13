@@ -1,6 +1,6 @@
 #pragma once
 
-#include <SDL2/SDL.h>
+// #include <SDL2/SDL.h>
 
 #include "RenderWindow.hpp"
 
@@ -16,8 +16,8 @@ public:
 
 private:
     bool m_isRunning = true;
-    SDL_Event m_event;
-    RenderWindow m_renderWindow;
-    SDL_Renderer* m_renderer;
+    // SDL_Event m_event;
+    // RenderWindow m_renderWindow;
+    // SDL_Renderer* m_renderer;
 
 };
