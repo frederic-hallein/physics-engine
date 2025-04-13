@@ -1,23 +1,18 @@
 #pragma once
 
-// #include <SDL2/SDL.h>
-
-#include "RenderWindow.hpp"
-
 class PhysicsEngine
 {
 public:
     PhysicsEngine(const char* name, int width, int height);
 
-    bool running();
+    bool isRunning() const { return m_isRunning; }
     void handleEvents();
     void render();
     void close();
 
 private:
     bool m_isRunning = true;
-    // SDL_Event m_event;
-    // RenderWindow m_renderWindow;
-    // SDL_Renderer* m_renderer;
-
+    GLFWwindow* m_window;
+    unsigned int shaderProgram;
+    unsigned int VBO, VAO;
 };
