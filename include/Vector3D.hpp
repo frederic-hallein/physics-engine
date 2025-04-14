@@ -10,6 +10,6 @@ public:
         x(xCoord),
         y(yCoord),
         z(zCoord) {}
-    Vector3D(const Vector3D& v);
+    Vector3D(const Vector3D& v) {};
 
 };

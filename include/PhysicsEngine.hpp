@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Shader.hpp"
+
 class PhysicsEngine
 {
 public:
@@ -13,6 +15,6 @@ public:
 private:
     bool m_isRunning = true;
     GLFWwindow* m_window;
-    unsigned int shaderProgram;
+    Shader myShader;
     unsigned int VBO, VAO;
 };
