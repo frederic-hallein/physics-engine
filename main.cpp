@@ -2,7 +2,6 @@
 #include <glad.h>
 #include <GLFW/glfw3.h>
 
-#include "Vector3D.hpp"
 #include "PhysicsEngine.hpp"
 
 const int unsigned SCREEN_WIDTH = 1080;
