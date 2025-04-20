@@ -1,6 +1,7 @@
 #pragma once
 
-// #include <memory>
+#include <vector>
+#include <memory>
 
 #include "Shader.hpp"
 
@@ -11,6 +12,7 @@ public:
 
     bool isRunning() const { return m_isRunning; }
     void handleEvents();
+    void initShaders();
     void render();
     void close();
 
@@ -18,8 +20,7 @@ private:
     bool m_isRunning = true;
     GLFWwindow* m_window;
 
-    Shader myShader;
-    Shader myShader2;
+    std::vector<std::unique_ptr<Shader>> shaders;
     unsigned int VBO, VAO, EBO;
     unsigned int texture;
 };

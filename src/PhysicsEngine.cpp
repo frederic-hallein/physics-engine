@@ -1,8 +1,10 @@
 #include <iostream>
-#include <cmath>
 #include <glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "PhysicsEngine.hpp"
 #include "Shader.hpp"
@@ -11,6 +13,11 @@
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
+}
+
+void PhysicsEngine::initShaders()
+{
+    shaders.push_back(std::make_unique<Shader>("../res/shaders/v_text_shader.txt", "../res/shaders/f_text_shader.txt"));
 }
 
 PhysicsEngine::PhysicsEngine(const char* name, int width, int height)
@@ -77,7 +84,10 @@ PhysicsEngine::PhysicsEngine(const char* name, int width, int height)
     // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     // glEnableVertexAttribArray(1);
 
-    myShader2 = Shader("../res/shaders/v_text_shader.txt", "../res/shaders/f_text_shader.txt");
+    // myShader2 = Shader("../res/shaders/v_text_shader.txt", "../res/shaders/f_text_shader.txt");
+
+
+    initShaders();
 
     float vertices2[] = {
         // positions          // colors           // texture coords
@@ -114,7 +124,6 @@ PhysicsEngine::PhysicsEngine(const char* name, int width, int height)
 
 
     // load and create a texture
-    // -------------------------
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture); // all upcoming GL_TEXTURE_2D operations now have effect on this texture object
     // set the texture wrapping parameters
@@ -168,9 +177,20 @@ void PhysicsEngine::render()
         // glDrawArrays(GL_TRIANGLES, 0, 3);
 
         glBindTexture(GL_TEXTURE_2D, texture);
-        myShader2.useProgram();
+
+        glm::mat4 trans = glm::mat4(1.0f);
+        // trans = glm::translate(trans, glm::vec3(0.5f, -0.5f, 0.0f));
+        trans = glm::rotate(trans, (float)glfwGetTime(), glm::vec3(0.0f, 0.0f, 1.0f));
+
+        shaders[0]->useProgram();
+        unsigned int transformLoc = glGetUniformLocation(shaders[0]->ID, "transform");
+        glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(trans));
+
+
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+
+
 
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); // wireframe
 
@@ -186,7 +206,7 @@ void PhysicsEngine::close()
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &VBO);
     glDeleteBuffers(1, &EBO);
-    myShader.deleteProgram();
+    shaders[0]->deleteProgram();
     glfwTerminate();
     std::cout << "PhysicsEngine closed.\n";
 }
