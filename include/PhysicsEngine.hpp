@@ -17,6 +17,9 @@ public:
 private:
     bool m_isRunning = true;
     GLFWwindow* m_window;
+
     Shader myShader;
-    unsigned int VBO, VAO;
+    Shader myShader2;
+    unsigned int VBO, VAO, EBO;
+    unsigned int texture;
 };
