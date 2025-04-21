@@ -5,6 +5,7 @@
 
 #include "ShaderManager.hpp"
 #include "MeshManager.hpp"
+#include "TextureManager.hpp"
 
 class PhysicsEngine
 {
@@ -22,5 +23,5 @@ private:
 
     std::unique_ptr<ShaderManager> shaderManager;
     std::unique_ptr<MeshManager> meshManager;
-    unsigned int texture;
+    std::unique_ptr<TextureManager> textureManager;
 };

@@ -67,34 +67,13 @@ PhysicsEngine::PhysicsEngine(const char* name, int width, int height)
     glEnable(GL_DEPTH_TEST);
 
     shaderManager = std::make_unique<ShaderManager>();
-    shaderManager->addShader("dirt block shader", "../res/shaders/v_shader.txt", "../res/shaders/f_shader.txt");
+    shaderManager->addShader("basic", "../res/shaders/v_shader.txt", "../res/shaders/f_shader.txt");
 
     meshManager = std::make_unique<MeshManager>();
     meshManager->addMesh("cube", "../res/meshes/cube.txt");
 
-    // load and create a texture
-    glGenTextures(1, &texture);
-    glBindTexture(GL_TEXTURE_2D, texture);
-    // set the texture wrapping parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    // set texture filtering parameters
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    // load image, create texture and generate mipmaps
-    int texture_width, texture_height, nrChannels;
-    stbi_set_flip_vertically_on_load(true); // tell stb_image.h to flip loaded texture's on the y-axis.
-    unsigned char* data = stbi_load("../res/textures/dirt_block.jpg", &texture_width, &texture_height, &nrChannels, 0);
-    if (data)
-    {
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, texture_width, texture_height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
-    else
-    {
-        std::cout << "Failed to load texture" << std::endl;
-    }
-    stbi_image_free(data);
+    textureManager = std::make_unique<TextureManager>();
+    textureManager->addTexture("dirt block", "../res/textures/dirt_block.jpg");
 };
 
 void PhysicsEngine::handleEvents()
@@ -132,32 +111,31 @@ void PhysicsEngine::render()
         processInput(m_window);
 
         // rendering
-        glClearColor(0.5f, 0.6f, 0.3f, 1.0f);
+        glClearColor(0.2f, 0.2f, 0.8f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // bind textures
-        glBindTexture(GL_TEXTURE_2D, texture);
+        textureManager->bindTexture("dirt block");
 
         // activate shader
-        shaderManager->useShader("dirt block shader");
-
+        shaderManager->useShader("basic");
 
         // projection transformation
         const unsigned int SCR_WIDTH = 1080;
         const unsigned int SCR_HEIGHT = 720;
         glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        int projectionLoc = glGetUniformLocation(shaderManager->getShader("dirt block shader")->ID, "projection");
+        int projectionLoc = glGetUniformLocation(shaderManager->getShader("basic")->ID, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         // model transformation
         glm::mat4 model = glm::mat4(1.0f);
         model = glm::rotate(model, (float)glfwGetTime() * glm::radians(180.0f), glm::vec3(2.0f, 1.0f, 0.5f));
-        int modelLoc = glGetUniformLocation(shaderManager->getShader("dirt block shader")->ID, "model");
+        int modelLoc = glGetUniformLocation(shaderManager->getShader("basic")->ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
         // camera/view transformation
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        int viewLoc = glGetUniformLocation(shaderManager->getShader("dirt block shader")->ID, "view");
+        int viewLoc = glGetUniformLocation(shaderManager->getShader("basic")->ID, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
         // rendering
@@ -175,6 +153,7 @@ void PhysicsEngine::render()
 
 void PhysicsEngine::close()
 {
+    textureManager->deleteAllTextures();
     meshManager->deleteAllMeshes();
     shaderManager->deleteAllShaders();
     glfwTerminate();
