@@ -31,7 +31,8 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
     cameraPos += cameraFront * static_cast<float>(yoffset) * scrollSpeed;
 }
 
-PhysicsEngine::PhysicsEngine(const char* name, int width, int height)
+PhysicsEngine::PhysicsEngine(const char* name, int screenWidth, int screenHeight)
+    : m_screenWidth(screenWidth), m_screenHeight(screenHeight)
 {
     std::cout << "Initialize: " << name << '\n';
 
@@ -40,7 +41,7 @@ PhysicsEngine::PhysicsEngine(const char* name, int width, int height)
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    m_window = glfwCreateWindow(width, height, "Physics Engine", NULL, NULL);
+    m_window = glfwCreateWindow(screenWidth, screenHeight, "Physics Engine", NULL, NULL);
     if(m_window == NULL)
     {
         glfwTerminate();
@@ -57,9 +58,9 @@ PhysicsEngine::PhysicsEngine(const char* name, int width, int height)
         std::cout << "Failed to load GLAD" << '\n';
     }
 
-    // // adjust viewport when window resizing
-    // framebufferSizeCallback(m_window, width, height);
-    // glfwSetFramebufferSizeCallback(m_window, framebufferSizeCallback);
+    // adjust viewport when window resizing
+    framebufferSizeCallback(m_window, screenWidth, screenHeight);
+    glfwSetFramebufferSizeCallback(m_window, framebufferSizeCallback);
 
     std::cout << "GLFW window created.\n";
 
@@ -121,9 +122,7 @@ void PhysicsEngine::render()
         shaderManager->useShader("basic");
 
         // projection transformation
-        const unsigned int SCR_WIDTH = 1080;
-        const unsigned int SCR_HEIGHT = 720;
-        glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(fov), (float)m_screenWidth / (float)m_screenHeight, 0.1f, 100.0f);
         int projectionLoc = glGetUniformLocation(shaderManager->getShader("basic")->ID, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
@@ -141,6 +140,7 @@ void PhysicsEngine::render()
         // rendering
         meshManager->drawMesh("cube");
 
+        // // TODO : add shortcut + use specific colors
         // // wireframe
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 

@@ -10,7 +10,7 @@
 class PhysicsEngine
 {
 public:
-    PhysicsEngine(const char* name, int width, int height);
+    PhysicsEngine(const char* name, int screenWidth, int screenHeight);
 
     bool isRunning() const { return m_isRunning; }
     void handleEvents();
@@ -19,6 +19,8 @@ public:
 
 private:
     bool m_isRunning = true;
+    int unsigned m_screenWidth;
+    int unsigned m_screenHeight;
     GLFWwindow* m_window;
 
     std::unique_ptr<ShaderManager> shaderManager;
