@@ -7,13 +7,14 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "PhysicsEngine.hpp"
-#include "Shader.hpp"
-#include "Vector3D.hpp"
+#include "ShaderManager.hpp"
 
 // camera
 glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
 glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
 glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
+
+float fov   =  45.0f;
 
 // timing
 float deltaTime = 0.0f;	// time between current frame and last frame
@@ -24,14 +25,9 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height)
     glViewport(0, 0, width, height);
 }
 
-void PhysicsEngine::initShaders()
-{
-    shaders.push_back(std::make_unique<Shader>("../res/shaders/v_shader.txt", "../res/shaders/f_shader.txt"));
-}
-
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
-    float scrollSpeed = static_cast<float>(100.0 * deltaTime);
+    float scrollSpeed = static_cast<float>(150.0 * deltaTime);
     cameraPos += cameraFront * static_cast<float>(yoffset) * scrollSpeed;
 }
 
@@ -52,6 +48,8 @@ PhysicsEngine::PhysicsEngine(const char* name, int width, int height)
     }
 
     glfwMakeContextCurrent(m_window);
+    glfwSetScrollCallback(m_window, scrollCallback);
+
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
@@ -67,69 +65,12 @@ PhysicsEngine::PhysicsEngine(const char* name, int width, int height)
 
 
     glEnable(GL_DEPTH_TEST);
-    initShaders();
 
-    float vertices[] = {
-        -1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f, -1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f, -1.0f,  1.0f, 1.0f,
-         1.0f,  1.0f, -1.0f,  1.0f, 1.0f,
-        -1.0f,  1.0f, -1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f, -1.0f,  0.0f, 0.0f,
+    shaderManager = std::make_unique<ShaderManager>();
+    shaderManager->addShader("dirt block shader", "../res/shaders/v_shader.txt", "../res/shaders/f_shader.txt");
 
-        -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,
-         1.0f, -1.0f,  1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
-         1.0f,  1.0f,  1.0f,  1.0f, 1.0f,
-        -1.0f,  1.0f,  1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,
-
-        -1.0f,  1.0f,  1.0f,  1.0f, 0.0f,
-        -1.0f,  1.0f, -1.0f,  1.0f, 1.0f,
-        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f,
-        -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,
-        -1.0f,  1.0f,  1.0f,  1.0f, 0.0f,
-
-         1.0f,  1.0f,  1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f, -1.0f,  1.0f, 1.0f,
-         1.0f, -1.0f, -1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f, -1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f,  1.0f,  0.0f, 0.0f,
-         1.0f,  1.0f,  1.0f,  1.0f, 0.0f,
-
-        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f,
-         1.0f, -1.0f, -1.0f,  1.0f, 1.0f,
-         1.0f, -1.0f,  1.0f,  1.0f, 0.0f,
-         1.0f, -1.0f,  1.0f,  1.0f, 0.0f,
-        -1.0f, -1.0f,  1.0f,  0.0f, 0.0f,
-        -1.0f, -1.0f, -1.0f,  0.0f, 1.0f,
-
-        -1.0f,  1.0f, -1.0f,  0.0f, 1.0f,
-         1.0f,  1.0f, -1.0f,  1.0f, 1.0f,
-         1.0f,  1.0f,  1.0f,  1.0f, 0.0f,
-         1.0f,  1.0f,  1.0f,  1.0f, 0.0f,
-        -1.0f,  1.0f,  1.0f,  0.0f, 0.0f,
-        -1.0f,  1.0f, -1.0f,  0.0f, 1.0f
-    };
-
-
-    unsigned int VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
-
-    glBindVertexArray(VAO);
-
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);
-    // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-
+    meshManager = std::make_unique<MeshManager>();
+    meshManager->addMesh("cube", "../res/meshes/cube.txt");
 
     // load and create a texture
     glGenTextures(1, &texture);
@@ -166,10 +107,15 @@ void PhysicsEngine::handleEvents()
 
 static void processInput(GLFWwindow* window)
 {
+    float cameraSpeed = static_cast<float>(100 * deltaTime);
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
 
-    glfwSetScrollCallback(window, scrollCallback);
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
+        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
+        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+
 }
 
 void PhysicsEngine::render()
@@ -193,29 +139,29 @@ void PhysicsEngine::render()
         glBindTexture(GL_TEXTURE_2D, texture);
 
         // activate shader
-        shaders[0]->useProgram();
+        shaderManager->useShader("dirt block shader");
+
 
         // projection transformation
         const unsigned int SCR_WIDTH = 1080;
         const unsigned int SCR_HEIGHT = 720;
-        glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
-        int projectionLoc = glGetUniformLocation(shaders[0]->ID, "projection");
+        glm::mat4 projection = glm::perspective(glm::radians(fov), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        int projectionLoc = glGetUniformLocation(shaderManager->getShader("dirt block shader")->ID, "projection");
         glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
 
         // model transformation
         glm::mat4 model = glm::mat4(1.0f);
-        model = glm::rotate(model, glm::radians(180.0f), glm::vec3(2.0f, 1.0f, 0.5f));
-        int modelLoc = glGetUniformLocation(shaders[0]->ID, "model");
+        model = glm::rotate(model, (float)glfwGetTime() * glm::radians(180.0f), glm::vec3(2.0f, 1.0f, 0.5f));
+        int modelLoc = glGetUniformLocation(shaderManager->getShader("dirt block shader")->ID, "model");
         glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
 
         // camera/view transformation
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        int viewLoc = glGetUniformLocation(shaders[0]->ID, "view");
+        int viewLoc = glGetUniformLocation(shaderManager->getShader("dirt block shader")->ID, "view");
         glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
 
         // rendering
-        glBindVertexArray(VAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
+        meshManager->drawMesh("cube");
 
         // // wireframe
         // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -229,9 +175,8 @@ void PhysicsEngine::render()
 
 void PhysicsEngine::close()
 {
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    shaders[0]->deleteProgram();
+    meshManager->deleteAllMeshes();
+    shaderManager->deleteAllShaders();
     glfwTerminate();
     std::cout << "PhysicsEngine closed.\n";
 }

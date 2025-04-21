@@ -3,7 +3,8 @@
 #include <vector>
 #include <memory>
 
-#include "Shader.hpp"
+#include "ShaderManager.hpp"
+#include "MeshManager.hpp"
 
 class PhysicsEngine
 {
@@ -12,7 +13,6 @@ public:
 
     bool isRunning() const { return m_isRunning; }
     void handleEvents();
-    void initShaders();
     void render();
     void close();
 
@@ -20,7 +20,7 @@ private:
     bool m_isRunning = true;
     GLFWwindow* m_window;
 
-    std::vector<std::unique_ptr<Shader>> shaders;
-    unsigned int VBO, VAO;
+    std::unique_ptr<ShaderManager> shaderManager;
+    std::unique_ptr<MeshManager> meshManager;
     unsigned int texture;
 };
