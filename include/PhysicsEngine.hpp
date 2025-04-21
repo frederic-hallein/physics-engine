@@ -21,6 +21,6 @@ private:
     GLFWwindow* m_window;
 
     std::vector<std::unique_ptr<Shader>> shaders;
-    unsigned int VBO, VAO, EBO;
+    unsigned int VBO, VAO;
     unsigned int texture;
 };
