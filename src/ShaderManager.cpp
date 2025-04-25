@@ -1,8 +1,8 @@
 #include "ShaderManager.hpp"
 
-void ShaderManager::addShader(const std::string& name, const std::string& vertexPath, const std::string& fragmentPath)
+void ShaderManager::addShader(std::unique_ptr<Shader> shader)
 {
-    shaders[name] = std::make_unique<Shader>(vertexPath.c_str(), fragmentPath.c_str());
+    shaders[shader->getName()] = std::move(shader);
 }
 
 void ShaderManager::deleteAllShaders()

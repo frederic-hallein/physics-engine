@@ -28,7 +28,7 @@ static void checkCompileErrors(unsigned int shader, std::string type)
     }
 }
 
-static void getVertexAndFragmentSourceCode(const char* vertexPath, const char* fragmentPath,
+static void getVertexAndFragmentSourceCode(const std::string& vertexPath, const std::string& fragmentPath,
                                            std::string& vShaderCode, std::string& fShaderCode)
 {
     std::ifstream vShaderFile;
@@ -92,36 +92,37 @@ void compileShaders(unsigned int& ID, const std::string& vShaderCode, const std:
     glDeleteShader(fragment);
 }
 
-Shader::Shader(const char* vertexPath, const char* fragmentPath)
+Shader::Shader(const std::string& name, const std::string& vertexPath, const std::string& fragmentPath)
+    : m_name(name), m_vertexPath(vertexPath), m_fragmentPath(fragmentPath)
 {
     std::string vShaderCode;
     std::string fShaderCode;
     getVertexAndFragmentSourceCode(vertexPath, fragmentPath, vShaderCode, fShaderCode);
-    compileShaders(ID, vShaderCode, fShaderCode);
+    compileShaders(m_ID, vShaderCode, fShaderCode);
 }
 
 void Shader::useProgram()
 {
-    glUseProgram(ID);
+    glUseProgram(m_ID);
 }
 
 void Shader::deleteProgram()
 {
-    glDeleteProgram(ID);
+    glDeleteProgram(m_ID);
 }
 
 void Shader::setBool(const std::string& name, bool value) const
 {
-    glUniform1i(glGetUniformLocation(ID, name.c_str()), (int)value);
+    glUniform1i(glGetUniformLocation(m_ID, name.c_str()), (int)value);
 }
 
 void Shader::setInt(const std::string& name, int value) const
 {
-    glUniform1i(glGetUniformLocation(ID, name.c_str()), value);
+    glUniform1i(glGetUniformLocation(m_ID, name.c_str()), value);
 }
 
 void Shader::setFloat(const std::string& name, float value) const
 {
-    glUniform1f(glGetUniformLocation(ID, name.c_str()), value);
+    glUniform1f(glGetUniformLocation(m_ID, name.c_str()), value);
 }
 

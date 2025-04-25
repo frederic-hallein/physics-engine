@@ -1,8 +1,8 @@
 #include "TextureManager.hpp"
 
-void TextureManager::addTexture(const std::string& name, const std::string& texturePath)
+void TextureManager::addTexture(std::unique_ptr<Texture> texture)
 {
-    textures[name] = std::make_unique<Texture>(texturePath.c_str());
+    textures[texture->getName()] = std::move(texture);
 }
 
 void TextureManager::deleteAllTextures()

@@ -10,12 +10,18 @@ class Mesh
 {
 public:
     Mesh() = default;
-    Mesh(const char* meshPath);
+    Mesh(const std::string& name, const std::string& meshPath);
+
+    const std::string getName()     const { return m_name; }
+    const std::string getMeshPath() const { return m_meshPath; }
 
     void draw();
     void deleteMesh();
 
 private:
-    unsigned int VAO, VBO;
-    unsigned int vertexCount;
+    std::string m_name;
+    std::string m_meshPath;
+
+    unsigned int m_VAO, m_VBO;
+    unsigned int m_vertexCount;
 };

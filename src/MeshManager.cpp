@@ -1,8 +1,8 @@
 #include "MeshManager.hpp"
 
-void MeshManager::addMesh(const std::string& name, const std::string& meshPath)
+void MeshManager::addMesh(std::unique_ptr<Mesh> mesh)
 {
-    meshes[name] = std::make_unique<Mesh>(meshPath.c_str());
+    meshes[mesh->getName()] = std::move(mesh);
 }
 
 void MeshManager::deleteAllMeshes()

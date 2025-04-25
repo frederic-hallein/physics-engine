@@ -10,9 +10,8 @@ class TextureManager
 {
 public:
 
-    void addTexture(const std::string& name, const std::string& texturePath);
-    Texture* getTexture(const std::string& name) { return textures[name].get(); }
-    void bindTexture(const std::string& name) { textures[name]->bind(); };
+    void addTexture(std::unique_ptr<Texture> texture);
+    Texture& getTexture(const std::string& name) { return *textures[name]; }
     void deleteAllTextures();
 
 private:

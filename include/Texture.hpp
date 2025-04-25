@@ -9,15 +9,18 @@ class Texture
 {
 public:
     Texture() = default;
-    Texture(const std::string& filePath);
+    Texture(const std::string& name, const std::string& filePath);
 
+    const std::string getName()        const { return m_name; }
+    const std::string getTexturePath() const { return m_texturePath; }
+    const unsigned int getID()         const { return m_ID; }
 
     void bind();
     void deleteTexture();
 
-
-    unsigned int getID() const { return m_textureID; }
-
 private:
-    unsigned int m_textureID;
+    std::string m_name;
+    std::string m_texturePath;
+
+    unsigned int m_ID;
 };

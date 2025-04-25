@@ -1,16 +1,22 @@
 #pragma once
 
+#include <iostream>
 #include <vector>
 #include <memory>
+#include <glad.h>
+#include <GLFW/glfw3.h>
 
 #include "ShaderManager.hpp"
 #include "MeshManager.hpp"
 #include "TextureManager.hpp"
 
+#include "Scene.hpp"
+#include "Object.hpp"
+
 class PhysicsEngine
 {
 public:
-    PhysicsEngine(const char* name, int screenWidth, int screenHeight);
+    PhysicsEngine(const char* engineName, int screenWidth, int screenHeight);
 
     bool isRunning() const { return m_isRunning; }
     void handleEvents();
@@ -23,7 +29,5 @@ private:
     int unsigned m_screenHeight;
     GLFWwindow* m_window;
 
-    std::unique_ptr<ShaderManager> shaderManager;
-    std::unique_ptr<MeshManager> meshManager;
-    std::unique_ptr<TextureManager> textureManager;
+    std::unique_ptr<Scene> m_scene;
 };

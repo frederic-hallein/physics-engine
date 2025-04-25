@@ -1,9 +1,10 @@
 #include "Texture.hpp"
 
-Texture::Texture(const std::string& filePath)
+Texture::Texture(const std::string& name, const std::string& texturePath)
+    : m_name(name), m_texturePath(texturePath)
 {
-    glGenTextures(1, &m_textureID);
-    glBindTexture(GL_TEXTURE_2D, m_textureID);
+    glGenTextures(1, &m_ID);
+    glBindTexture(GL_TEXTURE_2D, m_ID);
 
     // Set texture wrapping and filtering options
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -14,7 +15,7 @@ Texture::Texture(const std::string& filePath)
     // Load the texture
     stbi_set_flip_vertically_on_load(true);
     int width, height, nrChannels;
-    unsigned char* data = stbi_load(filePath.c_str(), &width, &height, &nrChannels, 0);
+    unsigned char* data = stbi_load(texturePath.c_str(), &width, &height, &nrChannels, 0);
     if (data)
     {
         GLenum format = (nrChannels == 4) ? GL_RGBA : GL_RGB;
@@ -23,17 +24,17 @@ Texture::Texture(const std::string& filePath)
     }
     else
     {
-        std::cerr << "Failed to load texture: " << filePath << std::endl;
+        std::cerr << "Failed to load texture: " << texturePath << std::endl;
     }
     stbi_image_free(data);
 }
 
 void Texture::bind()
 {
-    glBindTexture(GL_TEXTURE_2D, m_textureID);
+    glBindTexture(GL_TEXTURE_2D, m_ID);
 }
 
 void Texture::deleteTexture()
 {
-    glDeleteTextures(1, &m_textureID);
+    glDeleteTextures(1, &m_ID);
 }

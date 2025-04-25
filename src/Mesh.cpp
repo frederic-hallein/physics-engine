@@ -31,7 +31,8 @@ static void getMeshSourceCode(const char* meshPath, std::string& meshCode)
 }
 
 // FIXME :  load meshes from file
-Mesh::Mesh(const char* meshPath)
+Mesh::Mesh(const std::string& name, const std::string& meshPath)
+    : m_name(name), m_meshPath(meshPath)
 {
     // std::string meshCode;
     // getMeshSourceCode(meshPath, meshCode);
@@ -80,14 +81,14 @@ Mesh::Mesh(const char* meshPath)
         -1.0f,  1.0f, -1.0f,  0.0f, 1.0f
     };
 
-    vertexCount = 36;
+    m_vertexCount = 36;
 
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    glGenVertexArrays(1, &m_VAO);
+    glGenBuffers(1, &m_VBO);
 
-    glBindVertexArray(VAO);
+    glBindVertexArray(m_VAO);
 
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 
@@ -102,12 +103,12 @@ Mesh::Mesh(const char* meshPath)
 
 void Mesh::draw()
 {
-    glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+    glBindVertexArray(m_VAO);
+    glDrawArrays(GL_TRIANGLES, 0, m_vertexCount);
 }
 
 void Mesh::deleteMesh()
 {
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(1, &m_VAO);
+    glDeleteBuffers(1, &m_VBO);
 }
