@@ -1,20 +1,4 @@
-// #include <iostream>
-// #include <glad.h>
-// #include <GLFW/glfw3.h>
-// #include <stb_image.h>
-// #include <glm/glm.hpp>
-// #include <glm/gtc/matrix_transform.hpp>
-// #include <glm/gtc/type_ptr.hpp>
-
 #include "PhysicsEngine.hpp"
-
-
-// // camera
-// glm::vec3 cameraPos   = glm::vec3(0.0f, 0.0f,  3.0f);
-// glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-// glm::vec3 cameraUp    = glm::vec3(0.0f, 1.0f,  0.0f);
-
-// float fov   =  45.0f;
 
 // // timing
 // float deltaTime = 0.0f;	// time between current frame and last frame
@@ -31,8 +15,13 @@ void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 //     cameraPos += cameraFront * static_cast<float>(yoffset) * scrollSpeed;
 // }
 
-PhysicsEngine::PhysicsEngine(const char* engineName, int screenWidth, int screenHeight)
-    : m_screenWidth(screenWidth), m_screenHeight(screenHeight)
+PhysicsEngine::PhysicsEngine(
+    const char* engineName,
+    int screenWidth,
+    int screenHeight
+)
+    : m_screenWidth(screenWidth),
+      m_screenHeight(screenHeight)
 {
     std::cout << "Initialize: " << engineName << '\n';
 
@@ -67,9 +56,9 @@ PhysicsEngine::PhysicsEngine(const char* engineName, int screenWidth, int screen
 
     glEnable(GL_DEPTH_TEST);
 
-    auto m_shaderManager = std::make_unique<ShaderManager>();
-    auto m_meshManager = std::make_unique<MeshManager>();
-    auto m_textureManager = std::make_unique<TextureManager>();
+    auto shaderManager = std::make_unique<ShaderManager>();
+    auto meshManager = std::make_unique<MeshManager>();
+    auto textureManager = std::make_unique<TextureManager>();
 
     // initialize shaders
     auto dirtBlockShader = std::make_unique<Shader>("dirtBlockShader", "../res/shaders/v_shader.txt", "../res/shaders/f_shader.txt");
@@ -80,15 +69,34 @@ PhysicsEngine::PhysicsEngine(const char* engineName, int screenWidth, int screen
     // initialize textures
     auto dirtBlockTexture = std::make_unique<Texture>("dirtBlockTexture", "../res/textures/dirt_block.jpg");
 
-    m_shaderManager->addShader(std::move(dirtBlockShader));
-    m_meshManager->addMesh(std::move(cubeMesh));
-    m_textureManager->addTexture(std::move(dirtBlockTexture));
+    shaderManager->addShader(std::move(dirtBlockShader));
+    meshManager->addMesh(std::move(cubeMesh));
+    textureManager->addTexture(std::move(dirtBlockTexture));
+
+    float FOV = 45.0f;
+    float nearPlane = 0.1f;
+    float farPlane = 100.0f;
+    float aspectRatio = (float)screenWidth / (float)screenHeight;
+    auto camera = std::make_unique<Camera>(
+        glm::vec3(0.0f, 0.0f,  3.0f),
+        glm::vec3(0.0f, 0.0f, -1.0f),
+        glm::vec3(0.0f, 1.0f,  0.0f),
+        FOV,
+        aspectRatio,
+        nearPlane,
+        farPlane,
+        m_window
+    );
+
+
+    // glfwSetScrollCallback(m_window, scrollCallback);
 
     m_scene = std::make_unique<Scene>(
         "Test Scene",
-        std::move(m_shaderManager),
-        std::move(m_meshManager),
-        std::move(m_textureManager)
+        std::move(shaderManager),
+        std::move(meshManager),
+        std::move(textureManager),
+        std::move(camera)
     );
 
 
@@ -118,51 +126,34 @@ static void processInput(GLFWwindow* window)
 
 void PhysicsEngine::render()
 {
+    const int targetFPS = 60;
+    const int targetFrameTime = 1000 / targetFPS;
 
     while (!glfwWindowShouldClose(m_window))
     {
+        auto frameStart = std::chrono::high_resolution_clock::now();
 
-        // // per-frame time logic
-        // float currentFrame = static_cast<float>(glfwGetTime());
-        // deltaTime = currentFrame - lastFrame;
-        // lastFrame = currentFrame;
+        // Per-frame time logic
+        float currentFrame = static_cast<float>(glfwGetTime());
+        m_deltaTime = currentFrame - m_lastFrame;
+        m_lastFrame = currentFrame;
 
         processInput(m_window);
-
-
         m_scene->render();
 
-
-        // // projection transformation
-        // glm::mat4 projection = glm::perspective(glm::radians(fov), (float)m_screenWidth / (float)m_screenHeight, 0.1f, 100.0f);
-        // int projectionLoc = glGetUniformLocation(shaderManager->getShader("basic")->ID, "projection");
-        // glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(projection));
-
-        // // model transformation
-        // glm::mat4 model = glm::mat4(1.0f);
-        // model = glm::rotate(model, (float)glfwGetTime() * glm::radians(180.0f), glm::vec3(2.0f, 1.0f, 0.5f));
-        // int modelLoc = glGetUniformLocation(shaderManager->getShader("basic")->ID, "model");
-        // glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(model));
-
-        // // camera/view transformation
-        // glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
-        // int viewLoc = glGetUniformLocation(shaderManager->getShader("basic")->ID, "view");
-        // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(view));
-
-
-
-
-
-
-
-        // // TODO : add shortcut + use specific colors
-        // // wireframe
-        // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-        // swap buffers and poll IO events
         glfwSwapBuffers(m_window);
         glfwPollEvents();
 
+        auto frameEnd = std::chrono::high_resolution_clock::now();
+        auto frameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd - frameStart);
+
+        // Sleep to cap the frame rate
+        if (frameDuration.count() < targetFrameTime)
+        {
+            std::this_thread::sleep_for(std::chrono::milliseconds(targetFrameTime - frameDuration.count()));
+        }
+
+        std::cout << "Frame Time: " << frameDuration.count() << " ms" << '\n';
     }
 }
 

@@ -7,9 +7,10 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "ShaderManager.hpp"
-#include "MeshManager.hpp"
-#include "TextureManager.hpp"
+#include "Transform.hpp"
+#include "Shader.hpp"
+#include "Mesh.hpp"
+#include "Texture.hpp"
 
 class Object
 {
@@ -25,6 +26,7 @@ class Cube : public Object
 public:
     Cube() = default;
     Cube(
+        Transform transform,
         Shader& shader,
         Mesh& mesh
     );
@@ -32,6 +34,7 @@ public:
     void addBody(); // rigid or soft
 
 protected:
+    Transform m_transform;
     Shader* m_shader;
     Mesh* m_mesh;
 };
@@ -41,6 +44,7 @@ class DirtBlock: public Cube
 public:
     DirtBlock() = default;
     DirtBlock(
+        Transform transform,
         Shader& shader,
         Mesh& mesh,
         Texture& texture

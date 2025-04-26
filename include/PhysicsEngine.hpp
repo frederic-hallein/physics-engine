@@ -1,17 +1,14 @@
 #pragma once
 
 #include <iostream>
+#include <chrono>
+#include <thread>
 #include <vector>
 #include <memory>
 #include <glad.h>
 #include <GLFW/glfw3.h>
 
-#include "ShaderManager.hpp"
-#include "MeshManager.hpp"
-#include "TextureManager.hpp"
-
 #include "Scene.hpp"
-#include "Object.hpp"
 
 class PhysicsEngine
 {
@@ -28,6 +25,9 @@ private:
     int unsigned m_screenWidth;
     int unsigned m_screenHeight;
     GLFWwindow* m_window;
+
+    float m_deltaTime = 0.0f;
+    float m_lastFrame = 0.0f;
 
     std::unique_ptr<Scene> m_scene;
 };
