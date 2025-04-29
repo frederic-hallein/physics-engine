@@ -58,14 +58,10 @@ Scene::Scene(
 
 }
 
-void Scene::render(float deltaTime)
+void Scene::update(float deltaTime)
 {
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); TODO : add key shortcut
     const glm::vec3 gravity(0.0f, -1.0f, 0.0f);
     glm::vec3 velocity = glm::vec3(0.0f);
-
-    glClearColor(0.2f, 0.2f, 0.8f, 1.0f); // background
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_camera->setDeltaTime(deltaTime);
     m_camera->move();
@@ -103,6 +99,19 @@ void Scene::render(float deltaTime)
         );
 
 
+    }
+}
+
+void Scene::render(float deltaTime)
+{
+    // // TODO : add key shortcut
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+    glClearColor(0.2f, 0.2f, 0.8f, 1.0f); // background
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    for (auto& object : m_objects)
+    {
         object->render();
     }
 }

@@ -23,6 +23,7 @@ public:
         std::unique_ptr<Camera>
     );
 
+    void update(float deltaTime);
     void render(float deltaTime);
     void clear();
 

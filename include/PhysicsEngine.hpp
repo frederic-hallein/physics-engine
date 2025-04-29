@@ -13,7 +13,11 @@
 class PhysicsEngine
 {
 public:
-    PhysicsEngine(const char* engineName, int screenWidth, int screenHeight);
+    PhysicsEngine(
+        const char* engineName,
+        int screenWidth,
+        int screenHeight
+    );
 
     bool isRunning() const { return m_isRunning; }
     void handleEvents();
@@ -26,8 +30,8 @@ private:
     int unsigned m_screenHeight;
     GLFWwindow* m_window;
 
-    float m_deltaTime = 0.0f;
-    float m_lastFrame = 0.0f;
+    float m_deltaTime;
+    float m_lastFrame;
 
     std::unique_ptr<Scene> m_scene;
 };

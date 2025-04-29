@@ -11,7 +11,9 @@ PhysicsEngine::PhysicsEngine(
     int screenHeight
 )
     : m_screenWidth(screenWidth),
-      m_screenHeight(screenHeight)
+      m_screenHeight(screenHeight),
+      m_deltaTime(0.0f),
+      m_lastFrame(0.0f)
 {
     std::cout << "Initialize: " << engineName << '\n';
 
@@ -29,7 +31,6 @@ PhysicsEngine::PhysicsEngine(
 
     glfwMakeContextCurrent(m_window);
 
-
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         glfwTerminate();
@@ -42,13 +43,13 @@ PhysicsEngine::PhysicsEngine(
 
     std::cout << "GLFW window created.\n";
 
-
     glEnable(GL_DEPTH_TEST);
 
     auto shaderManager = std::make_unique<ShaderManager>();
     auto meshManager = std::make_unique<MeshManager>();
     auto textureManager = std::make_unique<TextureManager>();
 
+    // TODO : load all files present in each folder
     // initialize shaders
     auto dirtBlockShader = std::make_unique<Shader>(
         "dirtBlockShader",
@@ -124,6 +125,7 @@ void PhysicsEngine::render()
 
         processInput(m_window);
         m_deltaTime = timer.getDeltaTime();
+        m_scene->update(m_deltaTime);
         m_scene->render(m_deltaTime);
 
         glfwSwapBuffers(m_window);
