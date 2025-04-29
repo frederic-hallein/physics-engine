@@ -52,6 +52,8 @@ Scene::Scene(
 
 void Scene::render(float deltaTime)
 {
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); TODO : add key shortcut
+
     glClearColor(0.2f, 0.2f, 0.8f, 1.0f); // background
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <fstream>
 #include <sstream>
 #include <iostream>
@@ -19,9 +20,16 @@ public:
     void deleteMesh();
 
 private:
+    void getVertexData(const std::string& meshPath);
+    void getVertexCount();
+
     std::string m_name;
     std::string m_meshPath;
 
-    unsigned int m_VAO, m_VBO;
+    GLuint m_VAO, m_VBO;
+
+    std::vector<float> vertices;
+    std::vector<float> positions;
+    std::vector<float> texCoords;
     unsigned int m_vertexCount;
 };

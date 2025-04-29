@@ -60,7 +60,7 @@ PhysicsEngine::PhysicsEngine(
     // initialize meshes
     auto cubeMesh = std::make_unique<Mesh>(
         "cubeMesh",
-        "../res/meshes/cube.txt"
+        "../res/meshes/cube.obj"
     );
 
     // initialize textures
@@ -95,8 +95,6 @@ PhysicsEngine::PhysicsEngine(
         std::move(textureManager),
         std::move(camera)
     );
-
-
 
 };
 
