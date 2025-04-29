@@ -18,7 +18,7 @@ public:
     Object() = default;
     virtual ~Object() = default;
     virtual void render() = 0;
-
+    virtual Transform& getTransform() = 0;
 };
 
 class Cube : public Object
@@ -32,6 +32,8 @@ public:
     );
     void render() override;
     void addBody(); // rigid or soft
+
+    Transform& getTransform() override { return m_transform; }
 
 protected:
     Transform m_transform;

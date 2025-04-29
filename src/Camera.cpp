@@ -1,14 +1,18 @@
 #include "Camera.hpp"
 
-// // timing
-// float deltaTime = 0.0f;	// time between current frame and last frame
-// float lastFrame = 0.0f;
+void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
+{
+    Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
+    if (!camera)
+    {
+        std::cerr << "Error: Camera instance is null in scrollCallback" << '\n';
+        return;
+    }
 
-// void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-// {
-//     float scrollSpeed = static_cast<float>(150.0 * deltaTime);
-//     m_cameraPos += m_cameraFront * static_cast<float>(yoffset) * scrollSpeed;
-// }
+    float scrollSpeed = static_cast<float>(150.0 * camera->m_deltaTime);
+    camera->setPosition(camera->getPosition() + camera->getFront() * static_cast<float>(yoffset) * scrollSpeed);
+
+}
 
 Camera::Camera(
     glm::vec3 cameraPos,
@@ -29,5 +33,6 @@ Camera::Camera(
       m_farPlane(farPlane),
       m_window(window)
 {
-    // glfwSetScrollCallback(m_window, scrollCallback);
+    glfwSetWindowUserPointer(m_window, this);
+    glfwSetScrollCallback(m_window, scrollCallback);
 }

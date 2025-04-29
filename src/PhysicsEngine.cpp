@@ -1,19 +1,9 @@
 #include "PhysicsEngine.hpp"
 
-// // timing
-// float deltaTime = 0.0f;	// time between current frame and last frame
-// float lastFrame = 0.0f;
-
 void framebufferSizeCallback(GLFWwindow* window, int width, int height)
 {
     glViewport(0, 0, width, height);
 }
-
-// void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-// {
-//     float scrollSpeed = static_cast<float>(150.0 * deltaTime);
-//     cameraPos += cameraFront * static_cast<float>(yoffset) * scrollSpeed;
-// }
 
 PhysicsEngine::PhysicsEngine(
     const char* engineName,
@@ -61,13 +51,23 @@ PhysicsEngine::PhysicsEngine(
     auto textureManager = std::make_unique<TextureManager>();
 
     // initialize shaders
-    auto dirtBlockShader = std::make_unique<Shader>("dirtBlockShader", "../res/shaders/v_shader.txt", "../res/shaders/f_shader.txt");
+    auto dirtBlockShader = std::make_unique<Shader>(
+        "dirtBlockShader",
+        "../res/shaders/v_shader.txt",
+        "../res/shaders/f_shader.txt"
+    );
 
     // initialize meshes
-    auto cubeMesh = std::make_unique<Mesh>("cubeMesh", "../res/meshes/cube.txt");
+    auto cubeMesh = std::make_unique<Mesh>(
+        "cubeMesh",
+        "../res/meshes/cube.txt"
+    );
 
     // initialize textures
-    auto dirtBlockTexture = std::make_unique<Texture>("dirtBlockTexture", "../res/textures/dirt_block.jpg");
+    auto dirtBlockTexture = std::make_unique<Texture>(
+        "dirtBlockTexture",
+        "../res/textures/dirt_block.jpg"
+    );
 
     shaderManager->addShader(std::move(dirtBlockShader));
     meshManager->addMesh(std::move(cubeMesh));
@@ -76,7 +76,7 @@ PhysicsEngine::PhysicsEngine(
     float FOV = 45.0f;
     float nearPlane = 0.1f;
     float farPlane = 100.0f;
-    float aspectRatio = (float)screenWidth / (float)screenHeight;
+    float aspectRatio = (float)m_screenWidth / (float)m_screenHeight;
     auto camera = std::make_unique<Camera>(
         glm::vec3(0.0f, 0.0f,  3.0f),
         glm::vec3(0.0f, 0.0f, -1.0f),
@@ -87,9 +87,6 @@ PhysicsEngine::PhysicsEngine(
         farPlane,
         m_window
     );
-
-
-    // glfwSetScrollCallback(m_window, scrollCallback);
 
     m_scene = std::make_unique<Scene>(
         "Test Scene",
@@ -139,7 +136,7 @@ void PhysicsEngine::render()
         m_lastFrame = currentFrame;
 
         processInput(m_window);
-        m_scene->render();
+        m_scene->render(m_deltaTime);
 
         glfwSwapBuffers(m_window);
         glfwPollEvents();

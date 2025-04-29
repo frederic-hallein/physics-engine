@@ -19,6 +19,7 @@ public:
     const glm::mat4& getModelMatrix()      const { return m_model; };
     const glm::mat4& getViewMatrix()       const { return m_view; };
 
+
 private:
     glm::vec3 m_position;
     glm::vec3 m_front;

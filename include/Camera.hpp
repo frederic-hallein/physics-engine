@@ -1,5 +1,6 @@
 #pragma once
 
+#include <iostream>
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -27,7 +28,8 @@ public:
     float getNearPlane()           const { return m_nearPlane; }
     float getFarPlane()            const { return m_farPlane; }
 
-
+    void setPosition(const glm::vec3& position) { m_cameraPos = position; } // Setter for m_cameraPos
+    void setDeltaTime(float deltaTime) { m_deltaTime = deltaTime; }
 private:
     glm::vec3 m_cameraPos;
     glm::vec3 m_cameraFront;
@@ -38,6 +40,9 @@ private:
     float m_nearPlane;
     float m_farPlane;
 
+    float m_deltaTime = 0.0f;
     GLFWwindow* m_window;
+
+    friend void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);
 
 };

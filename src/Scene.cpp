@@ -13,7 +13,7 @@ Scene::Scene(
         m_textureManager(std::move(textureManager)),
         m_camera(std::move(camera))
 {
-    // create transform (FIXME)
+    // create transform
     Transform transform;
     transform.setProjection(
         m_camera->getFOV(),
@@ -50,12 +50,20 @@ Scene::Scene(
     m_objects.push_back(std::move(dirtBlock));
 }
 
-void Scene::render()
+void Scene::render(float deltaTime)
 {
     glClearColor(0.2f, 0.2f, 0.8f, 1.0f); // background
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    for (const auto& object : m_objects)
+
+    m_camera->setDeltaTime(deltaTime);
+    for (auto& object : m_objects)
     {
+        Transform& transform = object->getTransform(); // Assuming Object has a getTransform() method
+        transform.setView(
+            m_camera->getPosition(),
+            m_camera->getFront(),
+            m_camera->getUp()
+        );
         object->render();
     }
 }
