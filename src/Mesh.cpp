@@ -53,7 +53,8 @@ void Mesh::getVertexCount()
 }
 
 Mesh::Mesh(const std::string& name, const std::string& meshPath)
-    : m_name(name), m_meshPath(meshPath)
+    : m_name(name),
+      m_meshPath(meshPath)
 {
     getVertexData(meshPath);
     getVertexCount();
@@ -64,7 +65,6 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
     glBindVertexArray(m_VAO);
 
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    // glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
 
     // position attribute

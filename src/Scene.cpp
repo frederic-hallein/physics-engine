@@ -23,9 +23,9 @@ Scene::Scene(
     );
 
     glm::mat4 model = glm::rotate(
-        transform.getModelMatrix(),
-        glm::radians(180.0f),
-        glm::vec3(2.0f, 1.0f, 0.5f)
+        glm::mat4(1.0f),
+        glm::radians(0.0f),
+        glm::vec3(0.0f, 0.0f, 1.0f)
     );
     transform.setModel(model);
 
@@ -48,19 +48,48 @@ Scene::Scene(
     );
 
     m_objects.push_back(std::move(dirtBlock));
+
 }
 
 void Scene::render(float deltaTime)
 {
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE); TODO : add key shortcut
+    const glm::vec3 gravity(0.0f, -1.0f, 0.0f);
+    glm::vec3 velocity = glm::vec3(0.0f);
 
     glClearColor(0.2f, 0.2f, 0.8f, 1.0f); // background
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_camera->setDeltaTime(deltaTime);
+
+
     for (auto& object : m_objects)
     {
         Transform& transform = object->getTransform(); // Assuming Object has a getTransform() method
+
+        // Apply gravity (world translation)
+        glm::vec3 velocity = transform.getVelocity();
+        velocity += gravity * deltaTime;
+        transform.setVelocity(velocity);
+
+        glm::vec3 position = transform.getPosition();
+        position += velocity * deltaTime;
+        transform.setPosition(position);
+
+        glm::mat4 trans = glm::translate(
+            glm::mat4(1.0f),
+            velocity
+        );
+
+        glm::mat4 rot = glm::rotate(
+            glm::mat4(1.0f),
+            (float)glfwGetTime() * glm::radians(10.0f),
+            glm::vec3(0.0f, 0.0f, 1.0f)
+        );
+
+        glm::mat4 model = trans * rot;
+        transform.setModel(model);
+
         transform.setView(
             m_camera->getPosition(),
             m_camera->getFront(),
