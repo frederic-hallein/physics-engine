@@ -107,15 +107,8 @@ void PhysicsEngine::handleEvents()
 
 static void processInput(GLFWwindow* window)
 {
-    // float cameraSpeed = static_cast<float>(100 * deltaTime);
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
-
-    // if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-    //     cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-    // if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-    //     cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-
 }
 
 void PhysicsEngine::render()
@@ -123,31 +116,21 @@ void PhysicsEngine::render()
     const int targetFPS = 60;
     const int targetFrameTime = 1000 / targetFPS;
 
+    Timer timer;
+
     while (!glfwWindowShouldClose(m_window))
     {
-        auto frameStart = std::chrono::high_resolution_clock::now();
-
-        // Per-frame time logic
-        float currentFrame = static_cast<float>(glfwGetTime());
-        m_deltaTime = currentFrame - m_lastFrame;
-        m_lastFrame = currentFrame;
+        timer.startFrame();
 
         processInput(m_window);
+        m_deltaTime = timer.getDeltaTime();
         m_scene->render(m_deltaTime);
 
         glfwSwapBuffers(m_window);
         glfwPollEvents();
 
-        auto frameEnd = std::chrono::high_resolution_clock::now();
-        auto frameDuration = std::chrono::duration_cast<std::chrono::milliseconds>(frameEnd - frameStart);
-
-        // Sleep to cap the frame rate
-        if (frameDuration.count() < targetFrameTime)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(targetFrameTime - frameDuration.count()));
-        }
-
-        std::cout << "Frame Time: " << frameDuration.count() << " ms" << '\n';
+        timer.capFrameRate(targetFPS);
+        timer.printFrameDuration();
     }
 }
 

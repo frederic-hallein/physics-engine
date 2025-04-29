@@ -39,7 +39,8 @@ Camera::Camera(
 
 void Camera::move()
 {
-    float cameraSpeed = static_cast<float>(50 * m_deltaTime);
+    float cameraSpeed = static_cast<float>(30 * m_deltaTime);
+
     if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
         m_cameraPos -= glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * cameraSpeed;
     if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)

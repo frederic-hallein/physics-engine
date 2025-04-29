@@ -1,7 +1,6 @@
 #pragma once
 
 #include <iostream>
-#include <chrono>
 #include <thread>
 #include <vector>
 #include <memory>
@@ -9,6 +8,7 @@
 #include <GLFW/glfw3.h>
 
 #include "Scene.hpp"
+#include "Timer.hpp"
 
 class PhysicsEngine
 {
