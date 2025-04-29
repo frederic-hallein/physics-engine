@@ -36,3 +36,21 @@ Camera::Camera(
     glfwSetWindowUserPointer(m_window, this);
     glfwSetScrollCallback(m_window, scrollCallback);
 }
+
+void Camera::move()
+{
+    float cameraSpeed = static_cast<float>(50 * m_deltaTime);
+    if (glfwGetKey(m_window, GLFW_KEY_A) == GLFW_PRESS)
+        m_cameraPos -= glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * cameraSpeed;
+    if (glfwGetKey(m_window, GLFW_KEY_D) == GLFW_PRESS)
+        m_cameraPos += glm::normalize(glm::cross(m_cameraFront, m_cameraUp)) * cameraSpeed;
+    if (glfwGetKey(m_window, GLFW_KEY_S) == GLFW_PRESS)
+        m_cameraPos -= glm::normalize(m_cameraFront) * cameraSpeed;
+    if (glfwGetKey(m_window, GLFW_KEY_W) == GLFW_PRESS)
+        m_cameraPos += glm::normalize(m_cameraFront) * cameraSpeed;
+
+    if (glfwGetKey(m_window, GLFW_KEY_SPACE) == GLFW_PRESS)
+        m_cameraPos += m_cameraUp * cameraSpeed;
+    if (glfwGetKey(m_window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS)
+        m_cameraPos -= m_cameraUp * cameraSpeed;
+}

@@ -1,6 +1,3 @@
-#include <glad.h>
-#include <GLFW/glfw3.h>
-
 #include "PhysicsEngine.hpp"
 
 const int unsigned SCREEN_WIDTH = 1080;

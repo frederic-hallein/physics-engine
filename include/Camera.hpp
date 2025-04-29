@@ -20,6 +20,8 @@ public:
         GLFWwindow* window
     );
 
+    void move();
+
     const glm::vec3& getPosition() const { return m_cameraPos; }
     const glm::vec3& getFront()    const { return m_cameraFront; }
     const glm::vec3& getUp()       const { return m_cameraUp; }

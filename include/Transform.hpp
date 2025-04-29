@@ -24,8 +24,8 @@ public:
     const glm::mat4& getViewMatrix()       const { return m_view; };
 
 private:
-    glm::vec3 m_position = glm::vec3(0.0f);
-    glm::vec3 m_velocity = glm::vec3(0.0f);
+    glm::vec3 m_position;
+    glm::vec3 m_velocity;
     glm::vec3 m_front;
     glm::vec3 m_up;
 

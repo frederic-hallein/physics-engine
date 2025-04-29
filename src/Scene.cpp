@@ -15,6 +15,7 @@ Scene::Scene(
 {
     // create transform
     Transform transform;
+
     transform.setProjection(
         m_camera->getFOV(),
         m_camera->getAspectRatio(),
@@ -22,12 +23,18 @@ Scene::Scene(
         m_camera->getFarPlane()
     );
 
-    glm::mat4 model = glm::rotate(
+    glm::mat4 trans = glm::translate(
+        glm::mat4(1.0f),
+        glm::vec3(0.0f, 10.0f, 0.0f)
+    );
+
+    glm::mat4 rot = glm::rotate(
         glm::mat4(1.0f),
         glm::radians(0.0f),
         glm::vec3(0.0f, 0.0f, 1.0f)
     );
-    transform.setModel(model);
+
+    transform.setModel(rot * trans);
 
     transform.setView(
         m_camera->getPosition(),
@@ -61,11 +68,11 @@ void Scene::render(float deltaTime)
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     m_camera->setDeltaTime(deltaTime);
-
+    m_camera->move();
 
     for (auto& object : m_objects)
     {
-        Transform& transform = object->getTransform(); // Assuming Object has a getTransform() method
+        Transform& transform = object->getTransform();
 
         // Apply gravity (world translation)
         glm::vec3 velocity = transform.getVelocity();
@@ -87,14 +94,15 @@ void Scene::render(float deltaTime)
             glm::vec3(0.0f, 0.0f, 1.0f)
         );
 
-        glm::mat4 model = trans * rot;
-        transform.setModel(model);
+        transform.setModel(trans * rot);
 
         transform.setView(
             m_camera->getPosition(),
             m_camera->getFront(),
             m_camera->getUp()
         );
+
+
         object->render();
     }
 }

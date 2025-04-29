@@ -28,7 +28,6 @@ PhysicsEngine::PhysicsEngine(
     }
 
     glfwMakeContextCurrent(m_window);
-    // glfwSetScrollCallback(m_window, scrollCallback);
 
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
