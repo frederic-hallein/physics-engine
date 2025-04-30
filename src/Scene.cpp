@@ -1,5 +1,8 @@
 #include "Scene.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
 Scene::Scene(
     const std::string& name,
     std::unique_ptr<ShaderManager> shaderManager,
@@ -13,61 +16,60 @@ Scene::Scene(
         m_textureManager(std::move(textureManager)),
         m_camera(std::move(camera))
 {
-    Transform transform;
-    transform.setProjection(
+    // Create a transform for the platform block
+    Shader& platformShader = m_shaderManager->getShader("platform");
+    Mesh& cubeMesh = m_meshManager->getMesh("cube");
+    Transform platformTransform;
+    platformTransform.setProjection(
         m_camera->getFOV(),
         m_camera->getAspectRatio(),
         m_camera->getNearPlane(),
         m_camera->getFarPlane()
     );
 
-    // glm::mat4 rot = glm::rotate(
-    //     glm::mat4(1.0f),
-    //     glm::radians(0.0f),
-    //     glm::vec3(0.0f, 0.0f, 1.0f)
-    // );
 
-    // transform.setModel(rot);
 
-    // transform.setView(
-    //     m_camera->getPosition(),
-    //     m_camera->getFront(),
-    //     m_camera->getUp()
-    // );
+    // Create a transform for the dirt block
+    Shader& dirtBlockShader = m_shaderManager->getShader("dirtblock");
+    Texture& dirtBlockTexture = m_textureManager->getTexture("dirtblock");
+    Transform dirtBlockTransform;
+    dirtBlockTransform.makeNoneStatic();
+    dirtBlockTransform.setProjection(
+        m_camera->getFOV(),
+        m_camera->getAspectRatio(),
+        m_camera->getNearPlane(),
+        m_camera->getFarPlane()
+    );
+    glm::vec3 dirtBlockPosition(0.0f, 5.0f, 0.0f);
+    glm::mat4 dirtBlockTranslationMatrix = glm::translate(glm::mat4(1.0f), dirtBlockPosition);
+    dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
+    platformTransform.setView(
+        m_camera->getPosition(),
+        m_camera->getFront(),
+        m_camera->getUp()
+    );
 
-    // create platform
-    Shader& platformShader = m_shaderManager->getShader("platform");
-    Mesh& cubeMesh         = m_meshManager->getMesh("cube");
 
+    // create platformblock
     auto platformBlock = std::make_unique<Cube>(
-        transform,
+        platformTransform,
         platformShader,
         cubeMesh
     );
 
+    std::cout << "Platform Position: " << glm::to_string(platformTransform.getPosition()) << '\n';
+    std::cout << "Camera Position: " << glm::to_string(m_camera->getPosition()) << '\n';
+
 
     // create dirtblock
-    Shader& dirtBlockShader   = m_shaderManager->getShader("dirtblock");
-    Texture& dirtBlockTexture = m_textureManager->getTexture("dirtblock");
-
-    glm::mat4 trans = glm::translate(
-        transform.getModelMatrix(),
-        glm::vec3(0.0f, 10.0f, 0.0f)
-    );
-    transform.setModel(trans);
-
-
-    transform.makeNonStatic();
     auto dirtBlock = std::make_unique<DirtBlock>(
-        transform,
+        dirtBlockTransform,
         dirtBlockShader,
         cubeMesh,
         dirtBlockTexture
     );
 
-
-
-
+    // Add objects to the scene
     m_objects.push_back(std::move(platformBlock));
     m_objects.push_back(std::move(dirtBlock));
 
@@ -92,28 +94,32 @@ void Scene::update(float deltaTime)
 
         if (!transform.isStatic())
         {
-            // Apply gravity (world translation)
-            glm::vec3 velocity = transform.getVelocity();
-            velocity += gravity * deltaTime;
-            transform.setVelocity(velocity);
+            // // Apply gravity (world translation)
+            // glm::vec3 velocity = transform.getVelocity();
+            // velocity += gravity * deltaTime;
+            // transform.setVelocity(velocity);
 
-            glm::vec3 position = transform.getPosition();
-            position += velocity * deltaTime;
-            transform.setPosition(position);
+            // glm::vec3 position = transform.getPosition();
+            // position += velocity * deltaTime;
+            // transform.setPosition(position);
 
-            glm::mat4 trans = glm::translate(
-                glm::mat4(1.0f),
-                velocity
-            );
+            // glm::mat4 trans = glm::translate(
+            //     glm::mat4(1.0f),
+            //     velocity
+            // );
 
-            glm::mat4 rot = glm::rotate(
-                glm::mat4(1.0f),
-                (float)glfwGetTime() * glm::radians(10.0f),
-                glm::vec3(0.0f, 0.0f, 1.0f)
-            );
+            // glm::mat4 rot = glm::rotate(
+            //     glm::mat4(1.0f),
+            //     (float)glfwGetTime() * glm::radians(10.0f),
+            //     glm::vec3(0.0f, 0.0f, 1.0f)
+            // );
 
-            transform.setModel(trans * rot);
+            // transform.setModel(trans * rot);
 
+        }
+        else
+        {
+            // std::cout << "Position: " << glm::to_string(transform.getPosition()) << '\n';
         }
 
 
