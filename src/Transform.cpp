@@ -20,14 +20,11 @@ void Transform::setProjection(float fov, float aspectRatio, float nearPlane, flo
 
 void Transform::setModel(const glm::mat4& model)
 {
+    m_position = glm::vec3(model[3][0], model[3][1], model[3][2]);
     m_model = model;
 }
 
 void Transform::setView(const glm::vec3& position, const glm::vec3& front, const glm::vec3& up)
 {
-    m_position = position;
-    m_front = front;
-    m_up = up;
-    m_view = glm::lookAt(m_position, m_position + m_front, m_up);
-    // m_view = glm::lookAt(position, position + front, up);
+    m_view = glm::lookAt(position, position + front, up);
 }

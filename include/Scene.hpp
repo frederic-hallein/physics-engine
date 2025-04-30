@@ -28,6 +28,8 @@ public:
     void clear();
 
 private:
+    void applyGravity(Transform& transform, float deltaTime);
+
     std::string m_name;
 
     std::unique_ptr<ShaderManager> m_shaderManager;
