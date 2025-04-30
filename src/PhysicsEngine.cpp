@@ -43,8 +43,6 @@ PhysicsEngine::PhysicsEngine(
 
     std::cout << "GLFW window created.\n";
 
-    glEnable(GL_DEPTH_TEST);
-
     auto shaderManager = std::make_unique<ShaderManager>();
     auto meshManager = std::make_unique<MeshManager>();
     auto textureManager = std::make_unique<TextureManager>();

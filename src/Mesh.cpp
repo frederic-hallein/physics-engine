@@ -55,7 +55,7 @@ void Mesh::getVertexCount()
 Mesh::Mesh(const std::string& name, const std::string& meshPath)
     : m_name(name),
       m_meshPath(meshPath),
-      m_sideLength(2.0f) // TODO : get sideLength from file
+      m_sideLength(1.0f) // TODO : get sideLength from file
 {
     getVertexData(meshPath);
     getVertexCount();

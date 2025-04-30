@@ -47,6 +47,8 @@ Scene::Scene(
     );
     dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
 
+    // TODO : initialize dirBlock at some angle
+
 
     // create platformblock
     auto platformBlock = std::make_unique<Cube>(
@@ -57,9 +59,9 @@ Scene::Scene(
 
     // create platform
     float cubeSideLength = cubeMesh.getSideLength();
-    for (int z = -10; z < 10; ++z)
+    for (int z = -25; z < 25; ++z)
     {
-        for (int x = -10; x < 10; ++x)
+        for (int x = -25; x < 25; ++x)
         {
             auto platformBlockCopy = std::make_unique<Cube>(*platformBlock);
 
@@ -109,7 +111,9 @@ void Scene::update(float deltaTime)
 
     m_camera->setDeltaTime(deltaTime);
     m_camera->move();
-    // std::cout << "Camera Position: " << glm::to_string(m_camera->getPosition()) << '\n';
+
+    // // TODO : print out in ImGui
+    std::cout << "Camera Position: " << glm::to_string(m_camera->getPosition()) << '\n';
 
     for (auto& object : m_objects)
     {
@@ -123,24 +127,21 @@ void Scene::update(float deltaTime)
         if (!transform.isStatic())
         {
             applyGravity(transform, deltaTime);
-            // std::cout << "Dynamic object position: " << glm::to_string(transform.getPosition()) << '\n';
+            std::cout << "Dynamic object position: " << glm::to_string(transform.getPosition()) << '\n';
         }
-        else
-        {
-            // std::cout << "Static object Position: " << glm::to_string(transform.getPosition()) << '\n';
-        }
-
-
     }
 }
 
 void Scene::render(float deltaTime)
 {
+    glEnable(GL_DEPTH_TEST);
+
     // // TODO : add key shortcut
     glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
-
-
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_FRONT);
+    glFrontFace(GL_CW);
 
     glClearColor(0.2f, 0.2f, 0.8f, 1.0f); // background
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
