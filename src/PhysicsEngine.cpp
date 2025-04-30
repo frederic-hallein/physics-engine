@@ -52,24 +52,31 @@ PhysicsEngine::PhysicsEngine(
     // TODO : load all files present in each folder
     // initialize shaders
     auto dirtBlockShader = std::make_unique<Shader>(
-        "dirtBlockShader",
-        "../res/shaders/v_shader.txt",
-        "../res/shaders/f_shader.txt"
+        "dirtblock",
+        "../res/shaders/dirtblock.vsh",
+        "../res/shaders/dirtblock.fsh"
+    );
+
+    auto platformShader = std::make_unique<Shader>(
+        "platform",
+        "../res/shaders/platform.vsh",
+        "../res/shaders/platform.fsh"
     );
 
     // initialize meshes
     auto cubeMesh = std::make_unique<Mesh>(
-        "cubeMesh",
+        "cube",
         "../res/meshes/cube.obj"
     );
 
     // initialize textures
     auto dirtBlockTexture = std::make_unique<Texture>(
-        "dirtBlockTexture",
-        "../res/textures/dirt_block.jpg"
+        "dirtblock",
+        "../res/textures/dirtblock.jpg"
     );
 
     shaderManager->addShader(std::move(dirtBlockShader));
+    shaderManager->addShader(std::move(platformShader));
     meshManager->addMesh(std::move(cubeMesh));
     textureManager->addTexture(std::move(dirtBlockTexture));
 
@@ -115,8 +122,6 @@ static void processInput(GLFWwindow* window)
 void PhysicsEngine::render()
 {
     const int targetFPS = 60;
-    const int targetFrameTime = 1000 / targetFPS;
-
     Timer timer;
 
     while (!glfwWindowShouldClose(m_window))

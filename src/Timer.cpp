@@ -1,7 +1,8 @@
 #include "Timer.hpp"
 
 Timer::Timer()
-    : m_deltaTime(0.0f), m_frameDuration(0)
+    : m_deltaTime(0.0f),
+      m_frameDuration(0)
 {
     m_frameStart = std::chrono::high_resolution_clock::now();
     m_lastFrame = m_frameStart;
