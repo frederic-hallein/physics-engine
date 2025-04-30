@@ -11,10 +11,14 @@ class Mesh
 {
 public:
     Mesh() = default;
-    Mesh(const std::string& name, const std::string& meshPath);
+    Mesh(
+        const std::string& name,
+        const std::string& meshPath
+    );
 
     const std::string getName()     const { return m_name; }
     const std::string getMeshPath() const { return m_meshPath; }
+    const float getSideLength()     const { return m_sideLength; }
 
     void draw();
     void deleteMesh();
@@ -25,6 +29,7 @@ private:
 
     std::string m_name;
     std::string m_meshPath;
+    float m_sideLength;
 
     GLuint m_VAO, m_VBO;
 

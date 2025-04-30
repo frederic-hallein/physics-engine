@@ -9,8 +9,26 @@ Cube::Cube(
       m_shader(&shader),
       m_mesh(&mesh)
 {
-
     // m_shader->useProgram();
+}
+
+Cube::Cube(const Cube& other)
+    : m_transform(other.m_transform),
+      m_shader(other.m_shader),
+      m_mesh(other.m_mesh)
+{
+
+}
+
+Cube& Cube::operator=(const Cube& other)
+{
+    if (this != &other)
+    {
+        m_transform = other.m_transform;
+        m_shader = other.m_shader;
+        m_mesh = other.m_mesh;
+    }
+    return *this;
 }
 
 void Cube::render()

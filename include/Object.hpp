@@ -30,6 +30,8 @@ public:
         Shader& shader,
         Mesh& mesh
     );
+    Cube(const Cube& other);
+    Cube& operator=(const Cube& other);
     void render() override;
     void addBody(); // rigid or soft
 

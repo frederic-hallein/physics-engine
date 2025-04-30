@@ -40,20 +40,12 @@ Scene::Scene(
         m_camera->getFarPlane()
     );
 
-    glm::vec3 dirtBlockPosition(0.0f, 5.0f, 0.0f);
-    glm::mat4 dirtBlockTranslationMatrix = glm::translate(glm::mat4(1.0f), dirtBlockPosition);
-
-    float initialAngle = glm::radians(45.0f);
-    glm::mat4 dirtBlockRotationMatrix = glm::rotate(
+    glm::vec3 dirtBlockPosition(0.0f, 10.0f, 0.0f);
+    glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
-        initialAngle,
-        glm::vec3(0.8f, 0.3f, 1.0f) // Rotate around Z-axis
+        dirtBlockPosition
     );
-
-    // Combine translation and rotation
-    glm::mat4 dirtBlockModelMatrix = dirtBlockTranslationMatrix * dirtBlockRotationMatrix;
-    dirtBlockTransform.setModel(dirtBlockModelMatrix);
-
+    dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
 
 
     // create platformblock
@@ -63,6 +55,22 @@ Scene::Scene(
         cubeMesh
     );
 
+    // create platform
+    float cubeSideLength = cubeMesh.getSideLength();
+    for (int z = -10; z < 10; ++z)
+    {
+        for (int x = -10; x < 10; ++x)
+        {
+            auto platformBlockCopy = std::make_unique<Cube>(*platformBlock);
+
+            glm::vec3 newPosition(x * cubeSideLength, 0.0f, z * cubeSideLength);
+            glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), newPosition);
+            platformBlockCopy->getTransform().setModel(translationMatrix);
+
+            m_objects.push_back(std::move(platformBlockCopy));
+        }
+    }
+
     // create dirtblock
     auto dirtBlock = std::make_unique<DirtBlock>(
         dirtBlockTransform,
@@ -71,8 +79,6 @@ Scene::Scene(
         dirtBlockTexture
     );
 
-    // Add objects to the scene
-    m_objects.push_back(std::move(platformBlock));
     m_objects.push_back(std::move(dirtBlock));
 
 }
@@ -103,8 +109,7 @@ void Scene::update(float deltaTime)
 
     m_camera->setDeltaTime(deltaTime);
     m_camera->move();
-    std::cout << "Camera Position: " << glm::to_string(m_camera->getPosition()) << '\n';
-
+    // std::cout << "Camera Position: " << glm::to_string(m_camera->getPosition()) << '\n';
 
     for (auto& object : m_objects)
     {
@@ -118,11 +123,11 @@ void Scene::update(float deltaTime)
         if (!transform.isStatic())
         {
             applyGravity(transform, deltaTime);
-            std::cout << "Dynamic object position: " << glm::to_string(transform.getPosition()) << '\n';
+            // std::cout << "Dynamic object position: " << glm::to_string(transform.getPosition()) << '\n';
         }
         else
         {
-            std::cout << "Static object Position: " << glm::to_string(transform.getPosition()) << '\n';
+            // std::cout << "Static object Position: " << glm::to_string(transform.getPosition()) << '\n';
         }
 
 
@@ -132,7 +137,10 @@ void Scene::update(float deltaTime)
 void Scene::render(float deltaTime)
 {
     // // TODO : add key shortcut
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+
+
+
 
     glClearColor(0.2f, 0.2f, 0.8f, 1.0f); // background
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -141,6 +149,7 @@ void Scene::render(float deltaTime)
     {
         object->render();
     }
+
 }
 
 void Scene::clear()
