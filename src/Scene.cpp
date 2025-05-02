@@ -58,14 +58,14 @@ Scene::Scene(
     );
 
     // create platform
-    float cubeSideLength = cubeMesh.getSideLength();
+    float separationDistance = 1.0;
     for (int z = -25; z < 25; ++z)
     {
         for (int x = -25; x < 25; ++x)
         {
             auto platformBlockCopy = std::make_unique<Cube>(*platformBlock);
 
-            glm::vec3 newPosition(x * cubeSideLength, 0.0f, z * cubeSideLength);
+            glm::vec3 newPosition(x * separationDistance, 0.0f, z * separationDistance);
             glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), newPosition);
             platformBlockCopy->getTransform().setModel(translationMatrix);
 
@@ -115,7 +115,7 @@ void Scene::update(float deltaTime)
     m_camera->move();
 
     // TODO : print out in ImGui
-    std::cout << "Camera Position: " << glm::to_string(m_camera->getPosition()) << '\n';
+    // std::cout << "Camera Position: " << glm::to_string(m_camera->getPosition()) << '\n';
 
     for (auto& object : m_objects)
     {
@@ -128,8 +128,8 @@ void Scene::update(float deltaTime)
 
         if (!transform.isStatic())
         {
-            applyGravity(transform, deltaTime);
-            std::cout << "Dynamic object position: " << glm::to_string(transform.getPosition()) << '\n';
+            // applyGravity(transform, deltaTime);
+            // std::cout << "Dynamic object position: " << glm::to_string(transform.getPosition()) << '\n';
         }
     }
 }
@@ -137,13 +137,12 @@ void Scene::update(float deltaTime)
 void Scene::render(float deltaTime)
 {
     glEnable(GL_DEPTH_TEST);
-    // glDepthFunc(GL_ALWAYS);
 
     // // TODO : add key shortcut
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_CULL_FACE);
-    glCullFace(GL_FRONT);
+    glCullFace(GL_BACK);
     glFrontFace(GL_CW);
 
     glClearColor(0.2f, 0.2f, 0.8f, 1.0f); // background

@@ -2,12 +2,17 @@
 
 #include "Mesh.hpp"
 
-void Mesh::setVertexData(const std::string& meshPath)
+void Mesh::loadObjData(const std::string& filePath)
 {
-    std::ifstream file(meshPath);
+    std::vector<glm::vec3> positions; // To store vertex positions
+    std::vector<glm::vec2> texCoords; // To store texture coordinates
+    std::vector<glm::vec3> normals;   // To store normal vectors
+    std::vector<unsigned int> indices; // To store indices
+
+    std::ifstream file(filePath);
     if (!file.is_open())
     {
-        std::cerr << "ERROR::MESH::FILE_NOT_SUCCESSFULLY_OPENED: " << meshPath << std::endl;
+        std::cerr << "ERROR::MESH::FILE_NOT_SUCCESSFULLY_OPENED: " << filePath << std::endl;
         return;
     }
 
@@ -22,69 +27,105 @@ void Mesh::setVertexData(const std::string& meshPath)
         {
             float x, y, z;
             iss >> x >> y >> z;
-            positions.push_back(x);
-            positions.push_back(y);
-            positions.push_back(z);
+            positions.emplace_back(x, y, z);
         }
         else if (prefix == "vt") // Texture coordinate
         {
             float u, v;
             iss >> u >> v;
-            texCoords.push_back(u);
-            texCoords.push_back(v);
+            texCoords.emplace_back(u, v);
+        }
+        else if (prefix == "vn") // Normal vector
+        {
+            float nx, ny, nz;
+            iss >> nx >> ny >> nz;
+            normals.emplace_back(nx, ny, nz);
+        }
+        else if (prefix == "f") // Face data
+        {
+            std::string vertexData;
+            for (int i = 0; i < 3; ++i) // Each face is a triangle
+            {
+                iss >> vertexData;
+
+                // Parse the vertex/texture/normal indices
+                std::istringstream vertexStream(vertexData);
+                std::string v, vt, vn;
+                std::getline(vertexStream, v, '/');
+                std::getline(vertexStream, vt, '/');
+                std::getline(vertexStream, vn, '/');
+
+                unsigned int vertexIndex = std::stoi(v) - 1;  // Convert to 0-based index
+                unsigned int texCoordIndex = std::stoi(vt) - 1;
+                unsigned int normalIndex = std::stoi(vn) - 1;
+
+                // Add position, texture, and normal to m_vertices
+                m_vertices.push_back(positions[vertexIndex].x);
+                m_vertices.push_back(positions[vertexIndex].y);
+                m_vertices.push_back(positions[vertexIndex].z);
+
+                m_vertices.push_back(texCoords[texCoordIndex].x);
+                m_vertices.push_back(texCoords[texCoordIndex].y);
+
+                m_vertices.push_back(normals[normalIndex].x);
+                m_vertices.push_back(normals[normalIndex].y);
+                m_vertices.push_back(normals[normalIndex].z);
+
+                // Add index to the indices array
+                indices.push_back(static_cast<unsigned int>(indices.size()));
+            }
         }
     }
+
     file.close();
-}
 
-void Mesh::calculateVertexCount()
-{
-    size_t vertexCount = std::min(positions.size() / 3, texCoords.size() / 2);
-    for (size_t i = 0; i < vertexCount; ++i)
-    {
-        vertices.push_back(positions[i * 3 + 0]); // x
-        vertices.push_back(positions[i * 3 + 1]); // y
-        vertices.push_back(positions[i * 3 + 2]); // z
-        vertices.push_back(texCoords[i * 2 + 0]); // u
-        vertices.push_back(texCoords[i * 2 + 1]); // v
-    }
-
-    m_vertexCount = static_cast<int>(vertexCount);
+    // Store indices in m_indices
+    m_indices = indices;
 }
 
 Mesh::Mesh(const std::string& name, const std::string& meshPath)
     : m_name(name),
-      m_meshPath(meshPath),
-      m_sideLength(1.0f) // TODO : get sideLength from file
+      m_meshPath(meshPath)
 {
-    setVertexData(meshPath);
-    calculateVertexCount();
+    loadObjData(meshPath);
 
     glGenVertexArrays(1, &m_VAO);
     glGenBuffers(1, &m_VBO);
+    glGenBuffers(1, &m_EBO);
 
     glBindVertexArray(m_VAO);
 
+    // Bind and set VBO
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(float), m_vertices.data(), GL_STATIC_DRAW);
 
-    // position attribute
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+    // Bind and set EBO
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, m_indices.size() * sizeof(unsigned int), m_indices.data(), GL_STATIC_DRAW);
+
+    // Position attribute
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    // texture coord attribute
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    // Texture coordinate attribute
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // Normal coordinate attribute
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(5 * sizeof(float)));
+    glEnableVertexAttribArray(2);
 }
 
 void Mesh::draw()
 {
     glBindVertexArray(m_VAO);
-    glDrawArrays(GL_TRIANGLES, 0, m_vertexCount);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
+    glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
 }
 
 void Mesh::deleteMesh()
 {
     glDeleteVertexArrays(1, &m_VAO);
     glDeleteBuffers(1, &m_VBO);
+    glDeleteBuffers(1, &m_EBO);
 }

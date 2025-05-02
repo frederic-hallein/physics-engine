@@ -6,6 +6,7 @@
 #include <sstream>
 #include <iostream>
 #include <glad.h>
+#include <glm/glm.hpp>
 
 class Mesh
 {
@@ -18,23 +19,19 @@ public:
 
     const std::string getName()     const { return m_name; }
     const std::string getMeshPath() const { return m_meshPath; }
-    const float getSideLength()     const { return m_sideLength; }
 
     void draw();
     void deleteMesh();
 
 private:
-    void setVertexData(const std::string& meshPath);
-    void calculateVertexCount();
+    void loadObjData(const std::string& meshPath);
 
     std::string m_name;
     std::string m_meshPath;
-    float m_sideLength;
 
-    GLuint m_VAO, m_VBO;
+    std::vector<float> m_vertices;
+    std::vector<unsigned int> m_indices;
 
-    std::vector<float> vertices;
-    std::vector<float> positions;
-    std::vector<float> texCoords;
-    unsigned int m_vertexCount;
+    GLuint m_VAO, m_VBO, m_EBO;
+    int m_vertexCount;
 };
