@@ -4,10 +4,7 @@
 
 void Mesh::loadObjData(const std::string& filePath)
 {
-    std::vector<glm::vec3> positions; // To store vertex positions
-    std::vector<glm::vec2> texCoords; // To store texture coordinates
-    std::vector<glm::vec3> normals;   // To store normal vectors
-    std::vector<unsigned int> indices; // To store indices
+    std::vector<unsigned int> indices;
 
     std::ifstream file(filePath);
     if (!file.is_open())
@@ -27,24 +24,24 @@ void Mesh::loadObjData(const std::string& filePath)
         {
             float x, y, z;
             iss >> x >> y >> z;
-            positions.emplace_back(x, y, z);
+            m_positions.emplace_back(x, y, z);
         }
         else if (prefix == "vt") // Texture coordinate
         {
             float u, v;
             iss >> u >> v;
-            texCoords.emplace_back(u, v);
+            m_texCoords.emplace_back(u, v);
         }
         else if (prefix == "vn") // Normal vector
         {
             float nx, ny, nz;
             iss >> nx >> ny >> nz;
-            normals.emplace_back(nx, ny, nz);
+            m_normals.emplace_back(nx, ny, nz);
         }
         else if (prefix == "f") // Face data
         {
             std::string vertexData;
-            for (int i = 0; i < 3; ++i) // Each face is a triangle
+            for (int i = 0; i < 3; ++i)
             {
                 iss >> vertexData;
 
@@ -60,16 +57,16 @@ void Mesh::loadObjData(const std::string& filePath)
                 unsigned int normalIndex = std::stoi(vn) - 1;
 
                 // Add position, texture, and normal to m_vertices
-                m_vertices.push_back(positions[vertexIndex].x);
-                m_vertices.push_back(positions[vertexIndex].y);
-                m_vertices.push_back(positions[vertexIndex].z);
+                m_vertices.push_back(m_positions[vertexIndex].x);
+                m_vertices.push_back(m_positions[vertexIndex].y);
+                m_vertices.push_back(m_positions[vertexIndex].z);
 
-                m_vertices.push_back(texCoords[texCoordIndex].x);
-                m_vertices.push_back(texCoords[texCoordIndex].y);
+                m_vertices.push_back(m_texCoords[texCoordIndex].x);
+                m_vertices.push_back(m_texCoords[texCoordIndex].y);
 
-                m_vertices.push_back(normals[normalIndex].x);
-                m_vertices.push_back(normals[normalIndex].y);
-                m_vertices.push_back(normals[normalIndex].z);
+                m_vertices.push_back(m_normals[normalIndex].x);
+                m_vertices.push_back(m_normals[normalIndex].y);
+                m_vertices.push_back(m_normals[normalIndex].z);
 
                 // Add index to the indices array
                 indices.push_back(static_cast<unsigned int>(indices.size()));
@@ -78,8 +75,6 @@ void Mesh::loadObjData(const std::string& filePath)
     }
 
     file.close();
-
-    // Store indices in m_indices
     m_indices = indices;
 }
 

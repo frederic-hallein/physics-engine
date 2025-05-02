@@ -16,9 +16,14 @@ Scene::Scene(
         m_textureManager(std::move(textureManager)),
         m_camera(std::move(camera))
 {
-    // Create a transform for the platform block
     Shader& platformShader = m_shaderManager->getShader("platform");
+    Shader& dirtBlockShader = m_shaderManager->getShader("dirtblock");
+
     Mesh& cubeMesh = m_meshManager->getMesh("cube");
+
+    Texture& dirtBlockTexture = m_textureManager->getTexture("dirtblock");
+
+    // platform
     Transform platformTransform;
     platformTransform.setProjection(
         m_camera->getFOV(),
@@ -26,68 +31,54 @@ Scene::Scene(
         m_camera->getNearPlane(),
         m_camera->getFarPlane()
     );
+    float separationDistance = 1.0f;
+    for (int z = -15; z < 15; ++z)
+    {
+        for (int x = -15; x < 15; ++x)
+        {
+            // Calculate the new position for the platform block
+            glm::vec3 newPosition(x * separationDistance, 0.0f, z * separationDistance);
+            glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), newPosition);
+            platformTransform.setModel(translationMatrix);
 
+            auto platformBlock = std::make_unique<Cube>(
+                platformTransform,
+                platformShader,
+                cubeMesh
+            );
 
-    // Create a transform for the dirt block
-    Shader& dirtBlockShader = m_shaderManager->getShader("dirtblock");
-    Texture& dirtBlockTexture = m_textureManager->getTexture("dirtblock");
+            m_objects.push_back(std::move(platformBlock));
+        }
+    }
+
+    // dirtBlock
     Transform dirtBlockTransform;
-    dirtBlockTransform.makeNoneStatic();
     dirtBlockTransform.setProjection(
         m_camera->getFOV(),
         m_camera->getAspectRatio(),
         m_camera->getNearPlane(),
         m_camera->getFarPlane()
     );
-
-    glm::vec3 dirtBlockPosition(0.0f, 15.0f, 0.0f);
+    glm::vec3 dirtBlockPosition(0.0f, 10.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
     );
     dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
-
-    // TODO : initialize dirBlock at some angle
-
-
-    // create platformblock
-    auto platformBlock = std::make_unique<Cube>(
-        platformTransform,
-        platformShader,
-        cubeMesh
-    );
-
-    // create platform
-    float separationDistance = 1.0;
-    for (int z = -25; z < 25; ++z)
-    {
-        for (int x = -25; x < 25; ++x)
-        {
-            auto platformBlockCopy = std::make_unique<Cube>(*platformBlock);
-
-            glm::vec3 newPosition(x * separationDistance, 0.0f, z * separationDistance);
-            glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), newPosition);
-            platformBlockCopy->getTransform().setModel(translationMatrix);
-
-            m_objects.push_back(std::move(platformBlockCopy));
-        }
-    }
-
-    // create dirtblock
     auto dirtBlock = std::make_unique<DirtBlock>(
         dirtBlockTransform,
         dirtBlockShader,
         cubeMesh,
-        dirtBlockTexture
+        dirtBlockTexture,
+        false
     );
-
     m_objects.push_back(std::move(dirtBlock));
 
 }
 
 void Scene::applyGravity(Transform& transform, float deltaTime)
 {
-    const glm::vec3 gravity(0.0f, -9.5f, 0.0f);
+    const glm::vec3 gravity(0.0f, -0.5f, 0.0f);
 
     // Update velocity with gravity
     glm::vec3 velocity = transform.getVelocity();
@@ -99,8 +90,6 @@ void Scene::applyGravity(Transform& transform, float deltaTime)
     position += velocity * deltaTime;
     transform.setPosition(position);
 
-    // TODO : add terminal velocity (or as toggle switch in ImGUI)
-
     // Update the model matrix with the new position
     glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
     transform.setModel(translationMatrix);
@@ -108,9 +97,6 @@ void Scene::applyGravity(Transform& transform, float deltaTime)
 
 void Scene::update(float deltaTime)
 {
-    const glm::vec3 gravity(0.0f, -0.5f, 0.0f);
-    glm::vec3 velocity = glm::vec3(0.0f);
-
     m_camera->setDeltaTime(deltaTime);
     m_camera->move();
 
@@ -119,17 +105,17 @@ void Scene::update(float deltaTime)
 
     for (auto& object : m_objects)
     {
-        Transform& transform = object->getTransform();
-        transform.setView(
-            m_camera->getPosition(),
-            m_camera->getFront(),
-            m_camera->getUp()
-        );
-
-        if (!transform.isStatic())
+        for (auto& vertexTransform : object->getVertexTransforms())
         {
-            // applyGravity(transform, deltaTime);
-            // std::cout << "Dynamic object position: " << glm::to_string(transform.getPosition()) << '\n';
+            vertexTransform.setView(
+                m_camera->getPosition(),
+                m_camera->getFront(),
+                m_camera->getUp()
+            );
+
+            if (!vertexTransform.isStatic())
+                applyGravity(vertexTransform, deltaTime);
+
         }
     }
 }
@@ -139,7 +125,7 @@ void Scene::render(float deltaTime)
     glEnable(GL_DEPTH_TEST);
 
     // // TODO : add key shortcut
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);

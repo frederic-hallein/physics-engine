@@ -13,6 +13,7 @@ public:
 
     void setPosition(const glm::vec3& position) { m_position = position; }
     void setVelocity(const glm::vec3& velocity) { m_velocity = velocity; }
+
     void setProjection(float fov, float aspectRatio, float nearPlane, float farPlane);
     void setModel(const glm::mat4& model);
     void setView(const glm::vec3& position, const glm::vec3& front, const glm::vec3& up);
@@ -20,21 +21,23 @@ public:
     const glm::vec3& getPosition()         const { return m_position; }
     const glm::vec3& getVelocity()         const { return m_velocity; }
     const glm::mat4& getProjectionMatrix() const { return m_projection; }
+
     const glm::mat4& getModelMatrix()      const { return m_model; };
     const glm::mat4& getViewMatrix()       const { return m_view; };
 
-    void makeNoneStatic() { m_static = false; }
+    void makeNotStatic() { m_static = false; }
     const bool isStatic() const { return m_static; }
 
 private:
     glm::vec3 m_position;
     glm::vec3 m_velocity;
-    glm::vec3 m_front;
-    glm::vec3 m_up;
 
     glm::mat4 m_projection;
     glm::mat4 m_model;
     glm::mat4 m_view;
+
+    glm::vec3 m_front;
+    glm::vec3 m_up;
 
     bool m_static = true;
 };

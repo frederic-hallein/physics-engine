@@ -18,7 +18,7 @@ public:
     Object() = default;
     virtual ~Object() = default;
     virtual void render() = 0;
-    virtual Transform& getTransform() = 0;
+    virtual std::vector<Transform>& getVertexTransforms() = 0;
 };
 
 class Cube : public Object
@@ -28,19 +28,20 @@ public:
     Cube(
         Transform transform,
         Shader& shader,
-        Mesh& mesh
+        Mesh& mesh,
+        bool isStatic = true
     );
-    Cube(const Cube& other);
-    Cube& operator=(const Cube& other);
     void render() override;
     void addBody(); // rigid or soft
 
-    Transform& getTransform() override { return m_transform; }
+    std::vector<Transform>& getVertexTransforms() override { return m_vertexTransforms; }
 
 protected:
     Transform m_transform;
+    std::vector<Transform> m_vertexTransforms;
     Shader* m_shader;
     Mesh* m_mesh;
+    bool m_isStatic;
 };
 
 class DirtBlock: public Cube
@@ -51,7 +52,8 @@ public:
         Transform transform,
         Shader& shader,
         Mesh& mesh,
-        Texture& texture
+        Texture& texture,
+        bool isStatic = true
     );
     void render() override;
 private:

@@ -3,51 +3,55 @@
 Cube::Cube(
     Transform transform,
     Shader& shader,
-    Mesh& mesh
+    Mesh& mesh,
+    bool isStatic
 )
     : m_transform(std::move(transform)),
       m_shader(&shader),
-      m_mesh(&mesh)
+      m_mesh(&mesh),
+      m_isStatic(isStatic)
 {
-    // m_shader->useProgram();
-}
-
-Cube::Cube(const Cube& other)
-    : m_transform(other.m_transform),
-      m_shader(other.m_shader),
-      m_mesh(other.m_mesh)
-{
-
-}
-
-Cube& Cube::operator=(const Cube& other)
-{
-    if (this != &other)
+    for (const auto& pos : m_mesh->getPositions())
     {
-        m_transform = other.m_transform;
-        m_shader = other.m_shader;
-        m_mesh = other.m_mesh;
+        Transform vertexTransform;
+        if (!m_isStatic)
+            vertexTransform.makeNotStatic();
+
+        // Set the model matrix relative to the object's transform
+        glm::mat4 relativeTranslation = glm::translate(glm::mat4(1.0f), pos);
+        glm::mat4 modelMatrix = m_transform.getModelMatrix() * relativeTranslation;
+
+        vertexTransform.setModel(modelMatrix);
+        m_vertexTransforms.push_back(vertexTransform);
     }
-    return *this;
+
+
+    std::cout << "Cube created" << '\n';
 }
 
 void Cube::render()
 {
     m_shader->useProgram();
 
-    // Set projection matrix
+    // Set projection matrix (same for all vertex transforms)
     int projectionLoc = glGetUniformLocation(m_shader->getID(), "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
 
-    // Set model matrix
-    int modelLoc = glGetUniformLocation(m_shader->getID(), "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getModelMatrix()));
+    // Iterate through all vertex transforms
+    for (const auto& vertexTransform : m_vertexTransforms)
+    {
+        // Set model matrix for the current vertex transform
+        int modelLoc = glGetUniformLocation(m_shader->getID(), "model");
+        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(vertexTransform.getModelMatrix()));
 
-    // Set view matrix
-    int viewLoc = glGetUniformLocation(m_shader->getID(), "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
+        // Set view matrix for the current vertex transform
+        int viewLoc = glGetUniformLocation(m_shader->getID(), "view");
+        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(vertexTransform.getViewMatrix()));
 
+    }
+    // Draw the mesh for the current vertex transform
     m_mesh->draw();
+
 }
 
 void Cube::addBody()
@@ -59,9 +63,10 @@ DirtBlock::DirtBlock(
     Transform transform,
     Shader& shader,
     Mesh& mesh,
-    Texture& texture
+    Texture& texture,
+    bool isStatic
 )
-    : Cube(transform, shader, mesh),
+    : Cube(transform, shader, mesh, isStatic),
       m_texture(&texture)
 {
     std::cout << "DirtBlock created" << '\n';
