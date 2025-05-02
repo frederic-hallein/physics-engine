@@ -24,8 +24,8 @@ public:
     void deleteMesh();
 
 private:
-    void getVertexData(const std::string& meshPath);
-    void getVertexCount();
+    void setVertexData(const std::string& meshPath);
+    void calculateVertexCount();
 
     std::string m_name;
     std::string m_meshPath;

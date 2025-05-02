@@ -40,7 +40,7 @@ Scene::Scene(
         m_camera->getFarPlane()
     );
 
-    glm::vec3 dirtBlockPosition(0.0f, 10.0f, 0.0f);
+    glm::vec3 dirtBlockPosition(0.0f, 15.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
@@ -87,7 +87,7 @@ Scene::Scene(
 
 void Scene::applyGravity(Transform& transform, float deltaTime)
 {
-    const glm::vec3 gravity(0.0f, -0.5f, 0.0f);
+    const glm::vec3 gravity(0.0f, -9.5f, 0.0f);
 
     // Update velocity with gravity
     glm::vec3 velocity = transform.getVelocity();
@@ -98,6 +98,8 @@ void Scene::applyGravity(Transform& transform, float deltaTime)
     glm::vec3 position = transform.getPosition();
     position += velocity * deltaTime;
     transform.setPosition(position);
+
+    // TODO : add terminal velocity (or as toggle switch in ImGUI)
 
     // Update the model matrix with the new position
     glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
@@ -112,7 +114,7 @@ void Scene::update(float deltaTime)
     m_camera->setDeltaTime(deltaTime);
     m_camera->move();
 
-    // // TODO : print out in ImGui
+    // TODO : print out in ImGui
     std::cout << "Camera Position: " << glm::to_string(m_camera->getPosition()) << '\n';
 
     for (auto& object : m_objects)
@@ -135,9 +137,10 @@ void Scene::update(float deltaTime)
 void Scene::render(float deltaTime)
 {
     glEnable(GL_DEPTH_TEST);
+    // glDepthFunc(GL_ALWAYS);
 
     // // TODO : add key shortcut
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_FRONT);

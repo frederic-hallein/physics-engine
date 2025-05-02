@@ -2,7 +2,7 @@
 
 #include "Mesh.hpp"
 
-void Mesh::getVertexData(const std::string& meshPath)
+void Mesh::setVertexData(const std::string& meshPath)
 {
     std::ifstream file(meshPath);
     if (!file.is_open())
@@ -37,7 +37,7 @@ void Mesh::getVertexData(const std::string& meshPath)
     file.close();
 }
 
-void Mesh::getVertexCount()
+void Mesh::calculateVertexCount()
 {
     size_t vertexCount = std::min(positions.size() / 3, texCoords.size() / 2);
     for (size_t i = 0; i < vertexCount; ++i)
@@ -57,8 +57,8 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
       m_meshPath(meshPath),
       m_sideLength(1.0f) // TODO : get sideLength from file
 {
-    getVertexData(meshPath);
-    getVertexCount();
+    setVertexData(meshPath);
+    calculateVertexCount();
 
     glGenVertexArrays(1, &m_VAO);
     glGenBuffers(1, &m_VBO);
