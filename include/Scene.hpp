@@ -24,7 +24,7 @@ public:
     );
 
     void update(float deltaTime);
-    void render(float deltaTime);
+    void render();
     void clear();
 
 private:

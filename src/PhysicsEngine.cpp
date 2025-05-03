@@ -129,7 +129,7 @@ void PhysicsEngine::render()
         processInput(m_window);
         m_deltaTime = timer.getDeltaTime();
         m_scene->update(m_deltaTime);
-        m_scene->render(m_deltaTime);
+        m_scene->render();
 
         glfwSwapBuffers(m_window);
         glfwPollEvents();

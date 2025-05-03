@@ -120,7 +120,7 @@ void Scene::update(float deltaTime)
     }
 }
 
-void Scene::render(float deltaTime)
+void Scene::render()
 {
     glEnable(GL_DEPTH_TEST);
 
