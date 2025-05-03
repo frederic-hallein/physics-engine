@@ -32,9 +32,10 @@ Scene::Scene(
         m_camera->getFarPlane()
     );
     float separationDistance = 1.0f;
-    for (int z = -15; z < 15; ++z)
+    int platformSize = 25;
+    for (int z = -platformSize; z < platformSize; ++z)
     {
-        for (int x = -15; x < 15; ++x)
+        for (int x = -platformSize; x < platformSize; ++x)
         {
             // Calculate the new position for the platform block
             glm::vec3 newPosition(x * separationDistance, 0.0f, z * separationDistance);

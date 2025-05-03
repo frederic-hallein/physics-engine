@@ -116,6 +116,7 @@ void Mesh::draw()
     glBindVertexArray(m_VAO);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
     glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
+    glBindVertexArray(0);
 }
 
 void Mesh::deleteMesh()
