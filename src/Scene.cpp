@@ -33,9 +33,9 @@ Scene::Scene(
     );
     float separationDistance = 1.0f;
     int platformSize = 25;
-    for (int z = -platformSize; z < platformSize; ++z)
+    for (int z = -platformSize; z <= platformSize; ++z)
     {
-        for (int x = -platformSize; x < platformSize; ++x)
+        for (int x = -platformSize; x <= platformSize; ++x)
         {
             // Calculate the new position for the platform block
             glm::vec3 newPosition(x * separationDistance, 0.0f, z * separationDistance);
@@ -60,10 +60,15 @@ Scene::Scene(
         m_camera->getNearPlane(),
         m_camera->getFarPlane()
     );
-    glm::vec3 dirtBlockPosition(0.0f, 10.0f, 0.0f);
+    glm::vec3 dirtBlockPosition(0.0f, 5.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
+    );
+    dirtBlockTranslationMatrix = glm::rotate(
+        dirtBlockTranslationMatrix,
+        45.0f,
+        glm::vec3(0.7f, 0.5f, 1.0f)
     );
     dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
     auto dirtBlock = std::make_unique<DirtBlock>(
@@ -77,23 +82,83 @@ Scene::Scene(
 
 }
 
-void Scene::applyGravity(Transform& transform, float deltaTime)
+void Scene::applyGravity(Object& object, float deltaTime)
 {
     const glm::vec3 gravity(0.0f, -0.5f, 0.0f);
 
-    // Update velocity with gravity
-    glm::vec3 velocity = transform.getVelocity();
-    velocity += gravity * deltaTime;
-    transform.setVelocity(velocity);
+    // Iterate through the vertexTransforms of the object
+    for (auto& vertexTransform : object.getVertexTransforms())
+    {
+        // Update velocity with gravity
+        glm::vec3 velocity = vertexTransform.getVelocity();
+        velocity += gravity * deltaTime;
+        vertexTransform.setVelocity(velocity);
 
-    // Update position based on velocity
-    glm::vec3 position = transform.getPosition();
-    position += velocity * deltaTime;
-    transform.setPosition(position);
+        // Update position based on velocity
+        glm::vec3 position = vertexTransform.getPosition();
+        position += velocity * deltaTime;
 
-    // Update the model matrix with the new position
-    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
-    transform.setModel(translationMatrix);
+        // Extract the current rotation from the model matrix
+        glm::mat4 currentModelMatrix = vertexTransform.getModelMatrix();
+        glm::mat3 rotationMatrix = glm::mat3(currentModelMatrix); // Extract rotation (upper-left 3x3)
+
+        // Create a new translation matrix for the updated position
+        glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
+
+        // Combine the rotation and translation matrices
+        glm::mat4 updatedModelMatrix = translationMatrix * glm::mat4(rotationMatrix);
+
+        // Update the model matrix with the new position and preserved rotation
+        vertexTransform.setModel(updatedModelMatrix);
+        // std::cout << "x_v = " << glm::to_string(vertexTransform.getPosition()) << '\n';
+    }
+}
+
+// TODO : move this function to Transform class
+void Scene::applyPBD(
+    std::vector<Transform>& vertexTransforms,
+    float deltaTime
+)
+{
+    std::vector<glm::vec3> x;
+    std::vector<glm::vec3> v;
+    std::vector<float> w;
+    for (const auto& vertexTransform : vertexTransforms)
+    {
+        x.push_back(vertexTransform.getPosition());
+        v.push_back(vertexTransform.getVelocity());
+        w.push_back(1.0f / vertexTransform.getMass());
+    }
+
+    glm::vec3 gravity(0.0f, -0.5f, 0.0f);
+    for (size_t i = 0; i < vertexTransforms.size(); ++i)
+    {
+        v[i] += deltaTime * w[i] * gravity;
+    }
+
+    // dampVelocities(v1, ..., vN)
+
+    std::vector<glm::vec3> p;
+    for (size_t i = 0; i < vertexTransforms.size(); ++i)
+    {
+        p[i] += x[i] + deltaTime * v[i];
+    }
+
+    for (size_t i = 0; i < vertexTransforms.size(); ++i)
+    {
+        // generateCollisionConstraints(xi -> pi)
+    }
+
+    //while loop solverIterations
+    //  projectConstraints(C1, ..., CM, p1, ..., pN)
+
+    for (size_t i = 0; i < vertexTransforms.size(); ++i)
+    {
+        v[i] = (p[i] - x[i]) / deltaTime;
+        x[i] = p[i];
+    }
+
+    //velocityUpdate(v1,..., VN);
 }
 
 void Scene::update(float deltaTime)
@@ -106,18 +171,21 @@ void Scene::update(float deltaTime)
 
     for (auto& object : m_objects)
     {
-        for (auto& vertexTransform : object->getVertexTransforms())
+        // look at center of objects
+        Transform& transform = object->getTransform();
+        transform.setView(
+            m_camera->getPosition(),
+            m_camera->getFront(),
+            m_camera->getUp()
+        );
+
+        if (!object->isStatic())
         {
-            vertexTransform.setView(
-                m_camera->getPosition(),
-                m_camera->getFront(),
-                m_camera->getUp()
-            );
-
-            if (!vertexTransform.isStatic())
-                applyGravity(vertexTransform, deltaTime);
-
+            applyGravity(*object, deltaTime);
+            object->update();
+            // std::cout << "x_com = " << glm::to_string(transform.getPosition()) << '\n';
         }
+
     }
 }
 
@@ -126,7 +194,7 @@ void Scene::render()
     glEnable(GL_DEPTH_TEST);
 
     // // TODO : add key shortcut
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -139,7 +207,6 @@ void Scene::render()
     {
         object->render();
     }
-
 }
 
 void Scene::clear()

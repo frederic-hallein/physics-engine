@@ -17,8 +17,12 @@ class Object
 public:
     Object() = default;
     virtual ~Object() = default;
+    virtual void update() = 0;
     virtual void render() = 0;
+    // virtual void setTransform(const Transform& transform) = 0;
+    virtual Transform& getTransform() = 0;
     virtual std::vector<Transform>& getVertexTransforms() = 0;
+    virtual const bool isStatic() const = 0;
 };
 
 class Cube : public Object
@@ -31,12 +35,16 @@ public:
         Mesh& mesh,
         bool isStatic = true
     );
+    void update() override;
     void render() override;
-    void addBody(); // rigid or soft
 
+    // void setTransform(const Transform& transform) override;
+    Transform& getTransform() override { return m_transform; }
     std::vector<Transform>& getVertexTransforms() override { return m_vertexTransforms; }
 
+    const bool isStatic() const override { return m_isStatic; }
 protected:
+    float m_totalMass;
     Transform m_transform;
     std::vector<Transform> m_vertexTransforms;
     Shader* m_shader;

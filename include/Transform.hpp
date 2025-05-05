@@ -18,6 +18,7 @@ public:
     void setModel(const glm::mat4& model);
     void setView(const glm::vec3& position, const glm::vec3& front, const glm::vec3& up);
 
+    float getMass() const { return m_mass; }
     const glm::vec3& getPosition()         const { return m_position; }
     const glm::vec3& getVelocity()         const { return m_velocity; }
     const glm::mat4& getProjectionMatrix() const { return m_projection; }
@@ -29,6 +30,7 @@ public:
     const bool isStatic() const { return m_static; }
 
 private:
+    float m_mass;
     glm::vec3 m_position;
     glm::vec3 m_velocity;
 

@@ -6,11 +6,13 @@ Cube::Cube(
     Mesh& mesh,
     bool isStatic
 )
-    : m_transform(std::move(transform)),
+    : m_totalMass(0.0f),
+      m_transform(std::move(transform)),
       m_shader(&shader),
       m_mesh(&mesh),
       m_isStatic(isStatic)
 {
+    // initialize vertex transforms
     for (const auto& pos : m_mesh->getPositions())
     {
         Transform vertexTransform;
@@ -25,6 +27,9 @@ Cube::Cube(
         m_vertexTransforms.push_back(vertexTransform);
     }
 
+    // calculate total mass used for COM
+    for (const auto& vertexTransform : m_vertexTransforms)
+        m_totalMass += vertexTransform.getMass();
 
     std::cout << "Cube created" << '\n';
 }
@@ -37,26 +42,41 @@ void Cube::render()
     int projectionLoc = glGetUniformLocation(m_shader->getID(), "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
 
-    // Iterate through all vertex transforms
-    for (const auto& vertexTransform : m_vertexTransforms)
-    {
-        // Set model matrix for the current vertex transform
-        int modelLoc = glGetUniformLocation(m_shader->getID(), "model");
-        glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(vertexTransform.getModelMatrix()));
+    // Set model matrix for the current vertex transform
+    int modelLoc = glGetUniformLocation(m_shader->getID(), "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getModelMatrix()));
 
-        // Set view matrix for the current vertex transform
-        int viewLoc = glGetUniformLocation(m_shader->getID(), "view");
-        glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(vertexTransform.getViewMatrix()));
+    // Set view matrix for the current vertex transform
+    int viewLoc = glGetUniformLocation(m_shader->getID(), "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
 
-    }
     // Draw the mesh for the current vertex transform
     m_mesh->draw();
-
 }
 
-void Cube::addBody()
+void Cube::update()
 {
-    // add rigid or soft
+    // Calculate the center of mass of the vertex transforms
+    glm::vec3 centerOfMass(0.0f);
+    for (const auto& vertexTransform : m_vertexTransforms)
+    {
+        centerOfMass += vertexTransform.getMass() * vertexTransform.getPosition();
+    }
+
+    centerOfMass /= m_totalMass;
+
+    // Extract the current rotation from the model matrix
+    glm::mat4 currentModelMatrix = m_transform.getModelMatrix();
+    glm::mat3 rotationMatrix = glm::mat3(currentModelMatrix); // Extract rotation (upper-left 3x3)
+
+    // Create a new translation matrix for the updated position
+    glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), centerOfMass);
+
+    // Combine the rotation and translation matrices
+    glm::mat4 updatedModelMatrix = translationMatrix * glm::mat4(rotationMatrix);
+
+    // Update the model matrix with the new position and preserved rotation
+    m_transform.setModel(updatedModelMatrix);
 }
 
 DirtBlock::DirtBlock(
