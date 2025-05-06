@@ -31,26 +31,19 @@ Scene::Scene(
         m_camera->getNearPlane(),
         m_camera->getFarPlane()
     );
-    float separationDistance = 1.0f;
-    int platformSize = 2;
-    for (int z = -platformSize; z <= platformSize; ++z)
-    {
-        for (int x = -platformSize; x <= platformSize; ++x)
-        {
-            // Calculate the new position for the platform block
-            glm::vec3 newPosition(x * separationDistance, -0.5f, z * separationDistance);
-            glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), newPosition);
-            platformTransform.setModel(translationMatrix);
-
-            auto platformBlock = std::make_unique<Cube>(
-                platformTransform,
-                platformShader,
-                cubeMesh
-            );
-
-            m_objects.push_back(std::move(platformBlock));
-        }
-    }
+    glm::vec3 platformPosition(0.0f, -0.5f, 0.0f);
+    glm::mat4 platformtranslationMatrix = glm::translate(glm::mat4(1.0f), platformPosition);
+    platformtranslationMatrix = glm::scale(
+        platformtranslationMatrix,
+        glm::vec3(10.0f, 1.0f, 5.0f)
+    );
+    platformTransform.setModel(platformtranslationMatrix);
+    auto platformBlock = std::make_unique<Cube>(
+        platformTransform,
+        platformShader,
+        cubeMesh
+    );
+    m_objects.push_back(std::move(platformBlock));
 
     // dirtBlock
     Transform dirtBlockTransform;
@@ -200,7 +193,7 @@ void Scene::render()
     glEnable(GL_DEPTH_TEST);
 
     // // TODO : add key shortcut
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
