@@ -32,13 +32,13 @@ Scene::Scene(
         m_camera->getFarPlane()
     );
     float separationDistance = 1.0f;
-    int platformSize = 25;
+    int platformSize = 2;
     for (int z = -platformSize; z <= platformSize; ++z)
     {
         for (int x = -platformSize; x <= platformSize; ++x)
         {
             // Calculate the new position for the platform block
-            glm::vec3 newPosition(x * separationDistance, 0.0f, z * separationDistance);
+            glm::vec3 newPosition(x * separationDistance, -0.5f, z * separationDistance);
             glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), newPosition);
             platformTransform.setModel(translationMatrix);
 
@@ -60,7 +60,7 @@ Scene::Scene(
         m_camera->getNearPlane(),
         m_camera->getFarPlane()
     );
-    glm::vec3 dirtBlockPosition(0.0f, 5.0f, 0.0f);
+    glm::vec3 dirtBlockPosition(0.0f, 1.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
@@ -96,11 +96,17 @@ void Scene::applyGravity(Object& object, float deltaTime)
 
         // Update position based on velocity
         glm::vec3 position = vertexTransform.getPosition();
+
+        if (position.y < 0.0f)
+        {
+            velocity = glm::vec3(0.0f);
+        }
+
         position += velocity * deltaTime;
 
         // Extract the current rotation from the model matrix
         glm::mat4 currentModelMatrix = vertexTransform.getModelMatrix();
-        glm::mat3 rotationMatrix = glm::mat3(currentModelMatrix); // Extract rotation (upper-left 3x3)
+        glm::mat3 rotationMatrix = glm::mat3(currentModelMatrix);
 
         // Create a new translation matrix for the updated position
         glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
@@ -110,7 +116,7 @@ void Scene::applyGravity(Object& object, float deltaTime)
 
         // Update the model matrix with the new position and preserved rotation
         vertexTransform.setModel(updatedModelMatrix);
-        // std::cout << "x_v = " << glm::to_string(vertexTransform.getPosition()) << '\n';
+        std::cout << "x_v = " << glm::to_string(vertexTransform.getPosition()) << '\n';
     }
 }
 
@@ -182,10 +188,10 @@ void Scene::update(float deltaTime)
         if (!object->isStatic())
         {
             applyGravity(*object, deltaTime);
-            object->update();
-            // std::cout << "x_com = " << glm::to_string(transform.getPosition()) << '\n';
+            std::cout << "x_com = " << glm::to_string(transform.getPosition()) << '\n';
         }
 
+        object->update();
     }
 }
 

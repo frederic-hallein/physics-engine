@@ -61,6 +61,7 @@ PhysicsEngine::PhysicsEngine(
         "../res/shaders/platform.fsh"
     );
 
+
     // initialize meshes
     auto cubeMesh = std::make_unique<Mesh>(
         "cube",
@@ -83,7 +84,7 @@ PhysicsEngine::PhysicsEngine(
     float farPlane = 100.0f;
     float aspectRatio = (float)m_screenWidth / (float)m_screenHeight;
     auto camera = std::make_unique<Camera>(
-        glm::vec3(0.0f, 10.0f,  50.0f),
+        glm::vec3(0.0f, 1.0f,  8.0f),
         glm::vec3(0.0f, 0.0f, -1.0f),
         glm::vec3(0.0f, 1.0f,  0.0f),
         FOV,
@@ -119,7 +120,7 @@ static void processInput(GLFWwindow* window)
 
 void PhysicsEngine::render()
 {
-    const int targetFPS = 60;
+    const int targetFPS = 120;
     Timer timer;
 
     while (!glfwWindowShouldClose(m_window))
@@ -135,7 +136,7 @@ void PhysicsEngine::render()
         glfwPollEvents();
 
         timer.capFrameRate(targetFPS);
-        timer.printFrameDuration();
+        // timer.printFrameDuration();
     }
 }
 

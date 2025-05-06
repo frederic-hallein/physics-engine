@@ -1,5 +1,8 @@
 #include "Object.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
 Cube::Cube(
     Transform transform,
     Shader& shader,
@@ -34,26 +37,6 @@ Cube::Cube(
     std::cout << "Cube created" << '\n';
 }
 
-void Cube::render()
-{
-    m_shader->useProgram();
-
-    // Set projection matrix (same for all vertex transforms)
-    int projectionLoc = glGetUniformLocation(m_shader->getID(), "projection");
-    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
-
-    // Set model matrix for the current vertex transform
-    int modelLoc = glGetUniformLocation(m_shader->getID(), "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getModelMatrix()));
-
-    // Set view matrix for the current vertex transform
-    int viewLoc = glGetUniformLocation(m_shader->getID(), "view");
-    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
-
-    // Draw the mesh for the current vertex transform
-    m_mesh->draw();
-}
-
 void Cube::update()
 {
     // Calculate the center of mass of the vertex transforms
@@ -77,6 +60,26 @@ void Cube::update()
 
     // Update the model matrix with the new position and preserved rotation
     m_transform.setModel(updatedModelMatrix);
+}
+
+void Cube::render()
+{
+    m_shader->useProgram();
+
+    // Set projection matrix (same for all vertex transforms)
+    int projectionLoc = glGetUniformLocation(m_shader->getID(), "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
+
+    // Set model matrix for the current vertex transform
+    int modelLoc = glGetUniformLocation(m_shader->getID(), "model");
+    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getModelMatrix()));
+
+    // Set view matrix for the current vertex transform
+    int viewLoc = glGetUniformLocation(m_shader->getID(), "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
+
+    // Draw the mesh for the current vertex transform
+    m_mesh->draw();
 }
 
 DirtBlock::DirtBlock(
