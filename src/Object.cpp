@@ -55,17 +55,19 @@ void Cube::update()
     // Create a new translation matrix for the updated position
     glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), centerOfMass);
 
+
     // Combine the rotation and translation matrices
     glm::mat4 updatedModelMatrix = translationMatrix * glm::mat4(rotationMatrix);
 
     // Update the model matrix with the new position and preserved rotation
     m_transform.setModel(updatedModelMatrix);
+
+
 }
 
 void Cube::render()
 {
     m_shader->useProgram();
-
     // Set projection matrix (same for all vertex transforms)
     int projectionLoc = glGetUniformLocation(m_shader->getID(), "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
@@ -78,8 +80,9 @@ void Cube::render()
     int viewLoc = glGetUniformLocation(m_shader->getID(), "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
 
-    // Draw the mesh for the current vertex transform
     m_mesh->draw();
+
+
 }
 
 DirtBlock::DirtBlock(

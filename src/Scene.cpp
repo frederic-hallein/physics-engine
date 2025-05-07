@@ -89,13 +89,14 @@ void Scene::applyGravity(Object& object, float deltaTime)
 
         // Update position based on velocity
         glm::vec3 position = vertexTransform.getPosition();
+        position += velocity * deltaTime;
 
         if (position.y < 0.0f)
         {
+            position.y = 0.0f;
             velocity = glm::vec3(0.0f);
         }
 
-        position += velocity * deltaTime;
 
         // Extract the current rotation from the model matrix
         glm::mat4 currentModelMatrix = vertexTransform.getModelMatrix();
@@ -181,8 +182,10 @@ void Scene::update(float deltaTime)
         if (!object->isStatic())
         {
             applyGravity(*object, deltaTime);
-            std::cout << "x_com = " << glm::to_string(transform.getPosition()) << '\n';
+            // std::cout << "x_com = " << glm::to_string(transform.getPosition()) << '\n';
+
         }
+
 
         object->update();
     }

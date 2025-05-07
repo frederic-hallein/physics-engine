@@ -20,7 +20,7 @@ public:
     const std::string getName()     const { return m_name; }
     const std::string getMeshPath() const { return m_meshPath; }
 
-    const std::vector<glm::vec3>& getPositions() const { return m_positions; };
+    std::vector<glm::vec3>& getPositions() { return m_positions; };
     const std::vector<glm::vec2>& getTexCoords() const { return m_texCoords; };
     const std::vector<glm::vec3>& getNormals()   const { return m_normals; };
 
