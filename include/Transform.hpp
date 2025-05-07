@@ -14,9 +14,9 @@ public:
     // void setPosition(const glm::vec3& position) { m_position = position; }
     void setVelocity(const glm::vec3& velocity) { m_velocity = velocity; }
 
-    void setProjection(float fov, float aspectRatio, float nearPlane, float farPlane);
+    void setProjection(const Camera& camera);
     void setModel(const glm::mat4& model);
-    void setView(const glm::vec3& position, const glm::vec3& front, const glm::vec3& up);
+    void setView(const Camera& camera);
 
     float getMass() const { return m_mass; }
     const glm::vec3& getPosition()         const { return m_position; }

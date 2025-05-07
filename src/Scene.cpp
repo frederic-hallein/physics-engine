@@ -25,12 +25,7 @@ Scene::Scene(
 
     // platform
     Transform platformTransform;
-    platformTransform.setProjection(
-        m_camera->getFOV(),
-        m_camera->getAspectRatio(),
-        m_camera->getNearPlane(),
-        m_camera->getFarPlane()
-    );
+    platformTransform.setProjection(*m_camera);
     glm::vec3 platformPosition(0.0f, -0.5f, 0.0f);
     glm::mat4 platformtranslationMatrix = glm::translate(glm::mat4(1.0f), platformPosition);
     platformtranslationMatrix = glm::scale(
@@ -38,6 +33,7 @@ Scene::Scene(
         glm::vec3(10.0f, 1.0f, 5.0f)
     );
     platformTransform.setModel(platformtranslationMatrix);
+    platformTransform.setView(*m_camera);
     auto platformBlock = std::make_unique<Cube>(
         platformTransform,
         platformShader,
@@ -45,14 +41,12 @@ Scene::Scene(
     );
     m_objects.push_back(std::move(platformBlock));
 
+
+
+
     // dirtBlock
     Transform dirtBlockTransform;
-    dirtBlockTransform.setProjection(
-        m_camera->getFOV(),
-        m_camera->getAspectRatio(),
-        m_camera->getNearPlane(),
-        m_camera->getFarPlane()
-    );
+    dirtBlockTransform.setProjection(*m_camera);
     glm::vec3 dirtBlockPosition(0.0f, 1.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
@@ -60,10 +54,11 @@ Scene::Scene(
     );
     dirtBlockTranslationMatrix = glm::rotate(
         dirtBlockTranslationMatrix,
-        45.0f,
-        glm::vec3(0.7f, 0.5f, 1.0f)
+        glm::radians(45.0f),
+        glm::vec3(0.0f, 1.0f, 0.0f)
     );
     dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
+    dirtBlockTransform.setView(*m_camera);
     auto dirtBlock = std::make_unique<DirtBlock>(
         dirtBlockTransform,
         dirtBlockShader,
@@ -173,11 +168,7 @@ void Scene::update(float deltaTime)
     {
         // look at center of objects
         Transform& transform = object->getTransform();
-        transform.setView(
-            m_camera->getPosition(),
-            m_camera->getFront(),
-            m_camera->getUp()
-        );
+        transform.setView(*m_camera);
 
         if (!object->isStatic())
         {

@@ -80,6 +80,7 @@ void Cube::render()
     int viewLoc = glGetUniformLocation(m_shader->getID(), "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
 
+
     m_mesh->draw();
 
 

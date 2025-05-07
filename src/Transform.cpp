@@ -14,8 +14,12 @@ Transform::Transform()
 {
 }
 
-void Transform::setProjection(float fov, float aspectRatio, float nearPlane, float farPlane)
+void Transform::setProjection(const Camera& camera)
 {
+    float fov = camera.getFOV();
+    float aspectRatio = camera.getAspectRatio();
+    float nearPlane = camera.getNearPlane();
+    float farPlane = camera.getFarPlane();
     m_projection = glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
 }
 
@@ -25,7 +29,10 @@ void Transform::setModel(const glm::mat4& model)
     m_model = model;
 }
 
-void Transform::setView(const glm::vec3& position, const glm::vec3& front, const glm::vec3& up)
+void Transform::setView(const Camera& camera)
 {
+    glm::vec3 position = camera.getPosition();
+    glm::vec3 front = camera.getFront();
+    glm::vec3 up = camera.getUp();
     m_view = glm::lookAt(position, position + front, up);
 }
