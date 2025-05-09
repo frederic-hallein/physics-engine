@@ -4,6 +4,9 @@
 
 void Mesh::loadObjData(const std::string& filePath)
 {
+    std::vector<glm::vec3> m_positions;
+    std::vector<glm::vec2> m_texCoords;
+    std::vector<glm::vec3> m_normals;
     std::vector<unsigned int> indices;
 
     std::ifstream file(filePath);
@@ -80,6 +83,11 @@ void Mesh::loadObjData(const std::string& filePath)
 
     std::cout << indices.size() << '\n';
     std::cout << m_vertices.size() << '\n';
+}
+
+void Mesh::update()
+{
+
 }
 
 Mesh::Mesh(const std::string& name, const std::string& meshPath)

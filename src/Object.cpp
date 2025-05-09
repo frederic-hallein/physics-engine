@@ -15,20 +15,33 @@ Cube::Cube(
       m_mesh(mesh),
       m_isStatic(isStatic)
 {
-    // initialize vertex transforms
-    for (const auto& pos : m_mesh.getPositions())
+    const std::vector<float>& vertices = m_mesh.getVertices();
+
+    // Loop over m_vertices to extract positions and create vertexTransforms
+    for (size_t i = 0; i < vertices.size(); i += 8) // Each vertex has 8 floats
     {
+        // Extract the position (x, y, z)
+        glm::vec3 position(
+            vertices[i],
+            vertices[i + 1],
+            vertices[i + 2]
+        );
+
+        // Create a new Transform for the vertex
         Transform vertexTransform;
         if (!m_isStatic)
             vertexTransform.makeNotStatic();
 
         // Set the model matrix relative to the object's transform
-        glm::mat4 relativeTranslation = glm::translate(glm::mat4(1.0f), pos);
+        glm::mat4 relativeTranslation = glm::translate(glm::mat4(1.0f), position);
         glm::mat4 modelMatrix = m_transform.getModelMatrix() * relativeTranslation;
 
         vertexTransform.setModel(modelMatrix);
+
+        // Add the vertexTransform to the list
         m_vertexTransforms.push_back(vertexTransform);
     }
+
 
     // calculate total mass used for COM
     for (const auto& vertexTransform : m_vertexTransforms)
