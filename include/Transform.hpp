@@ -11,7 +11,7 @@ class Transform
 public:
     Transform();
 
-    // void setPosition(const glm::vec3& position) { m_position = position; }
+    void setPosition(const glm::vec3& position) { m_position = position; }
     void setVelocity(const glm::vec3& velocity) { m_velocity = velocity; }
 
     void setProjection(const Camera& camera);

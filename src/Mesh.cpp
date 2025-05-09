@@ -76,6 +76,10 @@ void Mesh::loadObjData(const std::string& filePath)
 
     file.close();
     m_indices = indices;
+
+
+    std::cout << indices.size() << '\n';
+    std::cout << m_vertices.size() << '\n';
 }
 
 Mesh::Mesh(const std::string& name, const std::string& meshPath)

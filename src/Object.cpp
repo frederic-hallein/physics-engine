@@ -41,8 +41,22 @@ void Cube::update()
 {
     // Calculate the center of mass of the vertex transforms
     glm::vec3 centerOfMass(0.0f);
-    for (const auto& vertexTransform : m_vertexTransforms)
+    for (auto& vertexTransform : m_vertexTransforms)
     {
+        // Extract the current rotation from the model matrix
+        glm::mat4 currentModelMatrix = vertexTransform.getModelMatrix();
+        glm::mat3 rotationMatrix = glm::mat3(currentModelMatrix);
+
+        // Create a new translation matrix for the updated position
+        glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), vertexTransform.getPosition());
+
+        // Combine the rotation and translation matrices
+        glm::mat4 updatedModelMatrix = translationMatrix * glm::mat4(rotationMatrix);
+
+        // Update the model matrix with the new position and preserved rotation
+        vertexTransform.setModel(updatedModelMatrix);
+
+
         centerOfMass += vertexTransform.getMass() * vertexTransform.getPosition();
     }
 

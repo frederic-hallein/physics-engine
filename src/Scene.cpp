@@ -80,7 +80,6 @@ void Scene::applyGravity(Object& object, float deltaTime)
         // Update velocity with gravity
         glm::vec3 velocity = vertexTransform.getVelocity();
         velocity += gravity * deltaTime;
-        vertexTransform.setVelocity(velocity);
 
         // Update position based on velocity
         glm::vec3 position = vertexTransform.getPosition();
@@ -88,24 +87,13 @@ void Scene::applyGravity(Object& object, float deltaTime)
 
         if (position.y < 0.0f)
         {
-            position.y = 0.0f;
             velocity = glm::vec3(0.0f);
+            position.y = 0.0f;
         }
 
-
-        // Extract the current rotation from the model matrix
-        glm::mat4 currentModelMatrix = vertexTransform.getModelMatrix();
-        glm::mat3 rotationMatrix = glm::mat3(currentModelMatrix);
-
-        // Create a new translation matrix for the updated position
-        glm::mat4 translationMatrix = glm::translate(glm::mat4(1.0f), position);
-
-        // Combine the rotation and translation matrices
-        glm::mat4 updatedModelMatrix = translationMatrix * glm::mat4(rotationMatrix);
-
-        // Update the model matrix with the new position and preserved rotation
-        vertexTransform.setModel(updatedModelMatrix);
-        std::cout << "x_v = " << glm::to_string(vertexTransform.getPosition()) << '\n';
+        vertexTransform.setVelocity(velocity);
+        vertexTransform.setPosition(position);
+        // std::cout << "x_v = " << glm::to_string(vertexTransform.getPosition()) << '\n';
     }
 }
 
