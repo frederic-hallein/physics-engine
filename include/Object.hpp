@@ -31,8 +31,8 @@ public:
     Cube() = default;
     Cube(
         Transform transform,
-        Shader& shader,
-        Mesh& mesh,
+        Shader shader,
+        Mesh mesh,
         bool isStatic = true
     );
     void update() override;
@@ -47,8 +47,8 @@ protected:
     float m_totalMass;
     Transform m_transform;
     std::vector<Transform> m_vertexTransforms;
-    Shader* m_shader;
-    Mesh* m_mesh;
+    Shader m_shader;
+    Mesh m_mesh;
     bool m_isStatic;
 };
 
@@ -58,12 +58,12 @@ public:
     DirtBlock() = default;
     DirtBlock(
         Transform transform,
-        Shader& shader,
-        Mesh& mesh,
-        Texture& texture,
+        Shader shader,
+        Mesh mesh,
+        Texture texture,
         bool isStatic = true
     );
     void render() override;
 private:
-    Texture* m_texture;
+    Texture m_texture;
 };

@@ -16,12 +16,12 @@ Scene::Scene(
         m_textureManager(std::move(textureManager)),
         m_camera(std::move(camera))
 {
-    Shader& platformShader = m_shaderManager->getShader("platform");
-    Shader& dirtBlockShader = m_shaderManager->getShader("dirtblock");
+    Shader platformShader = m_shaderManager->getShader("platform");
+    Shader dirtBlockShader = m_shaderManager->getShader("dirtblock");
 
-    Mesh& cubeMesh = m_meshManager->getMesh("cube");
+    Mesh cubeMesh = m_meshManager->getMesh("cube");
 
-    Texture& dirtBlockTexture = m_textureManager->getTexture("dirtblock");
+    Texture dirtBlockTexture = m_textureManager->getTexture("dirtblock");
 
     // platform
     Transform platformTransform;
@@ -55,7 +55,7 @@ Scene::Scene(
     dirtBlockTranslationMatrix = glm::rotate(
         dirtBlockTranslationMatrix,
         glm::radians(45.0f),
-        glm::vec3(0.0f, 1.0f, 0.0f)
+        glm::vec3(0.0f, 1.0f, 1.0f)
     );
     dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
     dirtBlockTransform.setView(*m_camera);
