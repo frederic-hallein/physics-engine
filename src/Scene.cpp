@@ -27,10 +27,9 @@ Scene::Scene(
     Transform platformTransform;
     platformTransform.setProjection(*m_camera);
     glm::vec3 platformPosition(0.0f, -0.5f, 0.0f);
-    glm::mat4 platformtranslationMatrix = glm::translate(glm::mat4(1.0f), platformPosition);
-    platformtranslationMatrix = glm::scale(
-        platformtranslationMatrix,
-        glm::vec3(10.0f, 1.0f, 5.0f)
+    glm::mat4 platformtranslationMatrix = glm::translate(
+        glm::mat4(1.0f),
+        platformPosition
     );
     platformTransform.setModel(platformtranslationMatrix);
     platformTransform.setView(*m_camera);
@@ -40,8 +39,6 @@ Scene::Scene(
         cubeMesh
     );
     m_objects.push_back(std::move(platformBlock));
-
-
 
 
     // dirtBlock
@@ -54,7 +51,7 @@ Scene::Scene(
     );
     dirtBlockTranslationMatrix = glm::rotate(
         dirtBlockTranslationMatrix,
-        glm::radians(45.0f),
+        glm::radians(0.0f),
         glm::vec3(0.0f, 1.0f, 1.0f)
     );
     dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
@@ -72,28 +69,13 @@ Scene::Scene(
 
 void Scene::applyGravity(Object& object, float deltaTime)
 {
-    const glm::vec3 gravity(0.0f, -0.5f, 0.0f);
-
-    // Iterate through the vertexTransforms of the object
+    const glm::vec3 gravity(0.0f, -0.1f, 0.0f);
     for (auto& vertexTransform : object.getVertexTransforms())
     {
         // Update velocity with gravity
         glm::vec3 velocity = vertexTransform.getVelocity();
         velocity += gravity * deltaTime;
-
-        // Update position based on velocity
-        glm::vec3 position = vertexTransform.getPosition();
-        position += velocity * deltaTime;
-
-        if (position.y < 0.0f)
-        {
-            velocity = glm::vec3(0.0f);
-            position.y = 0.0f;
-        }
-
         vertexTransform.setVelocity(velocity);
-        vertexTransform.setPosition(position);
-        // std::cout << "x_v = " << glm::to_string(vertexTransform.getPosition()) << '\n';
     }
 }
 
@@ -161,12 +143,11 @@ void Scene::update(float deltaTime)
         if (!object->isStatic())
         {
             applyGravity(*object, deltaTime);
-            // std::cout << "x_com = " << glm::to_string(transform.getPosition()) << '\n';
-
+            object->update(deltaTime);
         }
 
+        // std::cout << "x_com = " << glm::to_string(transform.getPosition()) << '\n';
 
-        object->update();
     }
 }
 

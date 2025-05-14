@@ -21,8 +21,8 @@ public:
     float getMass() const { return m_mass; }
     const glm::vec3& getPosition()         const { return m_position; }
     const glm::vec3& getVelocity()         const { return m_velocity; }
-    const glm::mat4& getProjectionMatrix() const { return m_projection; }
 
+    const glm::mat4& getProjectionMatrix() const { return m_projection; }
     const glm::mat4& getModelMatrix()      const { return m_model; };
     const glm::mat4& getViewMatrix()       const { return m_view; };
 
@@ -37,9 +37,6 @@ private:
     glm::mat4 m_projection;
     glm::mat4 m_model;
     glm::mat4 m_view;
-
-    glm::vec3 m_front;
-    glm::vec3 m_up;
 
     bool m_static = true;
 };

@@ -1,6 +1,7 @@
-#include <string>
-
 #include "Mesh.hpp"
+
+#include <chrono>
+#include <thread>
 
 void Mesh::loadObjData(const std::string& filePath)
 {
@@ -85,11 +86,6 @@ void Mesh::loadObjData(const std::string& filePath)
     std::cout << m_vertices.size() << '\n';
 }
 
-void Mesh::update()
-{
-
-}
-
 Mesh::Mesh(const std::string& name, const std::string& meshPath)
     : m_name(name),
       m_meshPath(meshPath)
@@ -123,9 +119,17 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
     glEnableVertexAttribArray(2);
 }
 
+void Mesh::update()
+{
+
+}
+
 void Mesh::draw()
 {
     glBindVertexArray(m_VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, m_vertices.size() * sizeof(float), m_vertices.data());
+
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
     glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);

@@ -17,7 +17,7 @@ class Object
 public:
     Object() = default;
     virtual ~Object() = default;
-    virtual void update() = 0;
+    virtual void update(float deltaTime) = 0;
     virtual void render() = 0;
     // virtual void setTransform(const Transform& transform) = 0;
     virtual Transform& getTransform() = 0;
@@ -35,7 +35,7 @@ public:
         Mesh mesh,
         bool isStatic = true
     );
-    void update() override;
+    void update(float deltaTime) override;
     void render() override;
 
     // void setTransform(const Transform& transform) override;
