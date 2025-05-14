@@ -61,11 +61,22 @@ PhysicsEngine::PhysicsEngine(
         "../res/shaders/platform.fsh"
     );
 
+    auto sphereShader = std::make_unique<Shader>(
+        "sphere",
+        "../res/shaders/sphere.vsh",
+        "../res/shaders/sphere.fsh"
+    );
+
 
     // initialize meshes
     auto cubeMesh = std::make_unique<Mesh>(
         "cube",
         "../res/meshes/cube.obj"
+    );
+
+    auto sphereMesh = std::make_unique<Mesh>(
+        "sphere",
+        "../res/meshes/sphere.obj"
     );
 
     // initialize textures
@@ -76,7 +87,9 @@ PhysicsEngine::PhysicsEngine(
 
     shaderManager->addShader(std::move(dirtBlockShader));
     shaderManager->addShader(std::move(platformShader));
+    shaderManager->addShader(std::move(sphereShader));
     meshManager->addMesh(std::move(cubeMesh));
+    meshManager->addMesh(std::move(sphereMesh));
     textureManager->addTexture(std::move(dirtBlockTexture));
 
     float FOV = 45.0f;

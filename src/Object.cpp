@@ -3,7 +3,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
-Cube::Cube(
+Object::Object(
     Transform transform,
     Shader shader,
     Mesh mesh,
@@ -34,10 +34,9 @@ Cube::Cube(
 
         m_vertexTransforms.push_back(vertexTransform);
     }
-
 }
 
-void Cube::update(float deltaTime)
+void Object::update(float deltaTime)
 {
     for (auto& vertexTransform : m_vertexTransforms)
     {
@@ -57,13 +56,13 @@ void Cube::update(float deltaTime)
     for (size_t i = 0; i < m_vertexTransforms.size(); ++i)
     {
         m_mesh.positions[i] = m_vertexTransforms[i].getPosition();
-        std::cout << glm::to_string(m_mesh.positions[i]) << '\n';
+        // std::cout << glm::to_string(m_mesh.positions[i]) << '\n';
     }
 
     m_mesh.update();
 }
 
-void Cube::render()
+void Object::render()
 {
     m_shader.useProgram();
 
@@ -74,6 +73,16 @@ void Cube::render()
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
 
     m_mesh.draw();
+}
+
+Cube::Cube(
+    Transform transform,
+    Shader shader,
+    Mesh mesh,
+    bool isStatic
+)
+    : Object(std::move(transform), std::move(shader), std::move(mesh), isStatic)
+{
 }
 
 DirtBlock::DirtBlock(
@@ -94,4 +103,15 @@ void DirtBlock::render()
     m_texture.bind();
     Cube::render();
 }
+
+Sphere::Sphere(
+    Transform transform,
+    Shader shader,
+    Mesh mesh,
+    bool isStatic
+)
+    : Object(std::move(transform), std::move(shader), std::move(mesh), isStatic)
+{
+}
+
 

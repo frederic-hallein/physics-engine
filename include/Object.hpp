@@ -16,12 +16,30 @@ class Object
 {
 public:
     Object() = default;
+    Object(
+        Transform transform,
+        Shader shader,
+        Mesh mesh,
+        bool isStatic = true
+    );
     virtual ~Object() = default;
-    virtual void update(float deltaTime) = 0;
-    virtual void render() = 0;
-    virtual Transform& getTransform() = 0;
-    virtual std::vector<Transform>& getVertexTransforms() = 0;
-    virtual const bool isStatic() const = 0;
+
+    void update(float deltaTime);
+    virtual void render();
+
+    const bool isStatic() const { return m_isStatic; }
+
+    Transform& getTransform() { return m_transform; }
+    std::vector<Transform>& getVertexTransforms() { return m_vertexTransforms; }
+
+protected:
+    Transform m_transform;
+    Shader m_shader;
+    Mesh m_mesh;
+    bool m_isStatic;
+
+    float m_totalMass;
+    std::vector<Transform> m_vertexTransforms;
 };
 
 class Cube : public Object
@@ -34,20 +52,6 @@ public:
         Mesh mesh,
         bool isStatic = true
     );
-    void update(float deltaTime) override;
-    void render() override;
-
-    Transform& getTransform() override { return m_transform; }
-    std::vector<Transform>& getVertexTransforms() override { return m_vertexTransforms; }
-
-    const bool isStatic() const override { return m_isStatic; }
-protected:
-    float m_totalMass;
-    Transform m_transform;
-    std::vector<Transform> m_vertexTransforms;
-    Shader m_shader;
-    Mesh m_mesh;
-    bool m_isStatic;
 };
 
 class DirtBlock: public Cube
@@ -64,4 +68,17 @@ public:
     void render() override;
 private:
     Texture m_texture;
+};
+
+class Sphere : public Object
+{
+public:
+    Sphere() = default;
+    Sphere(
+        Transform transform,
+        Shader shader,
+        Mesh mesh,
+        bool isStatic = true
+    );
+
 };
