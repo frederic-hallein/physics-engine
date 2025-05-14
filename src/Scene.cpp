@@ -44,14 +44,14 @@ Scene::Scene(
     // dirtBlock
     Transform dirtBlockTransform;
     dirtBlockTransform.setProjection(*m_camera);
-    glm::vec3 dirtBlockPosition(0.0f, 1.0f, 0.0f);
+    glm::vec3 dirtBlockPosition(0.0f, 3.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
     );
     dirtBlockTranslationMatrix = glm::rotate(
         dirtBlockTranslationMatrix,
-        glm::radians(0.0f),
+        glm::radians(45.0f),
         glm::vec3(0.0f, 1.0f, 1.0f)
     );
     dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
@@ -156,7 +156,7 @@ void Scene::render()
     glEnable(GL_DEPTH_TEST);
 
     // // TODO : add key shortcut
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);

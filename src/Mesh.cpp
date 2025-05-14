@@ -5,9 +5,7 @@
 
 void Mesh::loadObjData(const std::string& filePath)
 {
-    std::vector<glm::vec3> m_positions;
-    std::vector<glm::vec2> m_texCoords;
-    std::vector<glm::vec3> m_normals;
+
     std::vector<unsigned int> indices;
 
     std::ifstream file(filePath);
@@ -28,7 +26,7 @@ void Mesh::loadObjData(const std::string& filePath)
         {
             float x, y, z;
             iss >> x >> y >> z;
-            m_positions.emplace_back(x, y, z);
+            positions.emplace_back(x, y, z);
         }
         else if (prefix == "vt") // Texture coordinate
         {
@@ -61,9 +59,9 @@ void Mesh::loadObjData(const std::string& filePath)
                 unsigned int normalIndex = std::stoi(vn) - 1;
 
                 // Add position, texture, and normal to m_vertices
-                m_vertices.push_back(m_positions[vertexIndex].x);
-                m_vertices.push_back(m_positions[vertexIndex].y);
-                m_vertices.push_back(m_positions[vertexIndex].z);
+                m_vertices.push_back(positions[vertexIndex].x);
+                m_vertices.push_back(positions[vertexIndex].y);
+                m_vertices.push_back(positions[vertexIndex].z);
 
                 m_vertices.push_back(m_texCoords[texCoordIndex].x);
                 m_vertices.push_back(m_texCoords[texCoordIndex].y);
@@ -71,6 +69,8 @@ void Mesh::loadObjData(const std::string& filePath)
                 m_vertices.push_back(m_normals[normalIndex].x);
                 m_vertices.push_back(m_normals[normalIndex].y);
                 m_vertices.push_back(m_normals[normalIndex].z);
+
+                m_positionMapping.push_back(vertexIndex);
 
                 // Add index to the indices array
                 indices.push_back(static_cast<unsigned int>(indices.size()));
@@ -80,10 +80,6 @@ void Mesh::loadObjData(const std::string& filePath)
 
     file.close();
     m_indices = indices;
-
-
-    std::cout << indices.size() << '\n';
-    std::cout << m_vertices.size() << '\n';
 }
 
 Mesh::Mesh(const std::string& name, const std::string& meshPath)
@@ -121,6 +117,17 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
 
 void Mesh::update()
 {
+    for (size_t i = 0; i < m_positionMapping.size(); ++i)
+    {
+        size_t positionIndex = m_positionMapping[i];
+        const glm::vec3& updatedPosition = positions[positionIndex];
+
+        m_vertices[i * 8]     = updatedPosition.x;
+        m_vertices[i * 8 + 1] = updatedPosition.y;
+        m_vertices[i * 8 + 2] = updatedPosition.z;
+    }
+
+
 
 }
 

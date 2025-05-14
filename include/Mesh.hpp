@@ -22,17 +22,21 @@ public:
     const std::string getName()     const { return m_name; }
     const std::string getMeshPath() const { return m_meshPath; }
 
-    const std::vector<float>& getVertices() const { return m_vertices; }
-
     void update();
     void draw();
     void deleteMesh();
+public:
+    std::vector<glm::vec3> positions;
 
 private:
     void loadObjData(const std::string& meshPath);
 
     std::string m_name;
     std::string m_meshPath;
+
+    std::vector<glm::vec2> m_texCoords;
+    std::vector<glm::vec3> m_normals;
+    std::vector<size_t> m_positionMapping;
 
     std::vector<float> m_vertices;
     std::vector<unsigned int> m_indices;

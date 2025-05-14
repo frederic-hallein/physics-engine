@@ -19,7 +19,6 @@ public:
     virtual ~Object() = default;
     virtual void update(float deltaTime) = 0;
     virtual void render() = 0;
-    // virtual void setTransform(const Transform& transform) = 0;
     virtual Transform& getTransform() = 0;
     virtual std::vector<Transform>& getVertexTransforms() = 0;
     virtual const bool isStatic() const = 0;
@@ -38,7 +37,6 @@ public:
     void update(float deltaTime) override;
     void render() override;
 
-    // void setTransform(const Transform& transform) override;
     Transform& getTransform() override { return m_transform; }
     std::vector<Transform>& getVertexTransforms() override { return m_vertexTransforms; }
 

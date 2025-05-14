@@ -6,7 +6,7 @@
 
 Transform::Transform()
     : m_mass(1.0f),
-      m_position(glm::vec3(1.0f)),
+      m_position(glm::vec3(0.0f)),
       m_velocity(glm::vec3(0.0f)),
       m_projection(glm::mat4(1.0f)),
       m_view(glm::mat4(1.0f)),
@@ -26,7 +26,11 @@ void Transform::setProjection(const Camera& camera)
 
 void Transform::setModel(const glm::mat4& model)
 {
-    m_position = glm::vec3(model[3][0], model[3][1], model[3][2]);
+    m_position = glm::vec3(
+        model[3][0],
+        model[3][1],
+        model[3][2]
+    );
     m_model = model;
 }
 

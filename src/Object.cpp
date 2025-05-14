@@ -15,9 +15,18 @@ Cube::Cube(
       m_mesh(mesh),
       m_isStatic(isStatic)
 {
+    std::vector<glm::vec3>& positions = m_mesh.positions;
+    glm::mat3 rot = glm::mat3(m_transform.getModelMatrix());
+    glm::vec3 trans = glm::vec3(m_transform.getModelMatrix()[3]);
+
+    for (auto& pos : positions)
+    {
+        glm::vec3 newPos = rot * pos + trans;
+        pos = newPos;
+        std::cout << glm::to_string(pos) << '\n';
+    }
 
 }
-
 
 void Cube::update(float deltaTime)
 {
@@ -27,15 +36,10 @@ void Cube::update(float deltaTime)
 void Cube::render()
 {
     m_shader.useProgram();
-    // Set projection matrix (same for all vertex transforms)
+
     int projectionLoc = glGetUniformLocation(m_shader.getID(), "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
 
-    // Set model matrix for the current vertex transform
-    int modelLoc = glGetUniformLocation(m_shader.getID(), "model");
-    glUniformMatrix4fv(modelLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getModelMatrix()));
-
-    // Set view matrix for the current vertex transform
     int viewLoc = glGetUniformLocation(m_shader.getID(), "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
 
