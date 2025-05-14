@@ -23,13 +23,43 @@ Cube::Cube(
     {
         glm::vec3 newPos = rot * pos + trans;
         pos = newPos;
-        std::cout << glm::to_string(pos) << '\n';
+
+        Transform vertexTransform;
+        vertexTransform.setPosition(pos);
+
+        if (!m_isStatic)
+        {
+            vertexTransform.makeNotStatic();
+        }
+
+        m_vertexTransforms.push_back(vertexTransform);
     }
 
 }
 
 void Cube::update(float deltaTime)
 {
+    for (auto& vertexTransform : m_vertexTransforms)
+    {
+        glm::vec3 velocity = vertexTransform.getVelocity();
+        glm::vec3 position = vertexTransform.getPosition();
+        position += velocity * deltaTime;
+        if (position.y < 0.0f && velocity.y != 0.0f)
+        {
+            position.y = 0.0f;
+            velocity = glm::vec3(0.0f);
+        }
+
+        vertexTransform.setPosition(position);
+        vertexTransform.setVelocity(velocity);
+    }
+
+    for (size_t i = 0; i < m_vertexTransforms.size(); ++i)
+    {
+        m_mesh.positions[i] = m_vertexTransforms[i].getPosition();
+        std::cout << glm::to_string(m_mesh.positions[i]) << '\n';
+    }
+
     m_mesh.update();
 }
 

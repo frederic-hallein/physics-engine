@@ -126,9 +126,6 @@ void Mesh::update()
         m_vertices[i * 8 + 1] = updatedPosition.y;
         m_vertices[i * 8 + 2] = updatedPosition.z;
     }
-
-
-
 }
 
 void Mesh::draw()

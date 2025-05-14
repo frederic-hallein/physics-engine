@@ -26,12 +26,16 @@ Scene::Scene(
     // platform
     Transform platformTransform;
     platformTransform.setProjection(*m_camera);
-    glm::vec3 platformPosition(0.0f, -0.5f, 0.0f);
-    glm::mat4 platformtranslationMatrix = glm::translate(
+    glm::vec3 platformPosition(0.0f, -0.5f, 0.0f); // TODO: fix initial translation!!!
+    glm::mat4 platformTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         platformPosition
     );
-    platformTransform.setModel(platformtranslationMatrix);
+    platformTranslationMatrix = glm::scale(
+        platformTranslationMatrix,
+        glm::vec3(10.0f, 1.0f, 5.0f)
+    );
+    platformTransform.setModel(platformTranslationMatrix);
     platformTransform.setView(*m_camera);
     auto platformBlock = std::make_unique<Cube>(
         platformTransform,
@@ -51,7 +55,7 @@ Scene::Scene(
     );
     dirtBlockTranslationMatrix = glm::rotate(
         dirtBlockTranslationMatrix,
-        glm::radians(45.0f),
+        glm::radians(30.0f),
         glm::vec3(0.0f, 1.0f, 1.0f)
     );
     dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
@@ -69,7 +73,7 @@ Scene::Scene(
 
 void Scene::applyGravity(Object& object, float deltaTime)
 {
-    const glm::vec3 gravity(0.0f, -0.1f, 0.0f);
+    const glm::vec3 gravity(0.0f, -0.5f, 0.0f);
     for (auto& vertexTransform : object.getVertexTransforms())
     {
         // Update velocity with gravity
@@ -143,9 +147,9 @@ void Scene::update(float deltaTime)
         if (!object->isStatic())
         {
             applyGravity(*object, deltaTime);
-            object->update(deltaTime);
         }
 
+        object->update(deltaTime);
         // std::cout << "x_com = " << glm::to_string(transform.getPosition()) << '\n';
 
     }
@@ -156,7 +160,7 @@ void Scene::render()
     glEnable(GL_DEPTH_TEST);
 
     // // TODO : add key shortcut
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
