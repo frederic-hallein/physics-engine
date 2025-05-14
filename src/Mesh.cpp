@@ -32,13 +32,13 @@ void Mesh::loadObjData(const std::string& filePath)
         {
             float u, v;
             iss >> u >> v;
-            m_texCoords.emplace_back(u, v);
+            texCoords.emplace_back(u, v);
         }
         else if (prefix == "vn") // Normal vector
         {
             float nx, ny, nz;
             iss >> nx >> ny >> nz;
-            m_normals.emplace_back(nx, ny, nz);
+            normals.emplace_back(nx, ny, nz);
         }
         else if (prefix == "f") // Face data
         {
@@ -54,7 +54,7 @@ void Mesh::loadObjData(const std::string& filePath)
                 std::getline(vertexStream, vt, '/');
                 std::getline(vertexStream, vn, '/');
 
-                unsigned int vertexIndex = std::stoi(v) - 1;  // Convert to 0-based index
+                unsigned int vertexIndex = std::stoi(v) - 1;
                 unsigned int texCoordIndex = std::stoi(vt) - 1;
                 unsigned int normalIndex = std::stoi(vn) - 1;
 
@@ -63,16 +63,15 @@ void Mesh::loadObjData(const std::string& filePath)
                 m_vertices.push_back(positions[vertexIndex].y);
                 m_vertices.push_back(positions[vertexIndex].z);
 
-                m_vertices.push_back(m_texCoords[texCoordIndex].x);
-                m_vertices.push_back(m_texCoords[texCoordIndex].y);
+                m_vertices.push_back(texCoords[texCoordIndex].x);
+                m_vertices.push_back(texCoords[texCoordIndex].y);
 
-                m_vertices.push_back(m_normals[normalIndex].x);
-                m_vertices.push_back(m_normals[normalIndex].y);
-                m_vertices.push_back(m_normals[normalIndex].z);
+                m_vertices.push_back(normals[normalIndex].x);
+                m_vertices.push_back(normals[normalIndex].y);
+                m_vertices.push_back(normals[normalIndex].z);
 
                 m_positionMapping.push_back(vertexIndex);
 
-                // Add index to the indices array
                 indices.push_back(static_cast<unsigned int>(indices.size()));
             }
         }

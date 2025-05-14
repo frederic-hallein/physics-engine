@@ -18,13 +18,14 @@ public:
     void setModel(const glm::mat4& model);
     void setView(const Camera& camera);
 
-    float getMass() const { return m_mass; }
     const glm::vec3& getPosition()         const { return m_position; }
     const glm::vec3& getVelocity()         const { return m_velocity; }
 
     const glm::mat4& getProjectionMatrix() const { return m_projection; }
     const glm::mat4& getModelMatrix()      const { return m_model; };
     const glm::mat4& getViewMatrix()       const { return m_view; };
+
+    float getMass() const { return m_mass; }
 
     void makeNotStatic() { m_static = false; }
     const bool isStatic() const { return m_static; }

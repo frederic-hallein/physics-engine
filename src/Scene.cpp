@@ -76,7 +76,6 @@ void Scene::applyGravity(Object& object, float deltaTime)
     const glm::vec3 gravity(0.0f, -0.5f, 0.0f);
     for (auto& vertexTransform : object.getVertexTransforms())
     {
-        // Update velocity with gravity
         glm::vec3 velocity = vertexTransform.getVelocity();
         velocity += gravity * deltaTime;
         vertexTransform.setVelocity(velocity);
@@ -92,42 +91,7 @@ void Scene::applyPBD(
     std::vector<glm::vec3> x;
     std::vector<glm::vec3> v;
     std::vector<float> w;
-    for (const auto& vertexTransform : vertexTransforms)
-    {
-        x.push_back(vertexTransform.getPosition());
-        v.push_back(vertexTransform.getVelocity());
-        w.push_back(1.0f / vertexTransform.getMass());
-    }
 
-    glm::vec3 gravity(0.0f, -0.5f, 0.0f);
-    for (size_t i = 0; i < vertexTransforms.size(); ++i)
-    {
-        v[i] += deltaTime * w[i] * gravity;
-    }
-
-    // dampVelocities(v1, ..., vN)
-
-    std::vector<glm::vec3> p;
-    for (size_t i = 0; i < vertexTransforms.size(); ++i)
-    {
-        p[i] += x[i] + deltaTime * v[i];
-    }
-
-    for (size_t i = 0; i < vertexTransforms.size(); ++i)
-    {
-        // generateCollisionConstraints(xi -> pi)
-    }
-
-    //while loop solverIterations
-    //  projectConstraints(C1, ..., CM, p1, ..., pN)
-
-    for (size_t i = 0; i < vertexTransforms.size(); ++i)
-    {
-        v[i] = (p[i] - x[i]) / deltaTime;
-        x[i] = p[i];
-    }
-
-    //velocityUpdate(v1,..., VN);
 }
 
 void Scene::update(float deltaTime)
@@ -160,7 +124,7 @@ void Scene::render()
     glEnable(GL_DEPTH_TEST);
 
     // // TODO : add key shortcut
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);

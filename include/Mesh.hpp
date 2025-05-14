@@ -27,6 +27,8 @@ public:
     void deleteMesh();
 public:
     std::vector<glm::vec3> positions;
+    std::vector<glm::vec2> texCoords;
+    std::vector<glm::vec3> normals;
 
 private:
     void loadObjData(const std::string& meshPath);
@@ -34,13 +36,10 @@ private:
     std::string m_name;
     std::string m_meshPath;
 
-    std::vector<glm::vec2> m_texCoords;
-    std::vector<glm::vec3> m_normals;
     std::vector<size_t> m_positionMapping;
 
     std::vector<float> m_vertices;
     std::vector<unsigned int> m_indices;
 
     GLuint m_VAO, m_VBO, m_EBO;
-    int m_vertexCount;
 };
