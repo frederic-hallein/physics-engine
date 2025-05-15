@@ -28,7 +28,6 @@ public:
     void clear();
 
 private:
-    // void applyGravity(Transform& transform, float deltaTime);
     void applyGravity(Object& object, float deltaTime);
     void applyPBD(std::vector<Transform>& vertexTransforms, float deltaTime);
 

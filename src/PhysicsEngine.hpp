@@ -7,6 +7,7 @@
 #include <glad.h>
 #include <GLFW/glfw3.h>
 
+#include "ImGuiWindow.hpp"
 #include "Scene.hpp"
 #include "Timer.hpp"
 
@@ -33,5 +34,6 @@ private:
     float m_deltaTime;
     float m_lastFrame;
 
+    std::unique_ptr<ImGuiWindow> m_imGuiWindow;
     std::unique_ptr<Scene> m_scene;
 };

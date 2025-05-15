@@ -43,6 +43,9 @@ PhysicsEngine::PhysicsEngine(
 
     std::cout << "GLFW window created.\n";
 
+    m_imGuiWindow = std::make_unique<ImGuiWindow>(m_window);
+    std::cout << "ImGuiWindow created.\n";
+
     auto shaderManager = std::make_unique<ShaderManager>();
     auto meshManager = std::make_unique<MeshManager>();
     auto textureManager = std::make_unique<TextureManager>();
@@ -125,7 +128,7 @@ void PhysicsEngine::handleEvents()
     }
 }
 
-static void processInput(GLFWwindow* window)
+void processInput(GLFWwindow* window)
 {
     if(glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
         glfwSetWindowShouldClose(window, true);
@@ -141,9 +144,13 @@ void PhysicsEngine::render()
         timer.startFrame();
 
         processInput(m_window);
+
         m_deltaTime = timer.getDeltaTime();
         m_scene->update(m_deltaTime);
         m_scene->render();
+
+        m_imGuiWindow->update();
+        m_imGuiWindow->render();
 
         glfwSwapBuffers(m_window);
         glfwPollEvents();
@@ -155,6 +162,7 @@ void PhysicsEngine::render()
 
 void PhysicsEngine::close()
 {
+    m_imGuiWindow->close();
     m_scene->clear();
     glfwTerminate();
     std::cout << "PhysicsEngine closed.\n";
