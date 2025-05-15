@@ -36,14 +36,17 @@ PhysicsEngine::PhysicsEngine(
         glfwTerminate();
         std::cout << "Failed to load GLAD" << '\n';
     }
+    std::cout << "GLFW window created.\n";
 
     // adjust viewport when window resizing
     framebufferSizeCallback(m_window, screenWidth, screenHeight);
     glfwSetFramebufferSizeCallback(m_window, framebufferSizeCallback);
 
-    std::cout << "GLFW window created.\n";
-
-    m_imGuiWindow = std::make_unique<ImGuiWindow>(m_window);
+    const char* glslVersion = "#version 330";
+    m_imGuiWindow = std::make_unique<ImGuiWindow>(
+        m_window,
+        glslVersion
+    );
     std::cout << "ImGuiWindow created.\n";
 
     auto shaderManager = std::make_unique<ShaderManager>();
@@ -149,6 +152,7 @@ void PhysicsEngine::render()
         m_scene->update(m_deltaTime);
         m_scene->render();
 
+        m_imGuiWindow->newFrame();
         m_imGuiWindow->update();
         m_imGuiWindow->render();
 

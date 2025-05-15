@@ -7,8 +7,12 @@
 class ImGuiWindow
 {
 public:
-    ImGuiWindow(GLFWwindow* window);
+    ImGuiWindow(
+        GLFWwindow* window,
+        const char* glslVersion
+    );
 
+    void newFrame();
     void update();
     void render();
     void close();
