@@ -21,10 +21,12 @@ void ImGuiWindow::newFrame()
 
 void ImGuiWindow::update()
 {
-    float someFloatValue = 0.5f;
     ImGui::Begin("Debug");
+
+    float someFloatValue = 0.5f;
     ImGui::Text("Hello, ImGui!");
     ImGui::SliderFloat("Float Slider", &someFloatValue, 0.0f, 1.0f);
+
     ImGui::End();
 }
 

@@ -11,7 +11,7 @@ public:
     void startFrame();
     float getDeltaTime() const;
     void capFrameRate(int targetFPS);
-    void printFrameDuration() const;
+    int getFrameDuration() const { return m_frameDuration; };
 
 private:
     std::chrono::high_resolution_clock::time_point m_frameStart;

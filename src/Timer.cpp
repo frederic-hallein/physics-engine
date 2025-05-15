@@ -36,7 +36,7 @@ void Timer::capFrameRate(int targetFPS)
     }
 }
 
-void Timer::printFrameDuration() const
-{
-    std::cout << "Frame Time: " << m_frameDuration << " ms" << '\n';
-}
+// void Timer::getFrameDuration() const
+// {
+//     std::cout << "Frame Time: " << m_frameDuration << " ms" << '\n';
+// }
