@@ -27,6 +27,9 @@ public:
     void render();
     void clear();
 
+    glm::vec3 getCameraPosition() const { return m_camera->getPosition(); }
+    const std::vector<std::unique_ptr<Object>>& getObjects() const { return m_objects; }
+
 private:
     void applyGravity(Object& object, float deltaTime);
     void applyPBD(std::vector<Transform>& vertexTransforms, float deltaTime);

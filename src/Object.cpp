@@ -4,16 +4,19 @@
 #include <glm/gtx/string_cast.hpp>
 
 Object::Object(
+    std::string name,
     Transform transform,
     Shader shader,
     Mesh mesh,
     bool isStatic
 )
-    : m_totalMass(0.0f),
+    : m_name(name),
       m_transform(std::move(transform)),
       m_shader(std::move(shader)),
       m_mesh(mesh),
-      m_isStatic(isStatic)
+      m_isStatic(isStatic),
+      m_totalMass(0.0f),
+      m_polygonMode(GL_FILL)
 {
     std::vector<glm::vec3>& positions = m_mesh.positions;
     glm::mat3 rot = glm::mat3(m_transform.getModelMatrix());
@@ -34,6 +37,13 @@ Object::Object(
 
         m_vertexTransforms.push_back(vertexTransform);
     }
+
+    std::cout << name << " created." << '\n';
+}
+
+Object::~Object()
+{
+    std::cout << m_name << " destroyed." << '\n';
 }
 
 void Object::update(float deltaTime)
@@ -56,7 +66,6 @@ void Object::update(float deltaTime)
     for (size_t i = 0; i < m_vertexTransforms.size(); ++i)
     {
         m_mesh.positions[i] = m_vertexTransforms[i].getPosition();
-        // std::cout << glm::to_string(m_mesh.positions[i]) << '\n';
     }
 
     m_mesh.update();
@@ -64,6 +73,8 @@ void Object::update(float deltaTime)
 
 void Object::render()
 {
+    glPolygonMode(GL_FRONT_AND_BACK, m_polygonMode);
+
     m_shader.useProgram();
 
     int projectionLoc = glGetUniformLocation(m_shader.getID(), "projection");
@@ -76,26 +87,27 @@ void Object::render()
 }
 
 Cube::Cube(
+    std::string name,
     Transform transform,
     Shader shader,
     Mesh mesh,
     bool isStatic
 )
-    : Object(std::move(transform), std::move(shader), std::move(mesh), isStatic)
+    : Object(name, std::move(transform), std::move(shader), std::move(mesh), isStatic)
 {
 }
 
 DirtBlock::DirtBlock(
+    std::string name,
     Transform transform,
     Shader shader,
     Mesh mesh,
     Texture texture,
     bool isStatic
 )
-    : Cube(transform, shader, mesh, isStatic),
+    : Cube(name, transform, shader, mesh, isStatic),
       m_texture(std::move(texture))
 {
-    std::cout << "DirtBlock created" << '\n';
 }
 
 void DirtBlock::render()
@@ -105,12 +117,13 @@ void DirtBlock::render()
 }
 
 Sphere::Sphere(
+    std::string name,
     Transform transform,
     Shader shader,
     Mesh mesh,
     bool isStatic
 )
-    : Object(std::move(transform), std::move(shader), std::move(mesh), isStatic)
+    : Object(name, std::move(transform), std::move(shader), std::move(mesh), isStatic)
 {
 }
 

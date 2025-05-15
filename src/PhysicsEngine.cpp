@@ -151,7 +151,11 @@ void PhysicsEngine::render()
         m_scene->render();
 
         m_debugWindow->newFrame();
-        m_debugWindow->update(m_timer->frameDuration);
+        m_debugWindow->update(
+            m_timer->frameDuration,
+            m_scene->getCameraPosition(),
+            m_scene->getObjects()
+        );
         m_debugWindow->render();
 
         glfwSwapBuffers(m_window);

@@ -40,6 +40,7 @@ Scene::Scene(
     platformTransform.setModel(platformTranslationMatrix);
     platformTransform.setView(*m_camera);
     auto platformBlock = std::make_unique<Cube>(
+        "Platform",
         platformTransform,
         platformShader,
         cubeMesh
@@ -67,6 +68,7 @@ Scene::Scene(
     dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
     dirtBlockTransform.setView(*m_camera);
     auto dirtBlock = std::make_unique<DirtBlock>(
+        "DirtBlock",
         dirtBlockTransform,
         dirtBlockShader,
         cubeMesh,
@@ -91,6 +93,7 @@ Scene::Scene(
     sphereTransform.setModel(sphereTranslationMatrix);
     sphereTransform.setView(*m_camera);
     auto sphere = std::make_unique<Sphere>(
+        "Sphere",
         sphereTransform,
         sphereShader,
         sphereMesh,
@@ -98,11 +101,12 @@ Scene::Scene(
     );
     m_objects.push_back(std::move(sphere));
 
+    std::cout << name << " created.\n";
 }
 
 void Scene::applyGravity(Object& object, float deltaTime)
 {
-    const glm::vec3 gravity(0.0f, -0.5f, 0.0f);
+    const glm::vec3 gravity(0.0f, -9.81f, 0.0f);
     for (auto& vertexTransform : object.getVertexTransforms())
     {
         glm::vec3 velocity = vertexTransform.getVelocity();
@@ -128,9 +132,6 @@ void Scene::update(float deltaTime)
     m_camera->setDeltaTime(deltaTime);
     m_camera->move();
 
-    // TODO : print out in ImGui
-    // std::cout << "Camera Position: " << glm::to_string(m_camera->getPosition()) << '\n';
-
     for (auto& object : m_objects)
     {
         // look at center of objects
@@ -152,14 +153,13 @@ void Scene::render()
 {
     glEnable(GL_DEPTH_TEST);
 
-    // // TODO : add key shortcut
     // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    glClearColor(0.2f, 0.2f, 0.8f, 1.0f); // background
+    glClearColor(0.5f, 0.1f, 0.4f, 1.0f); // background
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (auto& object : m_objects)
@@ -174,4 +174,6 @@ void Scene::clear()
     m_meshManager->deleteAllMeshes();
     m_shaderManager->deleteAllShaders();
     m_objects.clear();
+
+    std::cout << m_name << " cleared.\n";
 }

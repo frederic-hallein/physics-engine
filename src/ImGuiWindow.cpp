@@ -46,17 +46,50 @@ DebugWindow::DebugWindow(
 {
 }
 
-void DebugWindow::update(int frameDuration)
+void DebugWindow::update(
+    int frameDuration,
+    const glm::vec3& cameraPosition,
+    const std::vector<std::unique_ptr<Object>>& objects
+)
 {
     ImGui::Begin("Debug");
 
-    // static float someFloatValue = 0.5f;
-    // ImGui::Text("Frame duration: %.3f", someFloatValue);
-    // ImGui::SliderFloat("Float Slider", &someFloatValue, 0.0f, 1.0f);
-
-    // Performance Metrics
     ImGui::Text("Frame Duration: %.3f ms", static_cast<float>(frameDuration));
     ImGui::Text("FPS: %.1f", 1000.0f / static_cast<float>(frameDuration));
+
+    ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", cameraPosition.x, cameraPosition.y, cameraPosition.z);
+
+    ImGui::Text("Scene Objects:");
+    std::unordered_map<std::string, int> objectCounts;
+    for (size_t i = 0; i < objects.size(); ++i)
+    {
+        Object* object = objects[i].get();
+
+        std::string objectName = object->getName();
+        int count = ++objectCounts[objectName];
+
+        std::string title = objectName + " " + std::to_string(count);
+
+        if (ImGui::CollapsingHeader(title.c_str()))
+        {
+            GLenum currentMode = object->getPolygonMode();
+
+            if (ImGui::RadioButton(("Fill##" + std::to_string(i)).c_str(), currentMode == GL_FILL))
+            {
+                object->setPolygonMode(GL_FILL);
+            }
+
+            if (ImGui::RadioButton(("Wireframe##" + std::to_string(i)).c_str(), currentMode == GL_LINE))
+            {
+                object->setPolygonMode(GL_LINE);
+            }
+
+            if (ImGui::RadioButton(("Points##" + std::to_string(i)).c_str(), currentMode == GL_POINT))
+            {
+                object->setPolygonMode(GL_POINT);
+            }
+        }
+    }
 
     ImGui::End();
 }
