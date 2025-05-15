@@ -9,13 +9,14 @@ public:
     Timer();
 
     void startFrame();
-    float getDeltaTime() const;
+    float getDeltaTime() const { return m_deltaTime; };
     void capFrameRate(int targetFPS);
-    int getFrameDuration() const { return m_frameDuration; };
+
+public:
+    int frameDuration;
 
 private:
     std::chrono::high_resolution_clock::time_point m_frameStart;
     std::chrono::high_resolution_clock::time_point m_lastFrame;
     float m_deltaTime;
-    int m_frameDuration;
 };

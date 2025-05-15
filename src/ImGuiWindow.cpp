@@ -21,13 +21,6 @@ void ImGuiWindow::newFrame()
 
 void ImGuiWindow::update()
 {
-    ImGui::Begin("Debug");
-
-    float someFloatValue = 0.5f;
-    ImGui::Text("Hello, ImGui!");
-    ImGui::SliderFloat("Float Slider", &someFloatValue, 0.0f, 1.0f);
-
-    ImGui::End();
 }
 
 void ImGuiWindow::render()
@@ -41,4 +34,29 @@ void ImGuiWindow::close()
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
+
+    std::cout << "ImGuiWindow closed.\n";
+}
+
+DebugWindow::DebugWindow(
+    GLFWwindow* window,
+    const char* glslVersion
+)
+    : ImGuiWindow(window, glslVersion)
+{
+}
+
+void DebugWindow::update(int frameDuration)
+{
+    ImGui::Begin("Debug");
+
+    // static float someFloatValue = 0.5f;
+    // ImGui::Text("Frame duration: %.3f", someFloatValue);
+    // ImGui::SliderFloat("Float Slider", &someFloatValue, 0.0f, 1.0f);
+
+    // Performance Metrics
+    ImGui::Text("Frame Duration: %.3f ms", static_cast<float>(frameDuration));
+    ImGui::Text("FPS: %.1f", 1000.0f / static_cast<float>(frameDuration));
+
+    ImGui::End();
 }

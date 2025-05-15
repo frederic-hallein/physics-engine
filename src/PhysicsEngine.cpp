@@ -11,9 +11,7 @@ PhysicsEngine::PhysicsEngine(
     int screenHeight
 )
     : m_screenWidth(screenWidth),
-      m_screenHeight(screenHeight),
-      m_deltaTime(0.0f),
-      m_lastFrame(0.0f)
+      m_screenHeight(screenHeight)
 {
     std::cout << "Initialize: " << engineName << '\n';
 
@@ -43,11 +41,13 @@ PhysicsEngine::PhysicsEngine(
     glfwSetFramebufferSizeCallback(m_window, framebufferSizeCallback);
 
     const char* glslVersion = "#version 330";
-    m_imGuiWindow = std::make_unique<ImGuiWindow>(
+    m_debugWindow = std::make_unique<DebugWindow>(
         m_window,
         glslVersion
     );
     std::cout << "ImGuiWindow created.\n";
+
+    m_timer = std::make_unique<Timer>();
 
     auto shaderManager = std::make_unique<ShaderManager>();
     auto meshManager = std::make_unique<MeshManager>();
@@ -121,6 +121,7 @@ PhysicsEngine::PhysicsEngine(
         std::move(camera)
     );
 
+
 };
 
 void PhysicsEngine::handleEvents()
@@ -139,34 +140,30 @@ void processInput(GLFWwindow* window)
 
 void PhysicsEngine::render()
 {
-    const int targetFPS = 120;
-    Timer timer;
-
+    const int targetFPS = 60;
     while (!glfwWindowShouldClose(m_window))
     {
-        timer.startFrame();
-
         processInput(m_window);
 
-        m_deltaTime = timer.getDeltaTime();
-        m_scene->update(m_deltaTime);
+        m_timer->startFrame();
+
+        m_scene->update(m_timer->getDeltaTime());
         m_scene->render();
 
-        m_imGuiWindow->newFrame();
-        m_imGuiWindow->update();
-        m_imGuiWindow->render();
+        m_debugWindow->newFrame();
+        m_debugWindow->update(m_timer->frameDuration);
+        m_debugWindow->render();
 
         glfwSwapBuffers(m_window);
         glfwPollEvents();
 
-        timer.capFrameRate(targetFPS);
-        // timer.printFrameDuration();
+        m_timer->capFrameRate(targetFPS);
     }
 }
 
 void PhysicsEngine::close()
 {
-    m_imGuiWindow->close();
+    m_debugWindow->close();
     m_scene->clear();
     glfwTerminate();
     std::cout << "PhysicsEngine closed.\n";

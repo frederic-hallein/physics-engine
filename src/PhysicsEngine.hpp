@@ -31,9 +31,8 @@ private:
     int unsigned m_screenHeight;
     GLFWwindow* m_window;
 
-    float m_deltaTime;
-    float m_lastFrame;
+    std::unique_ptr<Timer> m_timer;
 
-    std::unique_ptr<ImGuiWindow> m_imGuiWindow;
+    std::unique_ptr<DebugWindow> m_debugWindow;
     std::unique_ptr<Scene> m_scene;
 };
