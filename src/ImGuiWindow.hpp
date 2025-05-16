@@ -9,6 +9,7 @@
 #include "backends/imgui_impl_opengl3.h"
 
 #include "Object.hpp"
+#include "Scene.hpp"
 
 class ImGuiWindow
 {
@@ -39,7 +40,6 @@ public:
 
     void update(
         int frameDuration,
-        const glm::vec3& cameraPosition,
-        const std::vector<std::unique_ptr<Object>>& objects
+        Scene& scene
     );
 };

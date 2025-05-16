@@ -8,6 +8,7 @@ Transform::Transform()
     : m_mass(1.0f),
       m_position(glm::vec3(0.0f)),
       m_velocity(glm::vec3(0.0f)),
+      m_acceleration(glm::vec3(0.0f)),
       m_projection(glm::mat4(1.0f)),
       m_view(glm::mat4(1.0f)),
       m_model(glm::mat4(1.0f))

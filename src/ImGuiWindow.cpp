@@ -48,26 +48,38 @@ DebugWindow::DebugWindow(
 
 void DebugWindow::update(
     int frameDuration,
-    const glm::vec3& cameraPosition,
-    const std::vector<std::unique_ptr<Object>>& objects
+    Scene& scene
 )
 {
     ImGui::Begin("Debug");
 
+    // performance
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Performance");
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
     ImGui::Text("Frame Duration: %.3f ms", static_cast<float>(frameDuration));
     ImGui::Text("FPS: %.1f", 1000.0f / static_cast<float>(frameDuration));
     ImGui::Separator();
 
+    // camera
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Camera");
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
-    ImGui::Text("Position: (%.2f, %.2f, %.2f)", cameraPosition.x, cameraPosition.y, cameraPosition.z);
+    const glm::vec3& cameraPosition = scene.getCameraPosition();
+    ImGui::Text("Pos: (%.2f, %.2f, %.2f)", cameraPosition.x, cameraPosition.y, cameraPosition.z);
     ImGui::Separator();
 
+    // external forces
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "External Forces");
+    ImGui::Dummy(ImVec2(0.0f, 5.0f));
+    glm::vec3& gravitationalAcceleration = scene.getGravitationalAcceleration();
+    ImGui::Text("Gravity");
+    ImGui::SameLine();
+    ImGui::SliderFloat("##Gravity", &gravitationalAcceleration.y, -1.0f, 1.0f);
+    ImGui::Separator();
 
+    // scene objects
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Scene Objects:");
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
+    const std::vector<std::unique_ptr<Object>>& objects = scene.getObjects();
     std::unordered_map<std::string, int> objectCounts;
     for (size_t i = 0; i < objects.size(); ++i)
     {
@@ -88,11 +100,13 @@ void DebugWindow::update(
                 {
                     const glm::vec3& position = vertexTransforms[j].getPosition();
                     const glm::vec3& velocity = vertexTransforms[j].getVelocity();
+                    const glm::vec3& acceleration = vertexTransforms[j].getAcceleration();
                     ImGui::BulletText(
-                        "Vertex %zu:\nPos: (%.2f, %.2f, %.2f)\nVel: (%.2f, %.2f, %.2f)",
+                        "Vertex %zu:\nPos: (%.2f, %.2f, %.2f)\nVel: (%.2f, %.2f, %.2f)\nAcc: (%.2f, %.2f, %.2f)",
                         j,
                         position.x, position.y, position.z,
-                        velocity.x, velocity.y, velocity.z
+                        velocity.x, velocity.y, velocity.z,
+                        acceleration.x, acceleration.y, acceleration.z
                     );
                 }
 

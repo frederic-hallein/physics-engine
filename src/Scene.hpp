@@ -29,10 +29,18 @@ public:
 
     glm::vec3 getCameraPosition() const { return m_camera->getPosition(); }
     const std::vector<std::unique_ptr<Object>>& getObjects() const { return m_objects; }
+    glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }
 
 private:
-    void applyGravity(Object& object, float deltaTime);
-    void applyPBD(std::vector<Transform>& vertexTransforms, float deltaTime);
+    void applyGravity(
+        Object& object,
+        float deltaTime
+    );
+    void applyPBD(
+        Object& object,
+        float deltaTime,
+        const std::vector<glm::vec3>& externalForces
+    );
 
     std::string m_name;
 
@@ -43,4 +51,6 @@ private:
     std::unique_ptr<Camera> m_camera;
 
     std::vector<std::unique_ptr<Object>> m_objects;
+
+    glm::vec3 m_gravitationalAcceleration;
 };

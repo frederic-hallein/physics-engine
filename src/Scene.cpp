@@ -14,7 +14,8 @@ Scene::Scene(
         m_shaderManager(std::move(shaderManager)),
         m_meshManager(std::move(meshManager)),
         m_textureManager(std::move(textureManager)),
-        m_camera(std::move(camera))
+        m_camera(std::move(camera)),
+        m_gravitationalAcceleration(0.0f, 0.0f, 0.0f)
 {
     Shader platformShader = m_shaderManager->getShader("platform");
     Shader dirtBlockShader = m_shaderManager->getShader("dirtblock");
@@ -104,23 +105,29 @@ Scene::Scene(
     std::cout << name << " created.\n";
 }
 
-void Scene::applyGravity(Object& object, float deltaTime)
+void Scene::applyGravity(
+    Object& object,
+    float deltaTime
+)
 {
-    const glm::vec3 gravity(0.0f, -9.81f, 0.0f);
     for (auto& vertexTransform : object.getVertexTransforms())
     {
-        glm::vec3 velocity = vertexTransform.getVelocity();
-        velocity += gravity * deltaTime;
-        vertexTransform.setVelocity(velocity);
+        vertexTransform.setAcceleration(m_gravitationalAcceleration);
     }
 }
 
 void Scene::applyPBD(
-    std::vector<Transform>& vertexTransforms,
-    float deltaTime
+    Object& object,
+    float deltaTime,
+    const std::vector<glm::vec3>& externalForces
 )
 {
-
+    for (auto& vertexTransform : object.getVertexTransforms())
+    {
+        glm::vec3 xTilde = vertexTransform.getPosition() +
+                           deltaTime * vertexTransform.getVelocity() +
+                           deltaTime * deltaTime * vertexTransform.getAcceleration();
+    }
 
 }
 

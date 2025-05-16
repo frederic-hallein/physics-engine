@@ -153,8 +153,7 @@ void PhysicsEngine::render()
         m_debugWindow->newFrame();
         m_debugWindow->update(
             m_timer->frameDuration,
-            m_scene->getCameraPosition(),
-            m_scene->getObjects()
+            *m_scene
         );
         m_debugWindow->render();
 

@@ -50,17 +50,21 @@ void Object::update(float deltaTime)
 {
     for (auto& vertexTransform : m_vertexTransforms)
     {
+        glm::vec3 acceleration = vertexTransform.getAcceleration();
         glm::vec3 velocity = vertexTransform.getVelocity();
         glm::vec3 position = vertexTransform.getPosition();
+        velocity += acceleration * deltaTime;
         position += velocity * deltaTime;
         if (position.y < 0.0f && velocity.y != 0.0f)
         {
             position.y = 0.0f;
             velocity = glm::vec3(0.0f);
+            acceleration = glm::vec3(0.0f);
         }
 
         vertexTransform.setPosition(position);
         vertexTransform.setVelocity(velocity);
+        vertexTransform.setAcceleration(acceleration);
     }
 
     for (size_t i = 0; i < m_vertexTransforms.size(); ++i)
