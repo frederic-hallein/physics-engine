@@ -115,15 +115,12 @@ void Scene::applyGravity(Object& object, float deltaTime)
     }
 }
 
-// TODO : move this function to Transform class
 void Scene::applyPBD(
     std::vector<Transform>& vertexTransforms,
     float deltaTime
 )
 {
-    std::vector<glm::vec3> x;
-    std::vector<glm::vec3> v;
-    std::vector<float> w;
+
 
 }
 
@@ -134,7 +131,6 @@ void Scene::update(float deltaTime)
 
     for (auto& object : m_objects)
     {
-        // look at center of objects
         Transform& transform = object->getTransform();
         transform.setView(*m_camera);
 
@@ -144,16 +140,12 @@ void Scene::update(float deltaTime)
         }
 
         object->update(deltaTime);
-        // std::cout << "x_com = " << glm::to_string(transform.getPosition()) << '\n';
-
     }
 }
 
 void Scene::render()
 {
     glEnable(GL_DEPTH_TEST);
-
-    // glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     glEnable(GL_CULL_FACE);
     glCullFace(GL_BACK);
@@ -162,7 +154,7 @@ void Scene::render()
     glClearColor(0.5f, 0.1f, 0.4f, 1.0f); // background
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    for (auto& object : m_objects)
+    for (const auto& object : m_objects)
     {
         object->render();
     }

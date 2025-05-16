@@ -54,12 +54,20 @@ void DebugWindow::update(
 {
     ImGui::Begin("Debug");
 
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Performance");
+    ImGui::Dummy(ImVec2(0.0f, 5.0f));
     ImGui::Text("Frame Duration: %.3f ms", static_cast<float>(frameDuration));
     ImGui::Text("FPS: %.1f", 1000.0f / static_cast<float>(frameDuration));
+    ImGui::Separator();
 
-    ImGui::Text("Camera Position: (%.2f, %.2f, %.2f)", cameraPosition.x, cameraPosition.y, cameraPosition.z);
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Camera");
+    ImGui::Dummy(ImVec2(0.0f, 5.0f));
+    ImGui::Text("Position: (%.2f, %.2f, %.2f)", cameraPosition.x, cameraPosition.y, cameraPosition.z);
+    ImGui::Separator();
 
-    ImGui::Text("Scene Objects:");
+
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Scene Objects:");
+    ImGui::Dummy(ImVec2(0.0f, 5.0f));
     std::unordered_map<std::string, int> objectCounts;
     for (size_t i = 0; i < objects.size(); ++i)
     {
@@ -72,22 +80,48 @@ void DebugWindow::update(
 
         if (ImGui::CollapsingHeader(title.c_str()))
         {
-            GLenum currentMode = object->getPolygonMode();
-
-            if (ImGui::RadioButton(("Fill##" + std::to_string(i)).c_str(), currentMode == GL_FILL))
+            if (ImGui::TreeNode(("Vertex Transforms##" + std::to_string(i)).c_str()))
             {
-                object->setPolygonMode(GL_FILL);
+                const auto& vertexTransforms = object->getVertexTransforms();
+                ImGui::Separator();
+                for (size_t j = 0; j < vertexTransforms.size(); ++j)
+                {
+                    const glm::vec3& position = vertexTransforms[j].getPosition();
+                    const glm::vec3& velocity = vertexTransforms[j].getVelocity();
+                    ImGui::BulletText(
+                        "Vertex %zu:\nPos: (%.2f, %.2f, %.2f)\nVel: (%.2f, %.2f, %.2f)",
+                        j,
+                        position.x, position.y, position.z,
+                        velocity.x, velocity.y, velocity.z
+                    );
+                }
+
+                ImGui::TreePop();
             }
 
-            if (ImGui::RadioButton(("Wireframe##" + std::to_string(i)).c_str(), currentMode == GL_LINE))
+            if (ImGui::TreeNode(("Polygon Mode##" + std::to_string(i)).c_str()))
             {
-                object->setPolygonMode(GL_LINE);
+                GLenum currentMode = object->getPolygonMode();
+                if (ImGui::RadioButton(("Fill##" + std::to_string(i)).c_str(), currentMode == GL_FILL))
+                {
+                    object->setPolygonMode(GL_FILL);
+                }
+
+                if (ImGui::RadioButton(("Wireframe##" + std::to_string(i)).c_str(), currentMode == GL_LINE))
+                {
+                    object->setPolygonMode(GL_LINE);
+                }
+
+                if (ImGui::RadioButton(("Points##" + std::to_string(i)).c_str(), currentMode == GL_POINT))
+                {
+                    object->setPolygonMode(GL_POINT);
+                }
+
+                ImGui::TreePop();
             }
 
-            if (ImGui::RadioButton(("Points##" + std::to_string(i)).c_str(), currentMode == GL_POINT))
-            {
-                object->setPolygonMode(GL_POINT);
-            }
+
+
         }
     }
 

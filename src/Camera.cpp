@@ -2,6 +2,12 @@
 
 void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 {
+    // Prevent camera scroll if interacting with ImGui
+    if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow))
+    {
+        return;
+    }
+
     Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
     if (!camera)
     {
