@@ -38,8 +38,7 @@ private:
     );
     void applyPBD(
         Object& object,
-        float deltaTime,
-        const std::vector<glm::vec3>& externalForces
+        float deltaTime
     );
 
     std::string m_name;

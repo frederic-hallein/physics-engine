@@ -43,6 +43,7 @@ void Mesh::loadObjData(const std::string& filePath)
         else if (prefix == "f") // Face data
         {
             std::string vertexData;
+            unsigned int vertexIndices[3];
             for (int i = 0; i < 3; ++i)
             {
                 iss >> vertexData;
@@ -55,6 +56,8 @@ void Mesh::loadObjData(const std::string& filePath)
                 std::getline(vertexStream, vn, '/');
 
                 unsigned int vertexIndex = std::stoi(v) - 1;
+                vertexIndices[i] = vertexIndex;
+
                 unsigned int texCoordIndex = std::stoi(vt) - 1;
                 unsigned int normalIndex = std::stoi(vn) - 1;
 
@@ -74,11 +77,39 @@ void Mesh::loadObjData(const std::string& filePath)
 
                 indices.push_back(static_cast<unsigned int>(indices.size()));
             }
+
+            // keep track of adjacent vertices which will be used for constraints
+            for (int i = 0; i < 3; ++i)
+            {
+                int v1 = vertexIndices[i];
+                int v2 = vertexIndices[(i + 1) % 3];
+                int v3 = vertexIndices[(i + 2) % 3];
+
+                m_connectedVertices[v1].insert(v2);
+                m_connectedVertices[v1].insert(v3);
+
+                m_connectedVertices[v2].insert(v1);
+                m_connectedVertices[v2].insert(v3);
+
+                m_connectedVertices[v3].insert(v1);
+                m_connectedVertices[v3].insert(v2);
+            }
         }
     }
 
     file.close();
     m_indices = indices;
+
+
+    for (const auto& [vertex, neighbors] : m_connectedVertices)
+    {
+        std::cout << "Vertex " << vertex << " is connected to: ";
+        for (int neighbor : neighbors)
+        {
+            std::cout << neighbor << " ";
+        }
+        std::cout << std::endl;
+    }
 }
 
 Mesh::Mesh(const std::string& name, const std::string& meshPath)

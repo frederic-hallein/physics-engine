@@ -62,8 +62,6 @@ public:
         Mesh mesh,
         bool isStatic = true
     );
-
-    // std::string getName() const override { return m_name; }
 };
 
 class DirtBlock: public Cube
@@ -78,8 +76,6 @@ public:
         Texture texture,
         bool isStatic = true
     );
-    // std::string getName() const override { return m_name; }
-
     void render() override;
 private:
     Texture m_texture;
@@ -96,7 +92,4 @@ public:
         Mesh mesh,
         bool isStatic = true
     );
-
-    // std::string getName() const override { return m_name; }
-
 };

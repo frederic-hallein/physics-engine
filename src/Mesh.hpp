@@ -10,6 +10,8 @@
 
 #include "Transform.hpp"
 
+
+#include <set>
 class Mesh
 {
 public:
@@ -40,6 +42,8 @@ private:
 
     std::vector<float> m_vertices;
     std::vector<unsigned int> m_indices;
+
+    std::unordered_map<int, std::set<int>> m_connectedVertices;
 
     GLuint m_VAO, m_VBO, m_EBO;
 };
