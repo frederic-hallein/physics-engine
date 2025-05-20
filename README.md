@@ -19,7 +19,7 @@ A 3D physics engine written in C++ using OpenGL for rendering. The goal of this 
 ## Getting Started
 
 ### Prerequisites
----
+
 
 - **C++ Compiler**: Ensure you have a C++20-compatible compiler installed.
 - **CMake**: Used for building the project.
@@ -27,7 +27,7 @@ A 3D physics engine written in C++ using OpenGL for rendering. The goal of this 
 - **GLFW**: Required for window and input handling.
 
 ### Dependencies
----
+
 
 This project includes the following dependencies in the `lib/` folder:
 - **GLM**: A header-only C++ mathematics library for graphics software.
@@ -36,7 +36,7 @@ This project includes the following dependencies in the `lib/` folder:
 No additional installation is required for these dependencies.
 
 ### Installation
----
+
 
 1. Clone the repository:
 ```bash
@@ -64,7 +64,7 @@ cmake --build .
 ## Usage
 
 ### Controls
----
+
 
 - **Camera Movement**:
   - `W`: Move forward
