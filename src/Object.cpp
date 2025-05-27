@@ -15,7 +15,6 @@ Object::Object(
       m_shader(std::move(shader)),
       m_mesh(mesh),
       m_isStatic(isStatic),
-      m_totalMass(0.0f),
       m_polygonMode(GL_FILL)
 {
     std::vector<glm::vec3>& positions = m_mesh.positions;
@@ -26,6 +25,7 @@ Object::Object(
     {
         glm::vec3 newPos = rot * pos + trans;
         pos = newPos;
+
 
         Transform vertexTransform;
         vertexTransform.setPosition(pos);
@@ -38,6 +38,18 @@ Object::Object(
         m_vertexTransforms.push_back(vertexTransform);
     }
 
+    //create M matrix
+    size_t n = m_vertexTransforms.size();
+    m_M = std::vector<std::vector<float>>(n, std::vector<float>(n, 0.0f));
+    for (size_t i = 0; i < n; ++i)
+    {
+        m_M[i][i] = m_vertexTransforms[i].getMass();
+    }
+
+    m_mesh.calculateVertexDistances(); // necessary because mesh of object can be scaled
+    m_mesh.constructLengthConstraints();
+    m_mesh.constructGradLengthConstraints();
+
     std::cout << name << " created." << '\n';
 }
 
@@ -48,25 +60,6 @@ Object::~Object()
 
 void Object::update(float deltaTime)
 {
-    for (auto& vertexTransform : m_vertexTransforms)
-    {
-        glm::vec3 acceleration = vertexTransform.getAcceleration();
-        glm::vec3 velocity = vertexTransform.getVelocity();
-        glm::vec3 position = vertexTransform.getPosition();
-        velocity += acceleration * deltaTime;
-        position += velocity * deltaTime;
-        if (position.y < 0.0f && velocity.y != 0.0f)
-        {
-            position.y = 0.0f;
-            velocity = glm::vec3(0.0f);
-            acceleration = glm::vec3(0.0f);
-        }
-
-        vertexTransform.setPosition(position);
-        vertexTransform.setVelocity(velocity);
-        vertexTransform.setAcceleration(acceleration);
-    }
-
     for (size_t i = 0; i < m_vertexTransforms.size(); ++i)
     {
         m_mesh.positions[i] = m_vertexTransforms[i].getPosition();

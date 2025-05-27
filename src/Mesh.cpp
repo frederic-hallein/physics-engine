@@ -1,8 +1,5 @@
 #include "Mesh.hpp"
 
-#include <chrono>
-#include <thread>
-
 void Mesh::loadObjData(const std::string& filePath)
 {
 
@@ -99,16 +96,63 @@ void Mesh::loadObjData(const std::string& filePath)
 
     file.close();
     m_indices = indices;
+}
 
-
+void Mesh::calculateVertexDistances()
+{
     for (const auto& [vertex, neighbors] : m_connectedVertices)
     {
-        std::cout << "Vertex " << vertex << " is connected to: ";
         for (int neighbor : neighbors)
         {
-            std::cout << neighbor << " ";
+            if (vertex < neighbor) // select unique
+            {
+                float distance = glm::distance(positions[vertex], positions[neighbor]);
+                m_vertexDistances[vertex][neighbor] = distance;
+            }
         }
-        std::cout << std::endl;
+    }
+
+
+    // for (const auto& [vertex1, neighbors] : m_vertexDistances)
+    // {
+    //     for (const auto& [vertex2, distance] : neighbors)
+    //     {
+    //         std::cout << "(" << vertex1 << ", " << vertex2
+    //                   << "): " << distance << std::endl;
+    //     }
+    // }
+}
+
+void Mesh::constructLengthConstraints()
+{
+    for (const auto& [vertex1, neighbors] : m_vertexDistances)
+    {
+        for (const auto& [vertex2, distance] : neighbors)
+        {
+            lengthConstraints.push_back([=](const std::vector<glm::vec3>& x_i) -> float {
+                return glm::distance(x_i[vertex1], x_i[vertex2]) - distance;
+            });
+        }
+    }
+}
+
+void Mesh::constructGradLengthConstraints()
+{
+    for (const auto& [vertex1, neighbors] : m_vertexDistances)
+    {
+        for (const auto& [vertex2, distance] : neighbors)
+        {
+            gradLengthConstraints.push_back([this, vertex1, vertex2](const std::vector<glm::vec3>& x_i) -> std::vector<glm::vec3> {
+                std::vector<glm::vec3> gradient(positions.size(), glm::vec3(0.0f));
+
+                glm::vec3 n = (x_i[vertex1] - x_i[vertex2]) / glm::distance(x_i[vertex1], x_i[vertex2]);
+
+                gradient[vertex1] = n;
+                gradient[vertex2] = -n;
+
+                return gradient;
+            });
+        }
     }
 }
 

@@ -113,6 +113,29 @@ void DebugWindow::update(
                 ImGui::TreePop();
             }
 
+            if (ImGui::TreeNode(("XPBD##" + std::to_string(i)).c_str()))
+            {
+                // Get lambdaDifference and positionDifference
+                const std::vector<float>& lambdaDifference = object->getLambdaDifference();
+                const std::vector<float>& positionDifference = object->getPositionDifference();
+
+                // Display lambdaDifference
+                ImGui::Text("Lambda Differences:");
+                for (size_t j = 0; j < lambdaDifference.size(); ++j)
+                {
+                    ImGui::BulletText("dLambda_%zu = %.6f", j, lambdaDifference[j]);
+                }
+
+                // Display positionDifference
+                ImGui::Text("Position Differences:");
+                for (size_t j = 0; j < positionDifference.size(); ++j)
+                {
+                    ImGui::BulletText("dx_%zu = %.6f", j, positionDifference[j]);
+                }
+
+                ImGui::TreePop();
+            }
+
             if (ImGui::TreeNode(("Polygon Mode##" + std::to_string(i)).c_str()))
             {
                 GLenum currentMode = object->getPolygonMode();

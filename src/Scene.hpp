@@ -12,6 +12,9 @@
 #include "Camera.hpp"
 #include "Object.hpp"
 
+#include <cmath>
+#include <cstdlib>
+
 class Scene
 {
 public:
@@ -31,10 +34,20 @@ public:
     const std::vector<std::unique_ptr<Object>>& getObjects() const { return m_objects; }
     glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }
 
+
 private:
     void applyGravity(
         Object& object,
         float deltaTime
+    );
+    float calculateGradCMgradCT(
+        const std::vector<glm::vec3>& gradC_j,
+        const std::vector<std::vector<float>>& M
+    );
+    std::vector<glm::vec3> calculateDeltaX(
+        const std::vector<std::vector<glm::vec3>>& gradCEval,
+        std::vector<float> deltaLambda,
+        const std::vector<std::vector<float>>& M
     );
     void applyPBD(
         Object& object,
@@ -52,4 +65,6 @@ private:
     std::vector<std::unique_ptr<Object>> m_objects;
 
     glm::vec3 m_gravitationalAcceleration;
+
+
 };
