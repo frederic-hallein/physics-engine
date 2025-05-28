@@ -43,6 +43,7 @@ private:
     float calculateLambda(
         float C_j,
         const std::vector<glm::vec3>& gradC_j,
+        const std::vector<int>& constraintVertices,
         const std::vector<float>& M,
         float alpha,
         float deltaTime_s
@@ -50,7 +51,8 @@ private:
     std::vector<glm::vec3> calculateDeltaX(
         float lambda,
         const std::vector<float>& M,
-        std::vector<glm::vec3>& gradC_j
+        std::vector<glm::vec3>& gradC_j,
+        const std::vector<int>& constraintVertices
     );
     void applyPBD(
         Object& object,

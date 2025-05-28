@@ -45,7 +45,7 @@ Object::Object(
         m_M[i] = m_vertexTransforms[i].getMass();
     }
 
-    m_mesh.calculateVertexDistances(); // necessary because mesh of object can be scaled
+    m_mesh.setLengthConstraintVertices(); // necessary because mesh of object can be scaled
     m_mesh.constructLengthConstraints();
     m_mesh.constructGradLengthConstraints();
 

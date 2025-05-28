@@ -14,7 +14,7 @@ A 3D physics engine written in C++ using OpenGL for rendering. The goal of this 
 
 - **Physics Simulation**:
   - Gravity applied to non-static objects
-  - Implementation of length constraints using XPBD (unoptimized)
+  - Implementation of length constraints using XPBD
 
 
 ## Getting Started

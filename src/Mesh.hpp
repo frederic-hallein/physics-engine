@@ -29,7 +29,7 @@ public:
     void draw();
     void deleteMesh();
 
-    void calculateVertexDistances();
+    void setLengthConstraintVertices();
     void constructLengthConstraints();
     void constructGradLengthConstraints();
 
@@ -38,6 +38,7 @@ public:
     std::vector<glm::vec2> texCoords;
     std::vector<glm::vec3> normals;
 
+    std::vector<std::vector<int>> lengthConstraintVertexPairs;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> lengthConstraints;
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradLengthConstraints;
 
@@ -54,7 +55,6 @@ private:
     std::vector<unsigned int> m_indices;
 
     std::unordered_map<int, std::set<int>> m_connectedVertices;
-    std::unordered_map<int, std::unordered_map<int, float>> m_vertexDistances;
 
     GLuint m_VAO, m_VBO, m_EBO;
 };

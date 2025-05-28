@@ -98,7 +98,7 @@ Scene::Scene(
         sphereTransform,
         sphereShader,
         sphereMesh,
-        true
+        false
     );
     m_objects.push_back(std::move(sphere));
 
@@ -116,35 +116,37 @@ void Scene::applyGravity(
     }
 }
 
-// TODO : limit only to non zero gradient values
 float Scene::calculateLambda(
     float C_j,
     const std::vector<glm::vec3>& gradC_j,
+    const std::vector<int>& constraintVertices,
     const std::vector<float>& M,
     float alpha,
     float deltaTime_s
 )
 {
     float gradCMInverseGradCT = 0.0f;
-    for (size_t i = 0; i < gradC_j.size(); ++i)
+    for (size_t i = 0; i < constraintVertices.size(); ++i)
     {
-        gradCMInverseGradCT += (1.0f / M[i]) * glm::dot(gradC_j[i], gradC_j[i]);
+        int v = constraintVertices[i];
+        gradCMInverseGradCT += (1.0f / M[v]) * glm::dot(gradC_j[i], gradC_j[i]);
     }
 
     return - C_j / (gradCMInverseGradCT + alpha / (deltaTime_s * deltaTime_s));
 }
 
-// TODO : limit only to non zero gradient values
 std::vector<glm::vec3> Scene::calculateDeltaX(
     float lambda,
     const std::vector<float>& M,
-    std::vector<glm::vec3>& gradC_j
+    std::vector<glm::vec3>& gradC_j,
+    const std::vector<int>& constraintVertices
 )
 {
     std::vector<glm::vec3> deltaX(M.size(), glm::vec3(0.0f));
-    for (size_t i = 0; i < gradC_j.size(); ++i)
+    for (size_t i = 0; i < constraintVertices.size(); ++i)
     {
-        deltaX[i] = lambda * (1.0f / M[i]) * gradC_j[i];
+        int v = constraintVertices[i];
+        deltaX[v] = lambda * (1.0f / M[v]) * gradC_j[i];
     }
 
     return deltaX;
@@ -157,10 +159,11 @@ void Scene::applyPBD(
 )
 {
     int subStep = 1;
-    const int n = 10;
+    const int n = 3;
     float deltaTime_s = deltaTime / (float)n;
 
     std::vector<float> M = object.getMass();
+    std::vector<std::vector<int>> lengthConstraintVertexPairs = object.getMesh().lengthConstraintVertexPairs;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> C = object.getMesh().lengthConstraints;
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradC = object.getMesh().gradLengthConstraints;
     float alpha = 0.001f;
@@ -191,10 +194,11 @@ void Scene::applyPBD(
         {
             float C_j = C[j](x);
             std::vector<glm::vec3> gradC_j = gradC[j](x);
+            std::vector<int> constraintVertices = lengthConstraintVertexPairs[j];
 
-            float lambda = calculateLambda(C_j, gradC_j, M, alpha, deltaTime_s);
+            float lambda = calculateLambda(C_j, gradC_j, constraintVertices, M, alpha, deltaTime_s);
+            deltaX = calculateDeltaX(lambda, M, gradC_j, constraintVertices);
 
-            deltaX = calculateDeltaX(lambda, M, gradC_j);
             for (size_t i = 0; i < deltaX.size(); ++i)
             {
                 x[i] += deltaX[i];
