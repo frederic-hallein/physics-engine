@@ -116,6 +116,7 @@ void Scene::applyGravity(
     }
 }
 
+// TODO : limit only to non zero gradient values
 float Scene::calculateLambda(
     float C_j,
     const std::vector<glm::vec3>& gradC_j,
@@ -133,6 +134,7 @@ float Scene::calculateLambda(
     return - C_j / (gradCMInverseGradCT + alpha / (deltaTime_s * deltaTime_s));
 }
 
+// TODO : limit only to non zero gradient values
 std::vector<glm::vec3> Scene::calculateDeltaX(
     float lambda,
     const std::vector<float>& M,
@@ -174,14 +176,15 @@ void Scene::applyPBD(
         {
             Transform& vertexTransform = object.getVertexTransforms()[i];
 
-            v[i] = vertexTransform.getVelocity() + deltaTime_s * vertexTransform.getAcceleration();
-            p[i] = vertexTransform.getPosition();
+            a[i] = vertexTransform.getAcceleration();
+            v[i] = vertexTransform.getVelocity() + deltaTime_s * a[i];
             x[i] = vertexTransform.getPosition() + deltaTime_s * v[i];
+            p[i] = vertexTransform.getPosition();
         }
 
-        // initialize differences of old and new positions and lambdas
-        std::vector<float> lambdaDifference(C.size(), 0.0f);
-        std::vector<float> positionDifference(x.size(), 0.0f);
+        // // initialize differences of old and new positions and lambdas
+        // std::vector<float> lambdaDifference(C.size(), 0.0f);
+        // std::vector<float> positionDifference(x.size(), 0.0f);
 
         std::vector<glm::vec3> deltaX;
         for (size_t j = 0; j < C.size(); ++j)
