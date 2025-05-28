@@ -6,14 +6,15 @@ A 3D physics engine written in C++ using OpenGL for rendering. The goal of this 
 ## Features
 
 - **3D Object Rendering**:
-  - Load and render `.obj` files with vertex positions, texture coordinates, and normals.
+  - Load and render `.obj` files with vertex positions, texture coordinates, and normals
 
 - **Camera System**:
-  - Move the camera using keyboard input.
-  - Zoom in and out using the scroll wheel.
+  - Move the camera using keyboard input
+  - Zoom in and out using the scroll wheel
 
 - **Physics Simulation**:
-  - Gravity applied to objects.
+  - Gravity applied to non-static objects
+  - Implementation of length constraints using XPBD (unoptimized)
 
 
 ## Getting Started
