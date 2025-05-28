@@ -26,7 +26,6 @@ Object::Object(
         glm::vec3 newPos = rot * pos + trans;
         pos = newPos;
 
-
         Transform vertexTransform;
         vertexTransform.setPosition(pos);
 
@@ -38,12 +37,12 @@ Object::Object(
         m_vertexTransforms.push_back(vertexTransform);
     }
 
-    //create M matrix
+    //create M array
     size_t n = m_vertexTransforms.size();
-    m_M = std::vector<std::vector<float>>(n, std::vector<float>(n, 0.0f));
+    m_M = std::vector<float>(n, 0.0f);
     for (size_t i = 0; i < n; ++i)
     {
-        m_M[i][i] = m_vertexTransforms[i].getMass();
+        m_M[i] = m_vertexTransforms[i].getMass();
     }
 
     m_mesh.calculateVertexDistances(); // necessary because mesh of object can be scaled

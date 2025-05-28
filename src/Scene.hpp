@@ -40,14 +40,17 @@ private:
         Object& object,
         float deltaTime
     );
-    float calculateGradCMgradCT(
+    float calculateLambda(
+        float C_j,
         const std::vector<glm::vec3>& gradC_j,
-        const std::vector<std::vector<float>>& M
+        const std::vector<float>& M,
+        float alpha,
+        float deltaTime_s
     );
     std::vector<glm::vec3> calculateDeltaX(
-        const std::vector<std::vector<glm::vec3>>& gradCEval,
-        std::vector<float> deltaLambda,
-        const std::vector<std::vector<float>>& M
+        float lambda,
+        const std::vector<float>& M,
+        std::vector<glm::vec3>& gradC_j
     );
     void applyPBD(
         Object& object,

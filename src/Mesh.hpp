@@ -32,7 +32,6 @@ public:
     void calculateVertexDistances();
     void constructLengthConstraints();
     void constructGradLengthConstraints();
-    void constructGradLengthConstraintsTransposed();
 
 public:
     std::vector<glm::vec3> positions;

@@ -73,7 +73,7 @@ void DebugWindow::update(
     glm::vec3& gravitationalAcceleration = scene.getGravitationalAcceleration();
     ImGui::Text("Gravity");
     ImGui::SameLine();
-    ImGui::SliderFloat("##Gravity", &gravitationalAcceleration.y, -1.0f, 1.0f);
+    ImGui::SliderFloat("##Gravity", &gravitationalAcceleration.y, -9.81f, 9.81f);
     ImGui::Separator();
 
     // scene objects
@@ -113,28 +113,28 @@ void DebugWindow::update(
                 ImGui::TreePop();
             }
 
-            if (ImGui::TreeNode(("XPBD##" + std::to_string(i)).c_str()))
-            {
-                // Get lambdaDifference and positionDifference
-                const std::vector<float>& lambdaDifference = object->getLambdaDifference();
-                const std::vector<float>& positionDifference = object->getPositionDifference();
+            // if (ImGui::TreeNode(("XPBD##" + std::to_string(i)).c_str()))
+            // {
+            //     // Get lambdaDifference and positionDifference
+            //     const std::vector<float>& lambdaDifference = object->getLambdaDifference();
+            //     const std::vector<float>& positionDifference = object->getPositionDifference();
 
-                // Display lambdaDifference
-                ImGui::Text("Lambda Differences:");
-                for (size_t j = 0; j < lambdaDifference.size(); ++j)
-                {
-                    ImGui::BulletText("dLambda_%zu = %.6f", j, lambdaDifference[j]);
-                }
+            //     // Display lambdaDifference
+            //     ImGui::Text("Lambda Differences:");
+            //     for (size_t j = 0; j < lambdaDifference.size(); ++j)
+            //     {
+            //         ImGui::BulletText("dLambda_%zu = %.6f", j, lambdaDifference[j]);
+            //     }
 
-                // Display positionDifference
-                ImGui::Text("Position Differences:");
-                for (size_t j = 0; j < positionDifference.size(); ++j)
-                {
-                    ImGui::BulletText("dx_%zu = %.6f", j, positionDifference[j]);
-                }
+            //     // Display positionDifference
+            //     ImGui::Text("Position Differences:");
+            //     for (size_t j = 0; j < positionDifference.size(); ++j)
+            //     {
+            //         ImGui::BulletText("dx_%zu = %.6f", j, positionDifference[j]);
+            //     }
 
-                ImGui::TreePop();
-            }
+            //     ImGui::TreePop();
+            // }
 
             if (ImGui::TreeNode(("Polygon Mode##" + std::to_string(i)).c_str()))
             {

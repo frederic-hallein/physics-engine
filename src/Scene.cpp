@@ -98,7 +98,7 @@ Scene::Scene(
         sphereTransform,
         sphereShader,
         sphereMesh,
-        false
+        true
     );
     m_objects.push_back(std::move(sphere));
 
@@ -116,68 +116,33 @@ void Scene::applyGravity(
     }
 }
 
-float Scene::calculateGradCMgradCT(const std::vector<glm::vec3>& gradC_j, const std::vector<std::vector<float>>& M)
+float Scene::calculateLambda(
+    float C_j,
+    const std::vector<glm::vec3>& gradC_j,
+    const std::vector<float>& M,
+    float alpha,
+    float deltaTime_s
+)
 {
-    // rTerm = MInverse * gradCT
-    size_t n = M.size();
-    std::vector<glm::vec3> rTerm(gradC_j.size(), glm::vec3(0.0f));
-    for (size_t n1 = 0; n1 < n; ++n1)
+    float gradCMInverseGradCT = 0.0f;
+    for (size_t i = 0; i < gradC_j.size(); ++i)
     {
-        for (size_t n2 = 0; n2 < n; ++n2)
-        {
-            rTerm[n1] = M[n1][n2] * gradC_j[n2];
-        }
+        gradCMInverseGradCT += (1.0f / M[i]) * glm::dot(gradC_j[i], gradC_j[i]);
     }
 
-    // gradCMgradCT = gradC * rTerm
-    float gradCMgradCT = 0.0f;
-    for (size_t k = 0; k < gradC_j.size(); ++k)
-    {
-        gradCMgradCT += glm::dot(gradC_j[k], rTerm[k]);
-    }
-
-    return gradCMgradCT;
+    return - C_j / (gradCMInverseGradCT + alpha / (deltaTime_s * deltaTime_s));
 }
 
 std::vector<glm::vec3> Scene::calculateDeltaX(
-    const std::vector<std::vector<glm::vec3>>& gradCEval,
-    std::vector<float> deltaLambda,
-    const std::vector<std::vector<float>>& M
+    float lambda,
+    const std::vector<float>& M,
+    std::vector<glm::vec3>& gradC_j
 )
 {
-    // gradCT = gradCEval^T
-    size_t rows = gradCEval.size();
-    size_t cols = gradCEval[0].size();
-    std::vector<std::vector<glm::vec3>> gradCT(cols, std::vector<glm::vec3>(rows));
-    for (size_t n1 = 0; n1 < rows; ++n1) {
-        for (size_t n2 = 0; n2 < cols; ++n2) {
-            gradCT[n2][n1] = gradCEval[n1][n2];
-        }
-    }
-
-    // rTerm = gradCT * deltaLambda
-    size_t n = M.size();
-    size_t m = deltaLambda.size();
-    std::vector<glm::vec3> rTerm(M.size(), glm::vec3(0.0f));
-    for (size_t i = 0; i < n; ++i)
-    {
-        for (size_t j = 0; j < m; ++j)
-        {
-            // std::cout << "gradCT[" << i << "][" << j << "] = " << glm::to_string(gradCT[i][j])
-            // << ", deltaLambda[" << j << "] = " << deltaLambda[j] << std::endl;
-
-            rTerm[i] = gradCT[i][j] * deltaLambda[j];
-        }
-    }
-
-    // deltaX = M * rTerm
     std::vector<glm::vec3> deltaX(M.size(), glm::vec3(0.0f));
-    for (size_t i = 0; i < n; ++i)
+    for (size_t i = 0; i < gradC_j.size(); ++i)
     {
-        for (size_t j = 0; j < n; ++j)
-        {
-            deltaX[i] += M[i][j] * rTerm[j];
-        }
+        deltaX[i] = lambda * (1.0f / M[i]) * gradC_j[i];
     }
 
     return deltaX;
@@ -189,165 +154,73 @@ void Scene::applyPBD(
     float deltaTime
 )
 {
-    // for (auto& vertexTransform : object.getVertexTransforms())
-    // {
-    //     glm::vec3 acceleration = vertexTransform.getAcceleration();
-    //     glm::vec3 velocity = vertexTransform.getVelocity();
-    //     glm::vec3 position = vertexTransform.getPosition();
+    int subStep = 1;
+    const int n = 10;
+    float deltaTime_s = deltaTime / (float)n;
 
-    //     velocity += acceleration * deltaTime;
-    //     position += velocity * deltaTime;
-
-    //     if (position.y < 0.0f && velocity.y != 0.0f)
-    //     {
-    //         position.y = 0.0f;
-    //         velocity = glm::vec3(0.0f);
-    //         acceleration = glm::vec3(0.0f);
-    //     }
-
-    //     vertexTransform.setPosition(position);
-    //     vertexTransform.setVelocity(velocity);
-    //     vertexTransform.setAcceleration(acceleration);
-    // }
-
-
-
-    std::vector<std::vector<float>> M = object.getMass();
+    std::vector<float> M = object.getMass();
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> C = object.getMesh().lengthConstraints;
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradC = object.getMesh().gradLengthConstraints;
     float alpha = 0.001f;
-    std::vector<float> alphaTilde(C.size(), alpha / (deltaTime * deltaTime));
 
-    std::vector<glm::vec3> position(object.getVertexTransforms().size(), glm::vec3(0.0f));
-    std::vector<glm::vec3> velocity(object.getVertexTransforms().size(), glm::vec3(0.0f));
-    std::vector<glm::vec3> acceleration(object.getVertexTransforms().size(), glm::vec3(0.0f));
-    std::vector<glm::vec3> xTilde(object.getVertexTransforms().size(), glm::vec3(0.0f));
+    std::vector<glm::vec3> x(object.getVertexTransforms().size(), glm::vec3(0.0f));
+    std::vector<glm::vec3> v(object.getVertexTransforms().size(), glm::vec3(0.0f));
+    std::vector<glm::vec3> a(object.getVertexTransforms().size(), glm::vec3(0.0f));
+    std::vector<glm::vec3> p(object.getVertexTransforms().size(), glm::vec3(0.0f));
 
-    for (size_t i = 0; i < object.getVertexTransforms().size(); ++i)
+    while (subStep < n + 1)
     {
-        Transform& vertexTransform = object.getVertexTransforms()[i];
+        for (size_t i = 0; i < object.getVertexTransforms().size(); ++i)
+        {
+            Transform& vertexTransform = object.getVertexTransforms()[i];
 
-        position[i] = vertexTransform.getPosition();
-        velocity[i] = vertexTransform.getVelocity();
-        acceleration[i] = vertexTransform.getAcceleration();
+            v[i] = vertexTransform.getVelocity() + deltaTime_s * vertexTransform.getAcceleration();
+            p[i] = vertexTransform.getPosition();
+            x[i] = vertexTransform.getPosition() + deltaTime_s * v[i];
+        }
 
-        glm::vec3 predictedPosition = position[i] +
-                                      deltaTime * velocity[i] +
-                                      deltaTime * deltaTime * acceleration[i];
-        xTilde[i] = predictedPosition;
-    }
+        // initialize differences of old and new positions and lambdas
+        std::vector<float> lambdaDifference(C.size(), 0.0f);
+        std::vector<float> positionDifference(x.size(), 0.0f);
 
-    // initialize current positions and lambdas
-    std::vector<glm::vec3> x_i = xTilde;
-    std::vector<float> lambda_i(C.size(), 0.0f);
-
-    // initialize differences of old and new positions and lambdas
-    std::vector<float> lambdaDifference(C.size(), 0.0f);
-    std::vector<float> positionDifference(x_i.size(), 0.0f);
-
-    const int maxSolverIterations = 1;
-    const float convergenceThreshold = 1e-5f; // Threshold for convergence
-    int i = 0;
-
-    while (i < maxSolverIterations)
-    {
-        std::vector<std::vector<glm::vec3>> gradCEval(C.size());
-        std::vector<glm::vec3> deltaX(x_i.size(), glm::vec3(0.0f));
-        std::vector<float> deltaLambda(lambda_i.size(), 0.0f);
-
+        std::vector<glm::vec3> deltaX;
         for (size_t j = 0; j < C.size(); ++j)
         {
-            float C_j = C[j](x_i);
-            std::vector<glm::vec3> gradC_j = gradC[j](x_i);
-            gradCEval[j] = gradC_j;
+            float C_j = C[j](x);
+            std::vector<glm::vec3> gradC_j = gradC[j](x);
 
-            float gradCMgradCT = calculateGradCMgradCT(gradC_j, M);
+            float lambda = calculateLambda(C_j, gradC_j, M, alpha, deltaTime_s);
 
-            deltaLambda[j] = (- C_j - alphaTilde[j] * lambda_i[j]) /
-                             (gradCMgradCT + alphaTilde[j]);
-
-            // std::cout << "C_j = " << C_j << ", gradCMgradCT = " << gradCMgradCT << '\n';
-
-
-            // Check if C_j is NaN
-            if (std::isnan(C_j))
+            deltaX = calculateDeltaX(lambda, M, gradC_j);
+            for (size_t i = 0; i < deltaX.size(); ++i)
             {
-                std::cerr << "Error: C_j[" << j << "] is NaN!" << std::endl;
-                std::exit(EXIT_FAILURE);
-            }
-            // Check if gradCMgradCT is NaN
-            if (std::isnan(gradCMgradCT))
-            {
-                std::cerr << "Error: gradCMgradCT for constraint [" << j << "] is NaN!" << std::endl;
-                std::exit(EXIT_FAILURE);
+                x[i] += deltaX[i];
             }
         }
 
-        deltaX = calculateDeltaX(gradCEval, deltaLambda, M);
-
-        bool lambdaConverged = true;
-        bool positionConverged = true;
-
-        for (size_t k = 0; k < lambda_i.size(); ++k)
+        // update position and velocities
+        for (size_t i = 0; i < object.getVertexTransforms().size(); ++i)
         {
-            float oldLambda = lambda_i[k];
-            lambda_i[k] += deltaLambda[k];
+            Transform& vertexTransform = object.getVertexTransforms()[i];
 
-            lambdaDifference[k] = std::abs(lambda_i[k] - oldLambda);
+            glm::vec3 newX = x[i];
+            glm::vec3 newV = (newX - p[i]) / deltaTime_s;
+            glm::vec3 newA = a[i];
 
-            // Check if any lambdaDifference is above the threshold
-            if (lambdaDifference[k] >= convergenceThreshold)
+            if (newX.y < 0.0f && newV.y < 0.0f)
             {
-                lambdaConverged = false;
+                newX.y = 0.0f;
+                newV.y = 0.0f;
+                newA.y = 0.0f;
             }
+
+            vertexTransform.setPosition(newX);
+            vertexTransform.setVelocity(newV);
+            vertexTransform.setAcceleration(newA);
+
         }
 
-        for (size_t k = 0; k < x_i.size(); ++k)
-        {
-            glm::vec3 oldX = x_i[k];
-            x_i[k] += deltaX[k];
-
-            positionDifference[k] = glm::distance(x_i[k], oldX);
-
-            // Check if any positionDifference is above the threshold
-            if (positionDifference[k] >= convergenceThreshold)
-            {
-                positionConverged = false;
-            }
-        }
-
-        object.setLambdaDifference(lambdaDifference);
-        object.setPositionDifference(positionDifference);
-
-        // Check for convergence
-        if (lambdaConverged && positionConverged)
-        {
-            // std::cout << "Converged after " << i + 1 << " iterations." << std::endl;
-            break;
-        }
-
-        ++i;
-    }
-
-    // update position and velocities
-    for (size_t n = 0; n < object.getVertexTransforms().size(); ++n)
-    {
-        Transform& vertexTransform = object.getVertexTransforms()[n];
-
-        glm::vec3 newX = x_i[n];
-        glm::vec3 newV = (newX - position[n]) / deltaTime;
-        glm::vec3 newA = acceleration[n];
-
-        if (newX.y < 0.0f && newV.y != 0.0f)
-        {
-            newX.y = 0.0f;
-            newV.y = 0.0f;
-            newA.y = 0.0f;
-        }
-
-        vertexTransform.setPosition(newX);
-        vertexTransform.setVelocity(newV);
-        vertexTransform.setAcceleration(newA);
+        subStep++;
 
     }
 
@@ -366,7 +239,7 @@ void Scene::update(float deltaTime)
         if (!object->isStatic())
         {
             applyGravity(*object, deltaTime);
-            // applyPBD(*object, deltaTime);
+            applyPBD(*object, deltaTime);
         }
 
         object->update(deltaTime);

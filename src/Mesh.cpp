@@ -1,5 +1,8 @@
 #include "Mesh.hpp"
 
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/string_cast.hpp>
+
 void Mesh::loadObjData(const std::string& filePath)
 {
 
@@ -129,8 +132,8 @@ void Mesh::constructLengthConstraints()
     {
         for (const auto& [vertex2, distance] : neighbors)
         {
-            lengthConstraints.push_back([=](const std::vector<glm::vec3>& x_i) -> float {
-                return glm::distance(x_i[vertex1], x_i[vertex2]) - distance;
+            lengthConstraints.push_back([=](const std::vector<glm::vec3>& x) -> float {
+                return glm::distance(x[vertex1], x[vertex2]) - distance;
             });
         }
     }
@@ -142,15 +145,18 @@ void Mesh::constructGradLengthConstraints()
     {
         for (const auto& [vertex2, distance] : neighbors)
         {
-            gradLengthConstraints.push_back([this, vertex1, vertex2](const std::vector<glm::vec3>& x_i) -> std::vector<glm::vec3> {
+            gradLengthConstraints.push_back([this, vertex1, vertex2](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
                 std::vector<glm::vec3> gradient(positions.size(), glm::vec3(0.0f));
 
-                glm::vec3 n = (x_i[vertex1] - x_i[vertex2]) / glm::distance(x_i[vertex1], x_i[vertex2]);
+                glm::vec3 n = (x[vertex1] - x[vertex2]) / (glm::distance(x[vertex1], x[vertex2]));
 
                 gradient[vertex1] = n;
                 gradient[vertex2] = -n;
 
                 return gradient;
+
+                // glm::vec3 n = (x[vertex1] - x[vertex2]) / (glm::distance(x[vertex1], x[vertex2]));
+                // return { n, -n };
             });
         }
     }
