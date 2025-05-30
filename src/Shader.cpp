@@ -111,18 +111,24 @@ void Shader::deleteProgram()
     glDeleteProgram(m_ID);
 }
 
-void Shader::setBool(const std::string& name, bool value) const
+void Shader::setUniform(const std::string& name, const glm::vec3& color)
 {
-    glUniform1i(glGetUniformLocation(m_ID, name.c_str()), (int)value);
+    int vertexColorLocation = glGetUniformLocation(m_ID, name.c_str());
+    glUniform4f(vertexColorLocation, color[0], color[1], color[2], 1.0f);
 }
 
-void Shader::setInt(const std::string& name, int value) const
-{
-    glUniform1i(glGetUniformLocation(m_ID, name.c_str()), value);
-}
+// void Shader::setBool(const std::string& name, bool value) const
+// {
+//     glUniform1i(glGetUniformLocation(m_ID, name.c_str()), (int)value);
+// }
 
-void Shader::setFloat(const std::string& name, float value) const
-{
-    glUniform1f(glGetUniformLocation(m_ID, name.c_str()), value);
-}
+// void Shader::setInt(const std::string& name, int value) const
+// {
+//     glUniform1i(glGetUniformLocation(m_ID, name.c_str()), value);
+// }
+
+// void Shader::setFloat(const std::string& name, float value) const
+// {
+//     glUniform1f(glGetUniformLocation(m_ID, name.c_str()), value);
+// }
 

@@ -55,16 +55,22 @@ PhysicsEngine::PhysicsEngine(
 
     // TODO : load all files present in each folder
     // initialize shaders
-    auto dirtBlockShader = std::make_unique<Shader>(
-        "dirtblock",
-        "../res/shaders/dirtblock.vsh",
-        "../res/shaders/dirtblock.fsh"
+    auto lightShader = std::make_unique<Shader>(
+        "light",
+        "../res/shaders/light.vsh",
+        "../res/shaders/light.fsh"
     );
 
     auto platformShader = std::make_unique<Shader>(
         "platform",
         "../res/shaders/platform.vsh",
         "../res/shaders/platform.fsh"
+    );
+
+    auto dirtBlockShader = std::make_unique<Shader>(
+        "dirtblock",
+        "../res/shaders/dirtblock.vsh",
+        "../res/shaders/dirtblock.fsh"
     );
 
     auto sphereShader = std::make_unique<Shader>(
@@ -91,8 +97,9 @@ PhysicsEngine::PhysicsEngine(
         "../res/textures/dirtblock.jpg"
     );
 
-    shaderManager->addShader(std::move(dirtBlockShader));
+    shaderManager->addShader(std::move(lightShader));
     shaderManager->addShader(std::move(platformShader));
+    shaderManager->addShader(std::move(dirtBlockShader));
     shaderManager->addShader(std::move(sphereShader));
     meshManager->addMesh(std::move(cubeMesh));
     meshManager->addMesh(std::move(sphereMesh));

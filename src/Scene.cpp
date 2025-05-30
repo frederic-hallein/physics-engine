@@ -18,6 +18,7 @@ Scene::Scene(
         m_gravitationalAcceleration(0.0f, 0.0f, 0.0f)
 {
     Shader platformShader = m_shaderManager->getShader("platform");
+    Shader lightShader = m_shaderManager->getShader("light");
     Shader dirtBlockShader = m_shaderManager->getShader("dirtblock");
     Shader sphereShader = m_shaderManager->getShader("sphere");
 
@@ -25,6 +26,28 @@ Scene::Scene(
     Mesh sphereMesh = m_meshManager->getMesh("sphere");
 
     Texture dirtBlockTexture = m_textureManager->getTexture("dirtblock");
+
+    // light
+    Transform lightTransform;
+    lightTransform.setProjection(*m_camera);
+    glm::vec3 lightPosition(0.0f, 4.0f, 0.0f);
+    glm::mat4 lightTranslationMatrix = glm::translate(
+        glm::mat4(1.0f),
+        lightPosition
+    );
+    lightTranslationMatrix = glm::scale(
+        lightTranslationMatrix,
+        glm::vec3(0.01f, 0.01f, 0.01f)
+    );
+    lightTransform.setModel(lightTranslationMatrix);
+    lightTransform.setView(*m_camera);
+    auto lightBlock = std::make_unique<Cube>(
+        "Light",
+        lightTransform,
+        lightShader,
+        sphereMesh
+    );
+    m_objects.push_back(std::move(lightBlock));
 
     // platform
     Transform platformTransform;
