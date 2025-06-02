@@ -45,9 +45,15 @@ Object::Object(
         m_M[i] = m_vertexTransforms[i].getMass();
     }
 
-    m_mesh.setLengthConstraintVertices(); // necessary because mesh of object can be scaled
-    m_mesh.constructLengthConstraints();
-    m_mesh.constructGradLengthConstraints();
+    // length constraints
+    m_mesh.setDistanceConstraintVertices(); // necessary because mesh of object can be scaled
+    m_mesh.constructDistanceConstraints();
+    m_mesh.constructGradDistanceConstraints();
+
+    // // volume constraints
+    //m_mesh.setVolumeConstraintVertices();
+    //m_mesh.constructGradVolumeConstraints();
+    //m_mesh.constructGradVolumeConstraints();
 
     std::cout << name << " created." << '\n';
 }

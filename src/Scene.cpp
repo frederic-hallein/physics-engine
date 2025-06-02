@@ -186,9 +186,9 @@ void Scene::applyPBD(
     float deltaTime_s = deltaTime / (float)n;
 
     std::vector<float> M = object.getMass();
-    std::vector<std::vector<int>> lengthConstraintVertexPairs = object.getMesh().lengthConstraintVertexPairs;
-    std::vector<std::function<float(const std::vector<glm::vec3>&)>> C = object.getMesh().lengthConstraints;
-    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradC = object.getMesh().gradLengthConstraints;
+    std::vector<std::vector<int>> distanceConstraintVertexPairs = object.getMesh().distanceConstraintVertices;
+    std::vector<std::function<float(const std::vector<glm::vec3>&)>> C = object.getMesh().distanceConstraints;
+    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradC = object.getMesh().gradDistanceConstraints;
     float alpha = 0.001f;
 
     std::vector<glm::vec3> x(object.getVertexTransforms().size(), glm::vec3(0.0f));
@@ -200,7 +200,7 @@ void Scene::applyPBD(
     {
         for (size_t i = 0; i < object.getVertexTransforms().size(); ++i)
         {
-            Transform& vertexTransform = object.getVertexTransforms()[i];
+            Transform vertexTransform = object.getVertexTransforms()[i];
 
             a[i] = vertexTransform.getAcceleration();
             v[i] = vertexTransform.getVelocity() + deltaTime_s * a[i];
@@ -217,7 +217,7 @@ void Scene::applyPBD(
         {
             float C_j = C[j](x);
             std::vector<glm::vec3> gradC_j = gradC[j](x);
-            std::vector<int> constraintVertices = lengthConstraintVertexPairs[j];
+            std::vector<int> constraintVertices = distanceConstraintVertexPairs[j];
 
             float lambda = calculateLambda(C_j, gradC_j, constraintVertices, M, alpha, deltaTime_s);
             deltaX = calculateDeltaX(lambda, M, gradC_j, constraintVertices);

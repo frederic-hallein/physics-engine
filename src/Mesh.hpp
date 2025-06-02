@@ -29,19 +29,26 @@ public:
     void draw();
     void deleteMesh();
 
-    void setLengthConstraintVertices();
-    void constructLengthConstraints();
-    void constructGradLengthConstraints();
+    void setDistanceConstraintVertices();
+    void constructDistanceConstraints();
+    void constructGradDistanceConstraints();
+
+    void setVolumeConstraintVertices();
+    void constructVolumeConstraints();
+    void constructGradVolumeConstraints();
 
 public:
     std::vector<glm::vec3> positions;
     std::vector<glm::vec2> texCoords;
     std::vector<glm::vec3> normals;
 
-    std::vector<std::vector<int>> lengthConstraintVertexPairs;
-    std::vector<std::function<float(const std::vector<glm::vec3>&)>> lengthConstraints;
-    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradLengthConstraints;
+    std::vector<std::vector<int>> distanceConstraintVertices;
+    std::vector<std::function<float(const std::vector<glm::vec3>&)>> distanceConstraints;
+    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradDistanceConstraints;
 
+    std::vector<std::vector<int>> volumeConstraintVertices;
+    std::vector<std::function<float(const std::vector<glm::vec3>&)>> volumeConstraints;
+    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradVolumeConstraints;
 private:
     void loadObjData(const std::string& meshPath);
 

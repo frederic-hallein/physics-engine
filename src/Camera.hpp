@@ -43,7 +43,7 @@ private:
     float m_nearPlane;
     float m_farPlane;
 
-    float m_deltaTime = 0.0f;
+    float m_deltaTime;
     GLFWwindow* m_window;
 
     friend void scrollCallback(GLFWwindow* window, double xoffset, double yoffset);

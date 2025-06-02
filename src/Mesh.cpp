@@ -101,7 +101,7 @@ void Mesh::loadObjData(const std::string& filePath)
     m_indices = indices;
 }
 
-void Mesh::setLengthConstraintVertices()
+void Mesh::setDistanceConstraintVertices()
 {
     for (const auto& [vertex, neighbors] : m_connectedVertices)
     {
@@ -109,7 +109,7 @@ void Mesh::setLengthConstraintVertices()
         {
             if (vertex < neighbor) // select unique
             {
-                lengthConstraintVertexPairs.push_back({ vertex , neighbor });
+                distanceConstraintVertices.push_back({ vertex , neighbor });
             }
         }
     }
@@ -125,31 +125,72 @@ void Mesh::setLengthConstraintVertices()
     // }
 }
 
-void Mesh::constructLengthConstraints()
+void Mesh::constructDistanceConstraints()
 {
-    for (const auto& vertexPair : lengthConstraintVertexPairs)
+    for (const auto& vertexPair : distanceConstraintVertices)
     {
         int v1 = vertexPair[0];
         int v2 = vertexPair[1];
-        float distance = glm::distance(positions[v1], positions[v2]);
+        float d_0 = glm::distance(positions[v1], positions[v2]);
 
-        lengthConstraints.push_back([=](const std::vector<glm::vec3>& x) -> float {
-            return glm::distance(x[v1], x[v2]) - distance;
+        distanceConstraints.push_back([=](const std::vector<glm::vec3>& x) -> float {
+            return glm::distance(x[v1], x[v2]) - d_0;
         });
     }
 }
 
-void Mesh::constructGradLengthConstraints()
+void Mesh::constructGradDistanceConstraints()
 {
-    for (const auto& vertexPair : lengthConstraintVertexPairs)
+    for (const auto& vertexPair : distanceConstraintVertices)
     {
         int v1 = vertexPair[0];
         int v2 = vertexPair[1];
-        gradLengthConstraints.push_back([this, v1, v2](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
+        gradDistanceConstraints.push_back([this, v1, v2](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
             glm::vec3 n = (x[v1] - x[v2]) / (glm::distance(x[v1], x[v2]));
             return { n, -n };
         });
 
+    }
+}
+
+void Mesh::setVolumeConstraintVertices()
+{
+    // TODO : obtain all tetraeders
+}
+
+void Mesh::constructVolumeConstraints()
+{
+    for (const auto& vertexQuad : volumeConstraintVertices)
+    {
+        int v1 = vertexQuad[0];
+        int v2 = vertexQuad[1];
+        int v3 = vertexQuad[2];
+        int v4 = vertexQuad[3];
+        float V_0 = 0.0f; // TODO : calculate rest volume
+
+        volumeConstraints.push_back([=](const std::vector<glm::vec3>& x) -> float {
+            return glm::dot(glm::cross(x[v2] - x[v1], x[v3] - x[v1]), x[v4] - x[v1]) - 6 * V_0;
+        });
+    }
+}
+
+void Mesh::constructGradVolumeConstraints()
+{
+    for (const auto& vertexQuad : volumeConstraintVertices)
+    {
+        int v1 = vertexQuad[0];
+        int v2 = vertexQuad[1];
+        int v3 = vertexQuad[2];
+        int v4 = vertexQuad[3];
+        gradVolumeConstraints.push_back([this, v1, v2, v3, v4](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
+            return
+            {
+                glm::cross(x[v4] - x[v2], x[v3] - x[v2]),
+                glm::cross(x[v3] - x[v1], x[v4] - x[v1]),
+                glm::cross(x[v4] - x[v1], x[v2] - x[v1]),
+                glm::cross(x[v2] - x[v1], x[v3] - x[v1])
+            };
+        });
     }
 }
 
