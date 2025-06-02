@@ -5,15 +5,15 @@
 
 void Mesh::loadObjData(const std::string& filePath)
 {
-
     std::vector<unsigned int> indices;
-
     std::ifstream file(filePath);
     if (!file.is_open())
     {
         std::cerr << "ERROR::MESH::FILE_NOT_SUCCESSFULLY_OPENED: " << filePath << std::endl;
         return;
     }
+
+    std::set<std::pair<int, int>> uniqueEdges; // To avoid duplicate edges
 
     std::string line;
     while (std::getline(file, line))
@@ -22,107 +22,84 @@ void Mesh::loadObjData(const std::string& filePath)
         std::string prefix;
         iss >> prefix;
 
-        if (prefix == "v") // Vertex position
-        {
+        if (prefix == "v") {
             float x, y, z;
             iss >> x >> y >> z;
             positions.emplace_back(x, y, z);
+            continue;
         }
-        else if (prefix == "vt") // Texture coordinate
-        {
+        if (prefix == "vt") {
             float u, v;
             iss >> u >> v;
             texCoords.emplace_back(u, v);
+            continue;
         }
-        else if (prefix == "vn") // Normal vector
-        {
+        if (prefix == "vn") {
             float nx, ny, nz;
             iss >> nx >> ny >> nz;
             normals.emplace_back(nx, ny, nz);
+            continue;
         }
-        else if (prefix == "f") // Face data
-        {
-            std::string vertexData;
-            unsigned int vertexIndices[3];
+        if (prefix == "f") {
+            std::array<unsigned int, 3> vertexIndices;
+            std::array<unsigned int, 3> texCoordIndices;
+            std::array<unsigned int, 3> normalIndices;
+
             for (int i = 0; i < 3; ++i)
             {
+                std::string vertexData;
                 iss >> vertexData;
-
-                // Parse the vertex/texture/normal indices
                 std::istringstream vertexStream(vertexData);
                 std::string v, vt, vn;
                 std::getline(vertexStream, v, '/');
                 std::getline(vertexStream, vt, '/');
                 std::getline(vertexStream, vn, '/');
 
-                unsigned int vertexIndex = std::stoi(v) - 1;
-                vertexIndices[i] = vertexIndex;
-
-                unsigned int texCoordIndex = std::stoi(vt) - 1;
-                unsigned int normalIndex = std::stoi(vn) - 1;
+                vertexIndices[i] = std::stoi(v) - 1;
+                texCoordIndices[i] = std::stoi(vt) - 1;
+                normalIndices[i] = std::stoi(vn) - 1;
 
                 // Add position, texture, and normal to m_vertices
-                m_vertices.push_back(positions[vertexIndex].x);
-                m_vertices.push_back(positions[vertexIndex].y);
-                m_vertices.push_back(positions[vertexIndex].z);
+                m_vertices.push_back(positions[vertexIndices[i]].x);
+                m_vertices.push_back(positions[vertexIndices[i]].y);
+                m_vertices.push_back(positions[vertexIndices[i]].z);
 
-                m_vertices.push_back(texCoords[texCoordIndex].x);
-                m_vertices.push_back(texCoords[texCoordIndex].y);
+                m_vertices.push_back(texCoords[texCoordIndices[i]].x);
+                m_vertices.push_back(texCoords[texCoordIndices[i]].y);
 
-                m_vertices.push_back(normals[normalIndex].x);
-                m_vertices.push_back(normals[normalIndex].y);
-                m_vertices.push_back(normals[normalIndex].z);
+                m_vertices.push_back(normals[normalIndices[i]].x);
+                m_vertices.push_back(normals[normalIndices[i]].y);
+                m_vertices.push_back(normals[normalIndices[i]].z);
 
-                m_positionMapping.push_back(vertexIndex);
-
+                m_positionMapping.push_back(vertexIndices[i]);
                 indices.push_back(static_cast<unsigned int>(indices.size()));
             }
 
-            // keep track of adjacent vertices which will be used for constraints
+            // Store the triangle
+            volumeConstraintVertices.push_back({static_cast<int>(vertexIndices[0]),
+                                   static_cast<int>(vertexIndices[1]),
+                                   static_cast<int>(vertexIndices[2])});
+
+
             for (int i = 0; i < 3; ++i)
             {
                 int v1 = vertexIndices[i];
                 int v2 = vertexIndices[(i + 1) % 3];
-                int v3 = vertexIndices[(i + 2) % 3];
 
-                m_connectedVertices[v1].insert(v2);
-                m_connectedVertices[v1].insert(v3);
-
-                m_connectedVertices[v2].insert(v1);
-                m_connectedVertices[v2].insert(v3);
-
-                m_connectedVertices[v3].insert(v1);
-                m_connectedVertices[v3].insert(v2);
+                auto edge = std::minmax(v1, v2);
+                uniqueEdges.insert(edge);
             }
         }
+    }
+
+    distanceConstraintVertices.clear();
+    for (const auto& edge : uniqueEdges)
+    {
+        distanceConstraintVertices.push_back({edge.first, edge.second});
     }
 
     file.close();
     m_indices = indices;
-}
-
-void Mesh::setDistanceConstraintVertices()
-{
-    for (const auto& [vertex, neighbors] : m_connectedVertices)
-    {
-        for (int neighbor : neighbors)
-        {
-            if (vertex < neighbor) // select unique
-            {
-                distanceConstraintVertices.push_back({ vertex , neighbor });
-            }
-        }
-    }
-
-
-    // for (const auto& [vertex1, neighbors] : m_vertexDistances)
-    // {
-    //     for (const auto& [vertex2, distance] : neighbors)
-    //     {
-    //         std::cout << "(" << vertex1 << ", " << vertex2
-    //                   << "): " << distance << std::endl;
-    //     }
-    // }
 }
 
 void Mesh::constructDistanceConstraints()
@@ -153,45 +130,52 @@ void Mesh::constructGradDistanceConstraints()
     }
 }
 
-void Mesh::setVolumeConstraintVertices()
-{
-    // TODO : obtain all tetraeders
-}
-
 void Mesh::constructVolumeConstraints()
 {
-    for (const auto& vertexQuad : volumeConstraintVertices)
+    float V_0 = 0.0f;
+    for (const auto& vertexTriple : volumeConstraintVertices)
     {
-        int v1 = vertexQuad[0];
-        int v2 = vertexQuad[1];
-        int v3 = vertexQuad[2];
-        int v4 = vertexQuad[3];
-        float V_0 = 0.0f; // TODO : calculate rest volume
-
-        volumeConstraints.push_back([=](const std::vector<glm::vec3>& x) -> float {
-            return glm::dot(glm::cross(x[v2] - x[v1], x[v3] - x[v1]), x[v4] - x[v1]) - 6 * V_0;
-        });
+        int v1 = vertexTriple[0];
+        int v2 = vertexTriple[1];
+        int v3 = vertexTriple[2];
+        V_0 += (1.0f / 6.0f) * glm::dot(glm::cross(positions[v1], positions[v2]), positions[v3]);
     }
+
+    volumeConstraints.push_back([this, V_0](const std::vector<glm::vec3>& x) -> float {
+        float V = 0.0f;
+
+        for (const auto& vertexTriple : volumeConstraintVertices)
+        {
+            int v1 = vertexTriple[0];
+            int v2 = vertexTriple[1];
+            int v3 = vertexTriple[2];
+            V += (1.0f / 6.0f) * glm::dot(glm::cross(x[v1], x[v2]), x[v3]);
+        }
+
+        return V - V_0;
+    });
+
+
 }
 
 void Mesh::constructGradVolumeConstraints()
 {
-    for (const auto& vertexQuad : volumeConstraintVertices)
-    {
-        int v1 = vertexQuad[0];
-        int v2 = vertexQuad[1];
-        int v3 = vertexQuad[2];
-        int v4 = vertexQuad[3];
-        gradVolumeConstraints.push_back([this, v1, v2, v3, v4](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
-            return
-            {
-                glm::cross(x[v4] - x[v2], x[v3] - x[v2]),
-                glm::cross(x[v3] - x[v1], x[v4] - x[v1]),
-                glm::cross(x[v4] - x[v1], x[v2] - x[v1]),
-                glm::cross(x[v2] - x[v1], x[v3] - x[v1])
-            };
-        });
-    }
+    gradVolumeConstraints.push_back([this](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
+        glm::vec3 n1(0.0f), n2(0.0f), n3(0.0f);
+
+        for (const auto& vertexTriple : volumeConstraintVertices)
+        {
+            int v1 = vertexTriple[0];
+            int v2 = vertexTriple[1];
+            int v3 = vertexTriple[2];
+
+            n1 += (1.0f / 6.0f) * glm::cross(x[v2], x[v3]);
+            n2 += (1.0f / 6.0f) * glm::cross(x[v3], x[v1]);
+            n3 += (1.0f / 6.0f) * glm::cross(x[v1], x[v2]);
+        }
+
+        return { n1, n2, n3 };
+    });
 }
 
 Mesh::Mesh(const std::string& name, const std::string& meshPath)

@@ -40,13 +40,12 @@ private:
         Object& object,
         float deltaTime
     );
-    float calculateLambda(
+    float calculateDeltaLambda(
         float C_j,
         const std::vector<glm::vec3>& gradC_j,
         const std::vector<int>& constraintVertices,
         const std::vector<float>& M,
-        float alpha,
-        float deltaTime_s
+        float alphaTilde
     );
     std::vector<glm::vec3> calculateDeltaX(
         float lambda,

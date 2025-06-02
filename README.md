@@ -1,6 +1,6 @@
 # Physics Engine
 
-A 3D physics engine written in C++ using OpenGL for rendering. The goal of this project is to implement **Extended Position Based Dynamics (XPBD)** (See [Macklin, Muller and Chentanez, 2016](https://matthias-research.github.io/pages/publications/XPBD.pdf)) for realistic and efficient physics simulations.
+A 3D physics engine written in C++ using OpenGL for rendering. The goal of this project is to implement **Extended Position Based Dynamics (XPBD)** (See [Macklin et al., 2019](https://matthias-research.github.io/pages/publications/smallsteps.pdf)) for realistic and efficient physics simulations.
 
 
 ## Features
