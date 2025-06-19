@@ -59,7 +59,7 @@ Scene::Scene(
     );
     platformTranslationMatrix = glm::scale(
         platformTranslationMatrix,
-        glm::vec3(50.0f, 0.1f, 50.0f)
+        glm::vec3(5.0f, 0.1f, 5.0f)
     );
     platformTransform.setModel(platformTranslationMatrix);
     platformTransform.setView(*m_camera);
@@ -82,7 +82,7 @@ Scene::Scene(
     );
     dirtBlockTranslationMatrix = glm::rotate(
         dirtBlockTranslationMatrix,
-        glm::radians(0.0f),
+        glm::radians(45.0f),
         glm::vec3(0.0f, 1.0f, 1.0f)
     );
     dirtBlockTranslationMatrix = glm::scale(
