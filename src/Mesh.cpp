@@ -92,7 +92,6 @@ void Mesh::loadObjData(const std::string& filePath)
         }
     }
 
-    distanceConstraintVertices.clear();
     for (const auto& edge : uniqueEdges)
     {
         distanceConstraintVertices.push_back({edge.first, edge.second});
@@ -139,6 +138,7 @@ void Mesh::constructVolumeConstraints()
         int v2 = vertexTriple[1];
         int v3 = vertexTriple[2];
         V_0 += (1.0f / 6.0f) * glm::dot(glm::cross(positions[v1], positions[v2]), positions[v3]);
+
     }
 
     volumeConstraints.push_back([this, V_0](const std::vector<glm::vec3>& x) -> float {

@@ -40,12 +40,6 @@ public:
     const Mesh& getMesh() const { return m_mesh; }
     const std::vector<float>& getMass() const { return m_M; }
 
-
-    // void setLambdaDifference(const std::vector<float>& lambdaDifference) { m_lambdaDifference = lambdaDifference; }
-    // void setPositionDifference(const std::vector<float>& positionDifference) { m_positionDifference = positionDifference; }
-
-    // std::vector<float>& getLambdaDifference() { return m_lambdaDifference; }
-    // std::vector<float>& getPositionDifference() { return m_positionDifference; }
 protected:
     std::string m_name;
     Transform m_transform;
@@ -57,9 +51,6 @@ protected:
 
     std::vector<Transform> m_vertexTransforms;
     std::vector<float> m_M;
-
-    // std::vector<float> m_lambdaDifference;
-    // std::vector<float> m_positionDifference;
 };
 
 class Cube : public Object

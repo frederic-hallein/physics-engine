@@ -59,7 +59,7 @@ Scene::Scene(
     );
     platformTranslationMatrix = glm::scale(
         platformTranslationMatrix,
-        glm::vec3(5.0f, 0.5f, 2.5f)
+        glm::vec3(50.0f, 0.1f, 50.0f)
     );
     platformTransform.setModel(platformTranslationMatrix);
     platformTransform.setView(*m_camera);
@@ -75,14 +75,14 @@ Scene::Scene(
     // dirtBlock
     Transform dirtBlockTransform;
     dirtBlockTransform.setProjection(*m_camera);
-    glm::vec3 dirtBlockPosition(-2.0f, 3.0f, 0.0f);
+    glm::vec3 dirtBlockPosition(-2.0f, 3.5f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
     );
     dirtBlockTranslationMatrix = glm::rotate(
         dirtBlockTranslationMatrix,
-        glm::radians(30.0f),
+        glm::radians(0.0f),
         glm::vec3(0.0f, 1.0f, 1.0f)
     );
     dirtBlockTranslationMatrix = glm::scale(
@@ -101,18 +101,17 @@ Scene::Scene(
     );
     m_objects.push_back(std::move(dirtBlock));
 
-
     // sphere
     Transform sphereTransform;
     sphereTransform.setProjection(*m_camera);
-    glm::vec3 spherePosition(2.0f, 3.0f, 0.0f);
+    glm::vec3 spherePosition(2.0f, 3.5f, 0.0f);
     glm::mat4 sphereTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         spherePosition
     );
     sphereTranslationMatrix = glm::scale(
         sphereTranslationMatrix,
-        glm::vec3(0.3f, 0.3f, 0.3f)
+        glm::vec3(1.0f, 1.0f, 1.0f)
     );
     sphereTransform.setModel(sphereTranslationMatrix);
     sphereTransform.setView(*m_camera);
@@ -142,19 +141,23 @@ void Scene::applyGravity(
 float Scene::calculateDeltaLambda(
     float C_j,
     const std::vector<glm::vec3>& gradC_j,
+    const std::vector<glm::vec3>& posDiff,
     const std::vector<int>& constraintVertices,
     const std::vector<float>& M,
-    float alphaTilde
+    float alphaTilde,
+    float gamma
 )
 {
     float gradCMInverseGradCT = 0.0f;
+    float gradCPosDiff = 0.0f;
     for (size_t i = 0; i < constraintVertices.size(); ++i)
     {
         int v = constraintVertices[i];
         gradCMInverseGradCT += (1.0f / M[v]) * glm::dot(gradC_j[i], gradC_j[i]);
+        gradCPosDiff += glm::dot(gradC_j[i], posDiff[i]);
     }
 
-    return - C_j / (gradCMInverseGradCT + alphaTilde);
+    return (- C_j - gamma * gradCPosDiff) / ((1 + gamma) * gradCMInverseGradCT + alphaTilde);
 }
 
 std::vector<glm::vec3> Scene::calculateDeltaX(
@@ -180,9 +183,7 @@ void Scene::applyPBD(
     float deltaTime
 )
 {
-    int subStep = 1;
-    const int n = 3;
-    float deltaTime_s = deltaTime / (float)n;
+
 
     std::vector<float> M = object.getMass();
     std::vector<std::vector<int>> distanceConstraintVertexPairs = object.getMesh().distanceConstraintVertices;
@@ -194,17 +195,24 @@ void Scene::applyPBD(
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradDistanceC = object.getMesh().gradDistanceConstraints;
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradVolumeC = object.getMesh().gradVolumeConstraints;
 
-    float alpha = 0.001f;
-    float beta = 1.0f;
 
-    float alphaTilde = alpha / (deltaTime_s * deltaTime_s);
-    float betaTilde = (deltaTime_s * deltaTime_s) * beta;
-    float gamma = (alphaTilde * betaTilde) / deltaTime_s;
 
     std::vector<glm::vec3> x(object.getVertexTransforms().size(), glm::vec3(0.0f));
     std::vector<glm::vec3> v(object.getVertexTransforms().size(), glm::vec3(0.0f));
     std::vector<glm::vec3> a(object.getVertexTransforms().size(), glm::vec3(0.0f));
     std::vector<glm::vec3> p(object.getVertexTransforms().size(), glm::vec3(0.0f));
+    std::vector<glm::vec3> posDiff(object.getVertexTransforms().size(), glm::vec3(0.0f));
+
+    int subStep = 1;
+    const int n = 10;
+    float deltaTime_s = deltaTime / (float)n;
+
+    float alpha = 0.0001f;
+    float beta = 0.0001f;
+
+    float alphaTilde = alpha / (deltaTime_s * deltaTime_s);
+    float betaTilde = (deltaTime_s * deltaTime_s) * beta;
+    float gamma = (alphaTilde * betaTilde) / deltaTime_s;
 
     while (subStep < n + 1)
     {
@@ -216,6 +224,8 @@ void Scene::applyPBD(
             v[i] = vertexTransform.getVelocity() + deltaTime_s * a[i];
             x[i] = vertexTransform.getPosition() + deltaTime_s * v[i];
             p[i] = vertexTransform.getPosition();
+
+            posDiff[i] = x[i] - p[i];
         }
 
         // // initialize differences of old and new positions and lambdas
@@ -231,7 +241,7 @@ void Scene::applyPBD(
             std::vector<glm::vec3> gradC_j = gradDistanceC[j](x);
             std::vector<int> distanceConstraintVertices = distanceConstraintVertexPairs[j];
 
-            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, distanceConstraintVertices, M, alphaTilde);
+            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, distanceConstraintVertices, M, alphaTilde, gamma);
             deltaX = calculateDeltaX(deltaLambda, M, gradC_j, distanceConstraintVertices);
 
             for (size_t i = 0; i < deltaX.size(); ++i)
@@ -240,21 +250,21 @@ void Scene::applyPBD(
             }
         }
 
-        // volume constraint
-        for (size_t j = 0; j < volumeC.size(); ++j)
-        {
-            float C_j = volumeC[j](x);
-            std::vector<glm::vec3> gradC_j = gradVolumeC[j](x);
-            std::vector<int> volumeConstraintVertices = volumeConstraintVertexTriples[j];
+        // // volume constraint
+        // for (size_t j = 0; j < volumeC.size(); ++j)
+        // {
+        //     float C_j = volumeC[j](x);
+        //     std::vector<glm::vec3> gradC_j = gradVolumeC[j](x);
+        //     std::vector<int> volumeConstraintVertices = volumeConstraintVertexTriples[j];
 
-            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, volumeConstraintVertices, M, alphaTilde);
-            deltaX = calculateDeltaX(deltaLambda, M, gradC_j, volumeConstraintVertices);
+        //     float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, volumeConstraintVertices, M, alphaTilde, gamma);
+        //     deltaX = calculateDeltaX(deltaLambda, M, gradC_j, volumeConstraintVertices);
 
-            for (size_t i = 0; i < deltaX.size(); ++i)
-            {
-                x[i] += deltaX[i];
-            }
-        }
+        //     for (size_t i = 0; i < deltaX.size(); ++i)
+        //     {
+        //         x[i] += deltaX[i];
+        //     }
+        // }
 
 
         // update position and velocities
@@ -264,22 +274,22 @@ void Scene::applyPBD(
 
             glm::vec3 newX = x[i];
             glm::vec3 newV = (newX - p[i]) / deltaTime_s;
-            glm::vec3 newA = a[i];
+            // glm::vec3 newA = a[i];
 
             if (newX.y < 0.0f && newV.y < 0.0f)
             {
                 newX.y = 0.0f;
                 newV.y = 0.0f;
-                // newA.y = 0.0f;
             }
 
             vertexTransform.setPosition(newX);
             vertexTransform.setVelocity(newV);
-            vertexTransform.setAcceleration(newA);
+            // vertexTransform.setAcceleration(newA);
 
         }
 
-        ++subStep;
+        subStep++;
+
 
     }
 
@@ -314,7 +324,7 @@ void Scene::render()
     glCullFace(GL_BACK);
     glFrontFace(GL_CCW);
 
-    glClearColor(0.5f, 0.1f, 0.4f, 1.0f); // background
+    glClearColor(0.1f, 0.5f, 0.4f, 1.0f); // background
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     for (const auto& object : m_objects)

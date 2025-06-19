@@ -43,9 +43,11 @@ private:
     float calculateDeltaLambda(
         float C_j,
         const std::vector<glm::vec3>& gradC_j,
+        const std::vector<glm::vec3>& posDiff,
         const std::vector<int>& constraintVertices,
         const std::vector<float>& M,
-        float alphaTilde
+        float alphaTilde,
+        float gamma
     );
     std::vector<glm::vec3> calculateDeltaX(
         float lambda,

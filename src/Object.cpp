@@ -37,21 +37,24 @@ Object::Object(
         m_vertexTransforms.push_back(vertexTransform);
     }
 
-    //create M array
-    size_t n = m_vertexTransforms.size();
-    m_M = std::vector<float>(n, 0.0f);
-    for (size_t i = 0; i < n; ++i)
+    if (!m_isStatic)
     {
-        m_M[i] = m_vertexTransforms[i].getMass();
+        //create M array
+        size_t n = m_vertexTransforms.size();
+        m_M = std::vector<float>(n, 0.0f);
+        for (size_t i = 0; i < n; ++i)
+        {
+            m_M[i] = m_vertexTransforms[i].getMass();
+        }
+
+        // distance constraints
+        m_mesh.constructDistanceConstraints();
+        m_mesh.constructGradDistanceConstraints();
+
+        // // volume constraints
+        m_mesh.constructVolumeConstraints();
+        m_mesh.constructGradVolumeConstraints();
     }
-
-    // distance constraints
-    m_mesh.constructDistanceConstraints();
-    m_mesh.constructGradDistanceConstraints();
-
-    // // volume constraints
-    m_mesh.constructVolumeConstraints();
-    m_mesh.constructGradVolumeConstraints();
 
     std::cout << name << " created." << '\n';
 }

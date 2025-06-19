@@ -29,11 +29,9 @@ public:
     void draw();
     void deleteMesh();
 
-    // void setDistanceConstraintVertices();
     void constructDistanceConstraints();
     void constructGradDistanceConstraints();
 
-    // void setVolumeConstraintVertices();
     void constructVolumeConstraints();
     void constructGradVolumeConstraints();
 
@@ -60,9 +58,6 @@ private:
 
     std::vector<float> m_vertices;
     std::vector<unsigned int> m_indices;
-
-    // std::unordered_map<int, std::set<int>> m_connectedVertices;
-    // std::vector<std::vector<int>> m_triangles;
 
     GLuint m_VAO, m_VBO, m_EBO;
 };
