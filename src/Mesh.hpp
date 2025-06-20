@@ -11,8 +11,13 @@
 
 #include "Transform.hpp"
 
+struct Vertex
+{
+    glm::vec3 position;
+    glm::vec3 normal;
+    glm::vec2 texCoords;
+};
 
-#include <set>
 class Mesh
 {
 public:
@@ -37,8 +42,8 @@ public:
 
 public:
     std::vector<glm::vec3> positions;
-    std::vector<glm::vec2> texCoords;
-    std::vector<glm::vec3> normals;
+    // std::vector<glm::vec2> texCoords;
+    // std::vector<glm::vec3> normals;
 
     std::vector<std::vector<int>> distanceConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> distanceConstraints;
@@ -54,9 +59,9 @@ private:
     std::string m_name;
     std::string m_meshPath;
 
-    std::vector<size_t> m_positionMapping;
+    std::vector<unsigned int> m_positionMapping;
 
-    std::vector<float> m_vertices;
+    std::vector<Vertex> m_vertices;
     std::vector<unsigned int> m_indices;
 
     GLuint m_VAO, m_VBO, m_EBO;

@@ -15,7 +15,7 @@ Scene::Scene(
         m_meshManager(std::move(meshManager)),
         m_textureManager(std::move(textureManager)),
         m_camera(std::move(camera)),
-        m_gravitationalAcceleration(0.0f, 0.0f, 0.0f)
+        m_gravitationalAcceleration(0.0f)
 {
     Shader platformShader = m_shaderManager->getShader("platform");
     Shader lightShader = m_shaderManager->getShader("light");
@@ -23,7 +23,7 @@ Scene::Scene(
     Shader sphereShader = m_shaderManager->getShader("sphere");
 
     Mesh cubeMesh = m_meshManager->getMesh("cube");
-    Mesh sphereMesh = m_meshManager->getMesh("sphere");
+    // Mesh sphereMesh = m_meshManager->getMesh("sphere");
 
     Texture dirtBlockTexture = m_textureManager->getTexture("dirtblock");
 
@@ -75,7 +75,7 @@ Scene::Scene(
     // dirtBlock
     Transform dirtBlockTransform;
     dirtBlockTransform.setProjection(*m_camera);
-    glm::vec3 dirtBlockPosition(-2.0f, 3.5f, 0.0f);
+    glm::vec3 dirtBlockPosition(0.0f, 1.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
@@ -87,7 +87,7 @@ Scene::Scene(
     );
     dirtBlockTranslationMatrix = glm::scale(
         dirtBlockTranslationMatrix,
-        glm::vec3(0.5f, 0.5f, 0.5f)
+        glm::vec3(1.0f, 1.0f, 1.0f)
     );
     dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
     dirtBlockTransform.setView(*m_camera);
@@ -101,28 +101,28 @@ Scene::Scene(
     );
     m_objects.push_back(std::move(dirtBlock));
 
-    // sphere
-    Transform sphereTransform;
-    sphereTransform.setProjection(*m_camera);
-    glm::vec3 spherePosition(2.0f, 3.5f, 0.0f);
-    glm::mat4 sphereTranslationMatrix = glm::translate(
-        glm::mat4(1.0f),
-        spherePosition
-    );
-    sphereTranslationMatrix = glm::scale(
-        sphereTranslationMatrix,
-        glm::vec3(1.0f, 1.0f, 1.0f)
-    );
-    sphereTransform.setModel(sphereTranslationMatrix);
-    sphereTransform.setView(*m_camera);
-    auto sphere = std::make_unique<Sphere>(
-        "Sphere",
-        sphereTransform,
-        sphereShader,
-        sphereMesh,
-        false
-    );
-    m_objects.push_back(std::move(sphere));
+    // // sphere
+    // Transform sphereTransform;
+    // sphereTransform.setProjection(*m_camera);
+    // glm::vec3 spherePosition(2.0f, 3.5f, 0.0f);
+    // glm::mat4 sphereTranslationMatrix = glm::translate(
+    //     glm::mat4(1.0f),
+    //     spherePosition
+    // );
+    // sphereTranslationMatrix = glm::scale(
+    //     sphereTranslationMatrix,
+    //     glm::vec3(1.0f, 1.0f, 1.0f)
+    // );
+    // sphereTransform.setModel(sphereTranslationMatrix);
+    // sphereTransform.setView(*m_camera);
+    // auto sphere = std::make_unique<Sphere>(
+    //     "Sphere",
+    //     sphereTransform,
+    //     sphereShader,
+    //     sphereMesh,
+    //     false
+    // );
+    // m_objects.push_back(std::move(sphere));
 
     std::cout << name << " created.\n";
 }
