@@ -121,12 +121,27 @@ void Mesh::loadObjData(const std::string& filePath)
     {
         Vertex vertex;
 
+        // vertex positions
         glm::vec3 vector;
         vector.x = mesh->mVertices[i].x;
         vector.y = mesh->mVertices[i].y;
         vector.z = mesh->mVertices[i].z;
         vertex.position = vector;
 
+        // keep track of only unique vertex positions
+        auto it = std::find(positions.begin(), positions.end(), vertex.position);
+        if (it == positions.end())
+        {
+            positions.push_back(vertex.position);
+            m_positionIndices.push_back({i});
+        }
+        else
+        {
+            size_t idx = std::distance(positions.begin(), it);
+            m_positionIndices[idx].push_back(i);
+        }
+
+        // vertex texture coordinates
         if(mesh->mTextureCoords[0])
         {
             glm::vec2 vec;
@@ -139,28 +154,24 @@ void Mesh::loadObjData(const std::string& filePath)
             vertex.texCoords = glm::vec2(0.0f, 0.0f);
         }
 
+        // vertex texture normals
         vector.x = mesh->mNormals[i].x;
         vector.y = mesh->mNormals[i].y;
         vector.z = mesh->mNormals[i].z;
         vertex.normal = vector;
 
-
-        positions.emplace_back(vertex.position); // TODO : use unique positions
-
         m_vertices.push_back(vertex);
     }
 
+    // indices
     for(size_t i = 0; i < mesh->mNumFaces; i++)
     {
         aiFace face = mesh->mFaces[i];
         for(unsigned int j = 0; j < face.mNumIndices; j++)
         {
             m_indices.push_back(face.mIndices[j]);
-            m_positionMapping.push_back(face.mIndices[j]);
         }
     }
-
-
 
     // TODO : add length constraint and ignore duplicate positions using positionMapping
 }
@@ -280,11 +291,13 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
 
 void Mesh::update()
 {
-    for (size_t i = 0; i < m_positionMapping.size(); ++i)
-    {
-        size_t positionIndex = m_positionMapping[i];
-        const glm::vec3& updatedPosition = positions[positionIndex];
-        m_vertices[i].position = updatedPosition;
+    for (size_t i = 0; i < positions.size(); ++i) {
+        const glm::vec3& updatedPosition = positions[i];
+        for (unsigned int idx : m_positionIndices[i])
+        {
+            m_vertices[idx].position = updatedPosition;
+        }
+
     }
 }
 

@@ -18,6 +18,12 @@ struct Vertex
     glm::vec2 texCoords;
 };
 
+struct Edge
+{
+    glm::vec3 v1;
+    glm::vec3 v2;
+};
+
 class Mesh
 {
 public:
@@ -42,8 +48,6 @@ public:
 
 public:
     std::vector<glm::vec3> positions;
-    // std::vector<glm::vec2> texCoords;
-    // std::vector<glm::vec3> normals;
 
     std::vector<std::vector<int>> distanceConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> distanceConstraints;
@@ -59,7 +63,7 @@ private:
     std::string m_name;
     std::string m_meshPath;
 
-    std::vector<unsigned int> m_positionMapping;
+    std::vector<std::vector<size_t>> m_positionIndices;
 
     std::vector<Vertex> m_vertices;
     std::vector<unsigned int> m_indices;
