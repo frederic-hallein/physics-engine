@@ -8,6 +8,9 @@
 #include <iostream>
 #include <glad.h>
 #include <glm/glm.hpp>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include "Transform.hpp"
 
@@ -20,9 +23,10 @@ struct Vertex
 
 struct Edge
 {
-    glm::vec3 v1;
-    glm::vec3 v2;
+    unsigned int v1;
+    unsigned int v2;
 };
+
 
 class Mesh
 {
@@ -49,7 +53,8 @@ public:
 public:
     std::vector<glm::vec3> positions;
 
-    std::vector<std::vector<int>> distanceConstraintVertices;
+    // std::vector<std::vector<int>> distanceConstraintVertices;
+    std::vector<Edge> distanceConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> distanceConstraints;
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradDistanceConstraints;
 
@@ -58,12 +63,14 @@ public:
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradVolumeConstraints;
 private:
     void loadObjData(const std::string& meshPath);
+    void constructDistanceConstraintVertices(const aiMesh* mesh);
+
 
 private:
     std::string m_name;
     std::string m_meshPath;
 
-    std::vector<std::vector<size_t>> m_positionIndices;
+    std::vector<std::vector<size_t>> m_duplicatePositionIndices;
 
     std::vector<Vertex> m_vertices;
     std::vector<unsigned int> m_indices;

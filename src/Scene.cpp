@@ -15,7 +15,8 @@ Scene::Scene(
         m_meshManager(std::move(meshManager)),
         m_textureManager(std::move(textureManager)),
         m_camera(std::move(camera)),
-        m_gravitationalAcceleration(0.0f)
+        m_gravitationalAcceleration(0.0f),
+        alpha(0.0f)
 {
     Shader platformShader = m_shaderManager->getShader("platform");
     Shader lightShader = m_shaderManager->getShader("light");
@@ -23,7 +24,7 @@ Scene::Scene(
     Shader sphereShader = m_shaderManager->getShader("sphere");
 
     Mesh cubeMesh = m_meshManager->getMesh("cube");
-    // Mesh sphereMesh = m_meshManager->getMesh("sphere");
+    Mesh sphereMesh = m_meshManager->getMesh("sphere");
 
     Texture dirtBlockTexture = m_textureManager->getTexture("dirtblock");
 
@@ -101,28 +102,28 @@ Scene::Scene(
     );
     m_objects.push_back(std::move(dirtBlock));
 
-    // // sphere
-    // Transform sphereTransform;
-    // sphereTransform.setProjection(*m_camera);
-    // glm::vec3 spherePosition(2.0f, 3.5f, 0.0f);
-    // glm::mat4 sphereTranslationMatrix = glm::translate(
-    //     glm::mat4(1.0f),
-    //     spherePosition
-    // );
-    // sphereTranslationMatrix = glm::scale(
-    //     sphereTranslationMatrix,
-    //     glm::vec3(1.0f, 1.0f, 1.0f)
-    // );
-    // sphereTransform.setModel(sphereTranslationMatrix);
-    // sphereTransform.setView(*m_camera);
-    // auto sphere = std::make_unique<Sphere>(
-    //     "Sphere",
-    //     sphereTransform,
-    //     sphereShader,
-    //     sphereMesh,
-    //     false
-    // );
-    // m_objects.push_back(std::move(sphere));
+    // sphere
+    Transform sphereTransform;
+    sphereTransform.setProjection(*m_camera);
+    glm::vec3 spherePosition(2.0f, 3.5f, 0.0f);
+    glm::mat4 sphereTranslationMatrix = glm::translate(
+        glm::mat4(1.0f),
+        spherePosition
+    );
+    sphereTranslationMatrix = glm::scale(
+        sphereTranslationMatrix,
+        glm::vec3(1.0f, 1.0f, 1.0f)
+    );
+    sphereTransform.setModel(sphereTranslationMatrix);
+    sphereTransform.setView(*m_camera);
+    auto sphere = std::make_unique<Sphere>(
+        "Sphere",
+        sphereTransform,
+        sphereShader,
+        sphereMesh,
+        false
+    );
+    m_objects.push_back(std::move(sphere));
 
     std::cout << name << " created.\n";
 }
@@ -142,7 +143,7 @@ float Scene::calculateDeltaLambda(
     float C_j,
     const std::vector<glm::vec3>& gradC_j,
     const std::vector<glm::vec3>& posDiff,
-    const std::vector<int>& constraintVertices,
+    const std::vector<unsigned int>& constraintVertices,
     const std::vector<float>& M,
     float alphaTilde,
     float gamma
@@ -164,7 +165,7 @@ std::vector<glm::vec3> Scene::calculateDeltaX(
     float lambda,
     const std::vector<float>& M,
     std::vector<glm::vec3>& gradC_j,
-    const std::vector<int>& constraintVertices
+    const std::vector<unsigned int>& constraintVertices
 )
 {
     std::vector<glm::vec3> deltaX(M.size(), glm::vec3(0.0f));
@@ -183,27 +184,30 @@ void Scene::applyPBD(
     float deltaTime
 )
 {
+    const auto& mesh = object.getMesh();
+    const auto& distanceConstraintVertexPairs = mesh.distanceConstraintVertices;
+    const auto& volumeConstraintVertexTriples = mesh.volumeConstraintVertices;
+    const auto& distanceC = mesh.distanceConstraints;
+    const auto& volumeC = mesh.volumeConstraints;
+    const auto& gradDistanceC = mesh.gradDistanceConstraints;
+    const auto& gradVolumeC = mesh.gradVolumeConstraints;
+    auto& vertexTransforms = object.getVertexTransforms();
+
+    const size_t numVerts = vertexTransforms.size();
+
     std::vector<float> M = object.getMass();
-    std::vector<std::vector<int>> distanceConstraintVertexPairs = object.getMesh().distanceConstraintVertices;
-    std::vector<std::vector<int>> volumeConstraintVertexTriples = object.getMesh().volumeConstraintVertices;
-
-    std::vector<std::function<float(const std::vector<glm::vec3>&)>> distanceC = object.getMesh().distanceConstraints;
-    std::vector<std::function<float(const std::vector<glm::vec3>&)>> volumeC = object.getMesh().volumeConstraints;
-
-    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradDistanceC = object.getMesh().gradDistanceConstraints;
-    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradVolumeC = object.getMesh().gradVolumeConstraints;
-
-    std::vector<glm::vec3> x(object.getVertexTransforms().size(), glm::vec3(0.0f));
-    std::vector<glm::vec3> v(object.getVertexTransforms().size(), glm::vec3(0.0f));
-    std::vector<glm::vec3> a(object.getVertexTransforms().size(), glm::vec3(0.0f));
-    std::vector<glm::vec3> p(object.getVertexTransforms().size(), glm::vec3(0.0f));
-    std::vector<glm::vec3> posDiff(object.getVertexTransforms().size(), glm::vec3(0.0f));
+    std::vector<glm::vec3> x(numVerts, glm::vec3(0.0f));
+    std::vector<glm::vec3> v(numVerts, glm::vec3(0.0f));
+    std::vector<glm::vec3> a(numVerts, glm::vec3(0.0f));
+    std::vector<glm::vec3> p(numVerts, glm::vec3(0.0f));
+    std::vector<glm::vec3> posDiff(numVerts, glm::vec3(0.0f));
+    std::vector<glm::vec3> deltaX(numVerts, glm::vec3(0.0f));
 
     int subStep = 1;
-    const int n = 10;
-    float deltaTime_s = deltaTime / (float)n;
+    const int n = 1;
+    float deltaTime_s = deltaTime / static_cast<float>(n);
 
-    float alpha = 0.0001f;
+    // float alpha = 0.0001f;
     float beta = 0.0001f;
 
     float alphaTilde = alpha / (deltaTime_s * deltaTime_s);
@@ -212,61 +216,55 @@ void Scene::applyPBD(
 
     while (subStep < n + 1)
     {
-        for (size_t i = 0; i < object.getVertexTransforms().size(); ++i)
+        // Precompute positions, velocities, accelerations, and posDiff
+        for (size_t i = 0; i < numVerts; ++i)
         {
-            Transform vertexTransform = object.getVertexTransforms()[i];
-
+            const Transform& vertexTransform = vertexTransforms[i];
             a[i] = vertexTransform.getAcceleration();
             v[i] = vertexTransform.getVelocity() + deltaTime_s * a[i];
             x[i] = vertexTransform.getPosition() + deltaTime_s * v[i];
             p[i] = vertexTransform.getPosition();
-
             posDiff[i] = x[i] - p[i];
         }
 
-        std::vector<glm::vec3> deltaX;
-
-        // distance constraints
+        // Distance constraints
         for (size_t j = 0; j < distanceC.size(); ++j)
         {
             float C_j = distanceC[j](x);
             std::vector<glm::vec3> gradC_j = gradDistanceC[j](x);
-            std::vector<int> distanceConstraintVertices = distanceConstraintVertexPairs[j];
+            std::vector<unsigned int> constraintVerts = { distanceConstraintVertexPairs[j].v1, distanceConstraintVertexPairs[j].v2 };
 
-            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, distanceConstraintVertices, M, alphaTilde, gamma);
-            deltaX = calculateDeltaX(deltaLambda, M, gradC_j, distanceConstraintVertices);
+            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVerts, M, alphaTilde, gamma);
+            std::vector<glm::vec3> deltaXLocal = calculateDeltaX(deltaLambda, M, gradC_j, constraintVerts);
 
-            for (size_t i = 0; i < deltaX.size(); ++i)
+            // Only update the vertices involved in this constraint
+            for (size_t k = 0; k < constraintVerts.size(); ++k)
             {
-                x[i] += deltaX[i];
+                x[constraintVerts[k]] += deltaXLocal[constraintVerts[k]];
             }
         }
 
-        // // volume constraint
+        // (Optional) Volume constraints, if needed
         // for (size_t j = 0; j < volumeC.size(); ++j)
         // {
         //     float C_j = volumeC[j](x);
         //     std::vector<glm::vec3> gradC_j = gradVolumeC[j](x);
-        //     std::vector<int> volumeConstraintVertices = volumeConstraintVertexTriples[j];
-
-        //     float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, volumeConstraintVertices, M, alphaTilde, gamma);
-        //     deltaX = calculateDeltaX(deltaLambda, M, gradC_j, volumeConstraintVertices);
-
-        //     for (size_t i = 0; i < deltaX.size(); ++i)
+        //     const std::vector<int>& constraintVerts = volumeConstraintVertexTriples[j];
+        //     float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVerts, M, alphaTilde, gamma);
+        //     std::vector<glm::vec3> deltaXLocal = calculateDeltaX(deltaLambda, M, gradC_j, constraintVerts);
+        //     for (size_t k = 0; k < constraintVerts.size(); ++k)
         //     {
-        //         x[i] += deltaX[i];
+        //         x[constraintVerts[k]] += deltaXLocal[constraintVerts[k]];
         //     }
         // }
 
-
-        // update position and velocities
-        for (size_t i = 0; i < object.getVertexTransforms().size(); ++i)
+        // Update positions and velocities
+        for (size_t i = 0; i < numVerts; ++i)
         {
-            Transform& vertexTransform = object.getVertexTransforms()[i];
+            Transform& vertexTransform = vertexTransforms[i];
 
             glm::vec3 newX = x[i];
             glm::vec3 newV = (newX - p[i]) / deltaTime_s;
-            // glm::vec3 newA = a[i];
 
             if (newX.y < 0.0f && newV.y < 0.0f)
             {
@@ -276,13 +274,9 @@ void Scene::applyPBD(
 
             vertexTransform.setPosition(newX);
             vertexTransform.setVelocity(newV);
-            // vertexTransform.setAcceleration(newA);
-
         }
 
         subStep++;
-
-
     }
 
 }

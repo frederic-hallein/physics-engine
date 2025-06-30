@@ -1,109 +1,76 @@
 #include "Mesh.hpp"
 
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
-
 // #define GLM_ENABLE_EXPERIMENTAL
 // #include <glm/gtx/string_cast.hpp>
 
+void Mesh::constructDistanceConstraintVertices(const aiMesh* mesh) {
+    struct TmpEdge
+    {
+        glm::vec3 v1;
+        glm::vec3 v2;
+    };
+
+    std::vector<TmpEdge> allEdges;
+    for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
+        const aiFace& face = mesh->mFaces[i];
+        if (face.mNumIndices != 3) continue; // Only triangles
+
+        unsigned int idx0 = face.mIndices[0];
+        unsigned int idx1 = face.mIndices[1];
+        unsigned int idx2 = face.mIndices[2];
+
+        glm::vec3 v1(mesh->mVertices[idx0].x, mesh->mVertices[idx0].y, mesh->mVertices[idx0].z);
+        glm::vec3 v2(mesh->mVertices[idx1].x, mesh->mVertices[idx1].y, mesh->mVertices[idx1].z);
+        glm::vec3 v3(mesh->mVertices[idx2].x, mesh->mVertices[idx2].y, mesh->mVertices[idx2].z);
+
+        allEdges.push_back(TmpEdge{v1, v2});
+        allEdges.push_back(TmpEdge{v2, v3});
+        allEdges.push_back(TmpEdge{v3, v1});
+    }
+
+    std::vector<TmpEdge> uniqueEdges;
+    auto edgeEquals = [](const TmpEdge& a, const TmpEdge& b) {
+        return ((a.v1 == b.v1 && a.v2 == b.v2) || (a.v1 == b.v2 && a.v2 == b.v1));
+    };
+
+    for (const auto& edge : allEdges) {
+        bool found = false;
+        for (const auto& uEdge : uniqueEdges) {
+            if (edgeEquals(edge, uEdge)) {
+                found = true;
+                break;
+            }
+        }
+        if (!found) {
+            uniqueEdges.push_back(edge);
+        }
+    }
+
+    for (const auto& e : uniqueEdges) {
+        int idx1 = -1, idx2 = -1;
+        // Find index of v1 in positions
+        for (size_t i = 0; i < positions.size(); ++i) {
+            if (positions[i] == e.v1) {
+                idx1 = static_cast<int>(i);
+                break;
+            }
+        }
+        // Find index of v2 in positions
+        for (size_t i = 0; i < positions.size(); ++i) {
+            if (positions[i] == e.v2) {
+                idx2 = static_cast<int>(i);
+                break;
+            }
+        }
+        Edge edge;
+        edge.v1 = idx1;
+        edge.v2 = idx2;
+        distanceConstraintVertices.push_back(edge);
+    }
+}
+
 void Mesh::loadObjData(const std::string& filePath)
 {
-    // std::vector<unsigned int> indices;
-    // std::ifstream file(filePath);
-    // if (!file.is_open())
-    // {
-    //     std::cerr << "ERROR::MESH::FILE_NOT_SUCCESSFULLY_OPENED: " << filePath << std::endl;
-    //     return;
-    // }
-
-    // std::set<std::pair<int, int>> uniqueEdges; // To avoid duplicate edges
-
-    // std::string line;
-    // while (std::getline(file, line))
-    // {
-    //     std::istringstream iss(line);
-    //     std::string prefix;
-    //     iss >> prefix;
-
-    //     if (prefix == "v") {
-    //         float x, y, z;
-    //         iss >> x >> y >> z;
-    //         positions.emplace_back(x, y, z);
-    //         continue;
-    //     }
-    //     if (prefix == "vt") {
-    //         float u, v;
-    //         iss >> u >> v;
-    //         texCoords.emplace_back(u, v);
-    //         continue;
-    //     }
-    //     if (prefix == "vn") {
-    //         float nx, ny, nz;
-    //         iss >> nx >> ny >> nz;
-    //         normals.emplace_back(nx, ny, nz);
-    //         continue;
-    //     }
-    //     if (prefix == "f") {
-    //         std::array<unsigned int, 3> vertexIndices;
-    //         std::array<unsigned int, 3> texCoordIndices;
-    //         std::array<unsigned int, 3> normalIndices;
-
-    //         for (int i = 0; i < 3; ++i)
-    //         {
-    //             std::string vertexData;
-    //             iss >> vertexData;
-    //             std::istringstream vertexStream(vertexData);
-    //             std::string v, vt, vn;
-    //             std::getline(vertexStream, v, '/');
-    //             std::getline(vertexStream, vt, '/');
-    //             std::getline(vertexStream, vn, '/');
-
-    //             vertexIndices[i] = std::stoi(v) - 1;
-    //             texCoordIndices[i] = std::stoi(vt) - 1;
-    //             normalIndices[i] = std::stoi(vn) - 1;
-
-    //             // Add position, texture, and normal to m_vertices
-    //             m_vertices.push_back(positions[vertexIndices[i]].x);
-    //             m_vertices.push_back(positions[vertexIndices[i]].y);
-    //             m_vertices.push_back(positions[vertexIndices[i]].z);
-
-    //             m_vertices.push_back(texCoords[texCoordIndices[i]].x);
-    //             m_vertices.push_back(texCoords[texCoordIndices[i]].y);
-
-    //             m_vertices.push_back(normals[normalIndices[i]].x);
-    //             m_vertices.push_back(normals[normalIndices[i]].y);
-    //             m_vertices.push_back(normals[normalIndices[i]].z);
-
-    //             m_positionMapping.push_back(vertexIndices[i]);
-    //             indices.push_back(static_cast<unsigned int>(indices.size()));
-    //         }
-
-    //         // Store the triangle
-    //         volumeConstraintVertices.push_back({static_cast<int>(vertexIndices[0]),
-    //                                static_cast<int>(vertexIndices[1]),
-    //                                static_cast<int>(vertexIndices[2])});
-
-
-    //         for (int i = 0; i < 3; ++i)
-    //         {
-    //             int v1 = vertexIndices[i];
-    //             int v2 = vertexIndices[(i + 1) % 3];
-
-    //             auto edge = std::minmax(v1, v2);
-    //             uniqueEdges.insert(edge);
-    //         }
-    //     }
-    // }
-
-    // for (const auto& edge : uniqueEdges)
-    // {
-    //     distanceConstraintVertices.push_back({edge.first, edge.second});
-    // }
-
-    // file.close();
-    // m_indices = indices;
-
     Assimp::Importer importer;
     const aiScene* scene = importer.ReadFile(
         filePath,
@@ -133,12 +100,13 @@ void Mesh::loadObjData(const std::string& filePath)
         if (it == positions.end())
         {
             positions.push_back(vertex.position);
-            m_positionIndices.push_back({i});
+            // std::cout << vertex.position.x << ',' << vertex.position.y << ',' << vertex.position.z << '\n';
+            m_duplicatePositionIndices.push_back({i});
         }
         else
         {
             size_t idx = std::distance(positions.begin(), it);
-            m_positionIndices[idx].push_back(i);
+            m_duplicatePositionIndices[idx].push_back(i);
         }
 
         // vertex texture coordinates
@@ -173,15 +141,16 @@ void Mesh::loadObjData(const std::string& filePath)
         }
     }
 
-    // TODO : add length constraint and ignore duplicate positions using positionMapping
+    constructDistanceConstraintVertices(mesh);
+
 }
 
 void Mesh::constructDistanceConstraints()
 {
-    for (const auto& vertexPair : distanceConstraintVertices)
+    for (const auto& edge : distanceConstraintVertices)
     {
-        int v1 = vertexPair[0];
-        int v2 = vertexPair[1];
+        int v1 = edge.v1;
+        int v2 = edge.v2;
         float d_0 = glm::distance(positions[v1], positions[v2]);
 
         distanceConstraints.push_back([=](const std::vector<glm::vec3>& x) -> float {
@@ -192,12 +161,10 @@ void Mesh::constructDistanceConstraints()
 
 void Mesh::constructGradDistanceConstraints()
 {
-    for (const auto& vertexPair : distanceConstraintVertices)
+    for (const auto& edge : distanceConstraintVertices)
     {
-        int v1 = vertexPair[0];
-        int v2 = vertexPair[1];
-        gradDistanceConstraints.push_back([this, v1, v2](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
-            glm::vec3 n = (x[v1] - x[v2]) / (glm::distance(x[v1], x[v2]));
+        gradDistanceConstraints.push_back([=](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
+            glm::vec3 n = (x[edge.v1] - x[edge.v2]) / (glm::distance(x[edge.v1], x[edge.v2]));
             return { n, -n };
         });
 
@@ -293,7 +260,7 @@ void Mesh::update()
 {
     for (size_t i = 0; i < positions.size(); ++i) {
         const glm::vec3& updatedPosition = positions[i];
-        for (unsigned int idx : m_positionIndices[i])
+        for (unsigned int idx : m_duplicatePositionIndices[i])
         {
             m_vertices[idx].position = updatedPosition;
         }

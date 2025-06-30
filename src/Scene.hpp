@@ -32,8 +32,9 @@ public:
 
     glm::vec3 getCameraPosition() const { return m_camera->getPosition(); }
     const std::vector<std::unique_ptr<Object>>& getObjects() const { return m_objects; }
-    glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }
 
+    glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }
+    float& getAlpha() { return alpha; }
 
 private:
     void applyGravity(
@@ -44,7 +45,7 @@ private:
         float C_j,
         const std::vector<glm::vec3>& gradC_j,
         const std::vector<glm::vec3>& posDiff,
-        const std::vector<int>& constraintVertices,
+        const std::vector<unsigned int>& constraintVertices,
         const std::vector<float>& M,
         float alphaTilde,
         float gamma
@@ -53,7 +54,7 @@ private:
         float lambda,
         const std::vector<float>& M,
         std::vector<glm::vec3>& gradC_j,
-        const std::vector<int>& constraintVertices
+        const std::vector<unsigned int>& constraintVertices
     );
     void applyPBD(
         Object& object,
@@ -71,6 +72,7 @@ private:
     std::vector<std::unique_ptr<Object>> m_objects;
 
     glm::vec3 m_gravitationalAcceleration;
+    float alpha;
 
 
 };

@@ -76,6 +76,15 @@ void DebugWindow::update(
     ImGui::SliderFloat("##Gravity", &gravitationalAcceleration.y, -9.81f, 9.81f);
     ImGui::Separator();
 
+    // XPBD Parameters
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "XPBD Parameters");
+    ImGui::Dummy(ImVec2(0.0f, 5.0f));
+    float& alpha = scene.getAlpha();
+    ImGui::Text("alpha");
+    ImGui::SameLine();
+    ImGui::SliderFloat("##alpha", &alpha, 0.0f, 0.05f);
+    ImGui::Separator();
+
     // scene objects
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Scene Objects:");
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
