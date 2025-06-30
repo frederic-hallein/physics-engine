@@ -151,14 +151,17 @@ float Scene::calculateDeltaLambda(
 {
     float gradCMInverseGradCT = 0.0f;
     float gradCPosDiff = 0.0f;
-    for (size_t i = 0; i < constraintVertices.size(); ++i)
+    size_t n = constraintVertices.size();
+
+    for (size_t i = 0; i < n; ++i)
     {
-        int v = constraintVertices[i];
-        gradCMInverseGradCT += (1.0f / M[v]) * glm::dot(gradC_j[i], gradC_j[i]);
-        gradCPosDiff += glm::dot(gradC_j[i], posDiff[i]);
+        unsigned int v = constraintVertices[i];
+        float invMass = 1.0f / M[v];
+        gradCMInverseGradCT += invMass * glm::dot(gradC_j[i], gradC_j[i]);
+        gradCPosDiff += glm::dot(gradC_j[i], posDiff[v]);
     }
 
-    return (- C_j - gamma * gradCPosDiff) / ((1 + gamma) * gradCMInverseGradCT + alphaTilde);
+    return (-C_j - gamma * gradCPosDiff) / ((1 + gamma) * gradCMInverseGradCT + alphaTilde);
 }
 
 std::vector<glm::vec3> Scene::calculateDeltaX(
@@ -171,10 +174,10 @@ std::vector<glm::vec3> Scene::calculateDeltaX(
     std::vector<glm::vec3> deltaX(M.size(), glm::vec3(0.0f));
     for (size_t i = 0; i < constraintVertices.size(); ++i)
     {
-        int v = constraintVertices[i];
-        deltaX[v] = lambda * (1.0f / M[v]) * gradC_j[i];
+        unsigned int v = constraintVertices[i];
+        float invMass = 1.0f / M[v];
+        deltaX[v] = lambda * invMass * gradC_j[i];
     }
-
     return deltaX;
 }
 
@@ -204,7 +207,7 @@ void Scene::applyPBD(
     std::vector<glm::vec3> deltaX(numVerts, glm::vec3(0.0f));
 
     int subStep = 1;
-    const int n = 3;
+    const int n = 1;
     float deltaTime_s = deltaTime / static_cast<float>(n);
 
     float beta = 0.0001f;
@@ -241,6 +244,7 @@ void Scene::applyPBD(
                 x[constraintVerts[k]] += deltaXLocal[constraintVerts[k]];
             }
         }
+
 
         // (Optional) Volume constraints, if needed
         // for (size_t j = 0; j < volumeC.size(); ++j)

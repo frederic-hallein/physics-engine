@@ -11,6 +11,7 @@
 #include <assimp/Importer.hpp>
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
+#include <set>
 
 #include "Transform.hpp"
 
@@ -53,7 +54,6 @@ public:
 public:
     std::vector<glm::vec3> positions;
 
-    // std::vector<std::vector<int>> distanceConstraintVertices;
     std::vector<Edge> distanceConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> distanceConstraints;
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradDistanceConstraints;

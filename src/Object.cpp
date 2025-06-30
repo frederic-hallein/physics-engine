@@ -66,9 +66,13 @@ Object::~Object()
 
 void Object::update(float deltaTime)
 {
-    for (size_t i = 0; i < m_vertexTransforms.size(); ++i)
+    auto& positions = m_mesh.positions;
+    auto& vertexTransforms = m_vertexTransforms;
+    size_t n = positions.size();
+
+    for (size_t i = 0; i < n; ++i)
     {
-        m_mesh.positions[i] = m_vertexTransforms[i].getPosition();
+        positions[i] = vertexTransforms[i].getPosition();
     }
 
     m_mesh.update();

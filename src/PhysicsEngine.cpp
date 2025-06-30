@@ -91,6 +91,12 @@ PhysicsEngine::PhysicsEngine(
         "../res/meshes/sphere.obj"
     );
 
+    // auto sphereMesh = std::make_unique<Mesh>(
+    //     "sphere",
+    //     "../res/meshes/monkey.obj"
+    // );
+
+
     // initialize textures
     auto dirtBlockTexture = std::make_unique<Texture>(
         "dirtblock",

@@ -3,68 +3,47 @@
 // #define GLM_ENABLE_EXPERIMENTAL
 // #include <glm/gtx/string_cast.hpp>
 
-void Mesh::constructDistanceConstraintVertices(const aiMesh* mesh) {
-    struct TmpEdge
-    {
-        glm::vec3 v1;
-        glm::vec3 v2;
+void Mesh::constructDistanceConstraintVertices(const aiMesh* mesh)
+{
+    struct IndexEdge {
+        int v1, v2;
+        bool operator==(const IndexEdge& other) const {
+            return (v1 == other.v1 && v2 == other.v2) || (v1 == other.v2 && v2 == other.v1);
+        }
+        bool operator<(const IndexEdge& other) const {
+            int a1 = std::min(v1, v2), a2 = std::max(v1, v2);
+            int b1 = std::min(other.v1, other.v2), b2 = std::max(other.v1, other.v2);
+            return std::tie(a1, a2) < std::tie(b1, b2);
+        }
     };
 
-    std::vector<TmpEdge> allEdges;
+    std::set<IndexEdge> uniqueEdges;
+
+    // For each triangle, add its three edges (by unique position indices)
     for (unsigned int i = 0; i < mesh->mNumFaces; ++i) {
         const aiFace& face = mesh->mFaces[i];
-        if (face.mNumIndices != 3) continue; // Only triangles
+        if (face.mNumIndices != 3) continue;
 
-        unsigned int idx0 = face.mIndices[0];
-        unsigned int idx1 = face.mIndices[1];
-        unsigned int idx2 = face.mIndices[2];
+        // Map mesh vertex indices to unique position indices
+        int idx[3];
+        for (int j = 0; j < 3; ++j) {
+            glm::vec3 pos(mesh->mVertices[face.mIndices[j]].x,
+                          mesh->mVertices[face.mIndices[j]].y,
+                          mesh->mVertices[face.mIndices[j]].z);
+            auto it = std::find(positions.begin(), positions.end(), pos);
+            idx[j] = static_cast<int>(std::distance(positions.begin(), it));
+        }
 
-        glm::vec3 v1(mesh->mVertices[idx0].x, mesh->mVertices[idx0].y, mesh->mVertices[idx0].z);
-        glm::vec3 v2(mesh->mVertices[idx1].x, mesh->mVertices[idx1].y, mesh->mVertices[idx1].z);
-        glm::vec3 v3(mesh->mVertices[idx2].x, mesh->mVertices[idx2].y, mesh->mVertices[idx2].z);
-
-        allEdges.push_back(TmpEdge{v1, v2});
-        allEdges.push_back(TmpEdge{v2, v3});
-        allEdges.push_back(TmpEdge{v3, v1});
+        uniqueEdges.insert(IndexEdge{idx[0], idx[1]});
+        uniqueEdges.insert(IndexEdge{idx[1], idx[2]});
+        uniqueEdges.insert(IndexEdge{idx[2], idx[0]});
     }
 
-    std::vector<TmpEdge> uniqueEdges;
-    auto edgeEquals = [](const TmpEdge& a, const TmpEdge& b) {
-        return ((a.v1 == b.v1 && a.v2 == b.v2) || (a.v1 == b.v2 && a.v2 == b.v1));
-    };
-
-    for (const auto& edge : allEdges) {
-        bool found = false;
-        for (const auto& uEdge : uniqueEdges) {
-            if (edgeEquals(edge, uEdge)) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            uniqueEdges.push_back(edge);
-        }
-    }
-
+    distanceConstraintVertices.clear();
     for (const auto& e : uniqueEdges) {
-        int idx1 = -1, idx2 = -1;
-        // Find index of v1 in positions
-        for (size_t i = 0; i < positions.size(); ++i) {
-            if (positions[i] == e.v1) {
-                idx1 = static_cast<int>(i);
-                break;
-            }
-        }
-        // Find index of v2 in positions
-        for (size_t i = 0; i < positions.size(); ++i) {
-            if (positions[i] == e.v2) {
-                idx2 = static_cast<int>(i);
-                break;
-            }
-        }
         Edge edge;
-        edge.v1 = idx1;
-        edge.v2 = idx2;
+        edge.v1 = e.v1;
+        edge.v2 = e.v2;
         distanceConstraintVertices.push_back(edge);
     }
 }
@@ -257,13 +236,13 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
 
 void Mesh::update()
 {
-    for (size_t i = 0; i < positions.size(); ++i) {
+    size_t n = positions.size();
+    for (size_t i = 0; i < n; ++i) {
         const glm::vec3& updatedPosition = positions[i];
-        for (unsigned int idx : m_duplicatePositionIndices[i])
-        {
+        const auto& duplicates = m_duplicatePositionIndices[i];
+        for (unsigned int idx : duplicates) {
             m_vertices[idx].position = updatedPosition;
         }
-
     }
 }
 

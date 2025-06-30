@@ -8,6 +8,7 @@ cmake_policy(SET CMP0074 NEW)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 find_package(assimp REQUIRED)
+find_package(OpenMP REQUIRED)
 
 file(GLOB_RECURSE SRC_FILES
     src/*.cpp
@@ -27,4 +28,4 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/imgui
     ${CMAKE_CURRENT_SOURCE_DIR}/lib/imgui/backends
 )
-target_link_libraries(${PROJECT_NAME} glfw OpenGL::GL assimp)
+target_link_libraries(${PROJECT_NAME} glfw OpenGL::GL assimp OpenMP::OpenMP_CXX)
