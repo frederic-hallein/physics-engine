@@ -53,14 +53,14 @@ Scene::Scene(
     // platform
     Transform platformTransform;
     platformTransform.setProjection(*m_camera);
-    glm::vec3 platformPosition(0.0f, -1.0f, 0.0f);
+    glm::vec3 platformPosition(0.0f, -0.5f, 0.0f);
     glm::mat4 platformTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         platformPosition
     );
     platformTranslationMatrix = glm::scale(
         platformTranslationMatrix,
-        glm::vec3(5.0f, 1.0f, 5.0f)
+        glm::vec3(5.0f, 0.5f, 5.0f)
     );
     platformTransform.setModel(platformTranslationMatrix);
     platformTransform.setView(*m_camera);
@@ -204,10 +204,9 @@ void Scene::applyPBD(
     std::vector<glm::vec3> deltaX(numVerts, glm::vec3(0.0f));
 
     int subStep = 1;
-    const int n = 1;
+    const int n = 3;
     float deltaTime_s = deltaTime / static_cast<float>(n);
 
-    // float alpha = 0.0001f;
     float beta = 0.0001f;
 
     float alphaTilde = alpha / (deltaTime_s * deltaTime_s);
@@ -216,7 +215,6 @@ void Scene::applyPBD(
 
     while (subStep < n + 1)
     {
-        // Precompute positions, velocities, accelerations, and posDiff
         for (size_t i = 0; i < numVerts; ++i)
         {
             const Transform& vertexTransform = vertexTransforms[i];

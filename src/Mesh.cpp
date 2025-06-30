@@ -100,7 +100,6 @@ void Mesh::loadObjData(const std::string& filePath)
         if (it == positions.end())
         {
             positions.push_back(vertex.position);
-            // std::cout << vertex.position.x << ',' << vertex.position.y << ',' << vertex.position.z << '\n';
             m_duplicatePositionIndices.push_back({i});
         }
         else
