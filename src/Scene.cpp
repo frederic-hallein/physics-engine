@@ -16,7 +16,8 @@ Scene::Scene(
         m_textureManager(std::move(textureManager)),
         m_camera(std::move(camera)),
         m_gravitationalAcceleration(0.0f),
-        alpha(0.0f)
+        alpha(0.0f),
+        beta(1.0f)
 {
     Shader platformShader = m_shaderManager->getShader("platform");
     Shader lightShader = m_shaderManager->getShader("light");
@@ -24,7 +25,7 @@ Scene::Scene(
     Shader sphereShader = m_shaderManager->getShader("sphere");
 
     Mesh cubeMesh = m_meshManager->getMesh("cube");
-    Mesh sphereMesh = m_meshManager->getMesh("sphere");
+    // Mesh sphereMesh = m_meshManager->getMesh("sphere");
 
     Texture dirtBlockTexture = m_textureManager->getTexture("dirtblock");
 
@@ -60,7 +61,7 @@ Scene::Scene(
     );
     platformTranslationMatrix = glm::scale(
         platformTranslationMatrix,
-        glm::vec3(5.0f, 0.5f, 5.0f)
+        glm::vec3(10.0f, 0.5f, 10.0f)
     );
     platformTransform.setModel(platformTranslationMatrix);
     platformTransform.setView(*m_camera);
@@ -76,7 +77,7 @@ Scene::Scene(
     // dirtBlock
     Transform dirtBlockTransform;
     dirtBlockTransform.setProjection(*m_camera);
-    glm::vec3 dirtBlockPosition(-2.0f, 3.0f, 0.0f);
+    glm::vec3 dirtBlockPosition(-3.0f, 3.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
@@ -88,7 +89,7 @@ Scene::Scene(
     );
     dirtBlockTranslationMatrix = glm::scale(
         dirtBlockTranslationMatrix,
-        glm::vec3(0.5f, 0.5f, 0.5f)
+        glm::vec3(1.0f, 1.0f, 1.0f)
     );
     dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
     dirtBlockTransform.setView(*m_camera);
@@ -102,28 +103,28 @@ Scene::Scene(
     );
     m_objects.push_back(std::move(dirtBlock));
 
-    // sphere
-    Transform sphereTransform;
-    sphereTransform.setProjection(*m_camera);
-    glm::vec3 spherePosition(2.0f, 3.5f, 0.0f);
-    glm::mat4 sphereTranslationMatrix = glm::translate(
-        glm::mat4(1.0f),
-        spherePosition
-    );
-    sphereTranslationMatrix = glm::scale(
-        sphereTranslationMatrix,
-        glm::vec3(1.0f, 1.0f, 1.0f)
-    );
-    sphereTransform.setModel(sphereTranslationMatrix);
-    sphereTransform.setView(*m_camera);
-    auto sphere = std::make_unique<Sphere>(
-        "Sphere",
-        sphereTransform,
-        sphereShader,
-        sphereMesh,
-        false
-    );
-    m_objects.push_back(std::move(sphere));
+    // // sphere
+    // Transform sphereTransform;
+    // sphereTransform.setProjection(*m_camera);
+    // glm::vec3 spherePosition(3.0f, 3.0f, 0.0f);
+    // glm::mat4 sphereTranslationMatrix = glm::translate(
+    //     glm::mat4(1.0f),
+    //     spherePosition
+    // );
+    // sphereTranslationMatrix = glm::scale(
+    //     sphereTranslationMatrix,
+    //     glm::vec3(3.0f, 3.0f, 3.0f)
+    // );
+    // sphereTransform.setModel(sphereTranslationMatrix);
+    // sphereTransform.setView(*m_camera);
+    // auto sphere = std::make_unique<Sphere>(
+    //     "Sphere",
+    //     sphereTransform,
+    //     sphereShader,
+    //     sphereMesh,
+    //     false
+    // );
+    // m_objects.push_back(std::move(sphere));
 
     std::cout << name << " created.\n";
 }
@@ -143,7 +144,7 @@ float Scene::calculateDeltaLambda(
     float C_j,
     const std::vector<glm::vec3>& gradC_j,
     const std::vector<glm::vec3>& posDiff,
-    const std::vector<unsigned int>& constraintVertices,
+    std::span<const unsigned int> constraintVertices,
     const std::vector<float>& M,
     float alphaTilde,
     float gamma
@@ -156,8 +157,8 @@ float Scene::calculateDeltaLambda(
     for (size_t i = 0; i < n; ++i)
     {
         unsigned int v = constraintVertices[i];
-        float invMass = 1.0f / M[v];
-        gradCMInverseGradCT += invMass * glm::dot(gradC_j[i], gradC_j[i]);
+        float w = 1.0f / M[v];
+        gradCMInverseGradCT += w * glm::dot(gradC_j[i], gradC_j[i]);
         gradCPosDiff += glm::dot(gradC_j[i], posDiff[v]);
     }
 
@@ -168,15 +169,15 @@ std::vector<glm::vec3> Scene::calculateDeltaX(
     float lambda,
     const std::vector<float>& M,
     std::vector<glm::vec3>& gradC_j,
-    const std::vector<unsigned int>& constraintVertices
+    std::span<const unsigned int> constraintVertices
 )
 {
     std::vector<glm::vec3> deltaX(M.size(), glm::vec3(0.0f));
     for (size_t i = 0; i < constraintVertices.size(); ++i)
     {
         unsigned int v = constraintVertices[i];
-        float invMass = 1.0f / M[v];
-        deltaX[v] = lambda * invMass * gradC_j[i];
+        float w = 1.0f / M[v];
+        deltaX[v] = lambda * w * gradC_j[i];
     }
     return deltaX;
 }
@@ -207,10 +208,8 @@ void Scene::applyPBD(
     std::vector<glm::vec3> deltaX(numVerts, glm::vec3(0.0f));
 
     int subStep = 1;
-    const int n = 1;
+    const int n = 50;
     float deltaTime_s = deltaTime / static_cast<float>(n);
-
-    float beta = 0.0001f;
 
     float alphaTilde = alpha / (deltaTime_s * deltaTime_s);
     float betaTilde = (deltaTime_s * deltaTime_s) * beta;
@@ -233,30 +232,34 @@ void Scene::applyPBD(
         {
             float C_j = distanceC[j](x);
             std::vector<glm::vec3> gradC_j = gradDistanceC[j](x);
-            std::vector<unsigned int> constraintVerts = { distanceConstraintVertexPairs[j].v1, distanceConstraintVertexPairs[j].v2 };
 
-            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVerts, M, alphaTilde, gamma);
-            std::vector<glm::vec3> deltaXLocal = calculateDeltaX(deltaLambda, M, gradC_j, constraintVerts);
+            const Edge& edge = distanceConstraintVertexPairs[j];
+            const std::array<unsigned int, 2> constraintVertices = { edge.v1, edge.v2 };
 
-            // Only update the vertices involved in this constraint
-            for (size_t k = 0; k < constraintVerts.size(); ++k)
+            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
+            std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
+
+            for (size_t k = 0; k < deltaX.size(); ++k)
             {
-                x[constraintVerts[k]] += deltaXLocal[constraintVerts[k]];
+                x[k] += deltaX[k];
             }
         }
 
-
-        // (Optional) Volume constraints, if needed
+        // // Volume constraints
         // for (size_t j = 0; j < volumeC.size(); ++j)
         // {
         //     float C_j = volumeC[j](x);
         //     std::vector<glm::vec3> gradC_j = gradVolumeC[j](x);
-        //     const std::vector<int>& constraintVerts = volumeConstraintVertexTriples[j];
-        //     float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVerts, M, alphaTilde, gamma);
-        //     std::vector<glm::vec3> deltaXLocal = calculateDeltaX(deltaLambda, M, gradC_j, constraintVerts);
-        //     for (size_t k = 0; k < constraintVerts.size(); ++k)
+
+        //     const Triangle& tri = volumeConstraintVertexTriples[j];
+        //     std::vector<unsigned int> constraintVertices = { tri.v1, tri.v2, tri.v3 };
+
+        //     float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
+        //     std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
+
+        //     for (size_t k = 0; k < deltaX.size(); ++k)
         //     {
-        //         x[constraintVerts[k]] += deltaXLocal[constraintVerts[k]];
+        //         x[k] += deltaX[k];
         //     }
         // }
 
@@ -302,6 +305,22 @@ void Scene::update(float deltaTime)
         object->update(deltaTime);
 
     }
+
+    // TODO : check for many objects
+    // #pragma omp parallel for
+    // for (size_t i = 0; i < m_objects.size(); ++i)
+    // {
+    //     Transform& transform = m_objects[i]->getTransform();
+    //     transform.setView(*m_camera);
+
+    //     if (!m_objects[i]->isStatic())
+    //     {
+    //         applyGravity(*m_objects[i], deltaTime);
+    //         applyPBD(*m_objects[i], deltaTime);
+    //     }
+
+    //     m_objects[i]->update(deltaTime);
+    // }
 }
 
 void Scene::render()

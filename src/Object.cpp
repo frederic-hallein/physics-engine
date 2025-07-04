@@ -51,7 +51,7 @@ Object::Object(
         m_mesh.constructDistanceConstraints();
         m_mesh.constructGradDistanceConstraints();
 
-        // // volume constraints
+        // volume constraints
         m_mesh.constructVolumeConstraints();
         m_mesh.constructGradVolumeConstraints();
     }

@@ -12,9 +12,8 @@
 #include "Camera.hpp"
 #include "Object.hpp"
 
-#include <cmath>
-#include <cstdlib>
-// #include <omp.h>
+#include <span>
+#include <omp.h>
 
 class Scene
 {
@@ -36,6 +35,7 @@ public:
 
     glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }
     float& getAlpha() { return alpha; }
+    float& getBeta()  { return beta;  }
 
 private:
     void applyGravity(
@@ -46,7 +46,7 @@ private:
         float C_j,
         const std::vector<glm::vec3>& gradC_j,
         const std::vector<glm::vec3>& posDiff,
-        const std::vector<unsigned int>& constraintVertices,
+        std::span<const unsigned int> constraintVertices,
         const std::vector<float>& M,
         float alphaTilde,
         float gamma
@@ -55,13 +55,14 @@ private:
         float lambda,
         const std::vector<float>& M,
         std::vector<glm::vec3>& gradC_j,
-        const std::vector<unsigned int>& constraintVertices
+        std::span<const unsigned int> constraintVertices
     );
     void applyPBD(
         Object& object,
         float deltaTime
     );
 
+private:
     std::string m_name;
 
     std::unique_ptr<ShaderManager> m_shaderManager;
@@ -74,6 +75,7 @@ private:
 
     glm::vec3 m_gravitationalAcceleration;
     float alpha;
+    float beta;
 
 
 };

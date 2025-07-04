@@ -28,6 +28,13 @@ struct Edge
     unsigned int v2;
 };
 
+struct Triangle
+{
+    unsigned int v1;
+    unsigned int v2;
+    unsigned int v3;
+};
+
 
 class Mesh
 {
@@ -58,13 +65,13 @@ public:
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> distanceConstraints;
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradDistanceConstraints;
 
-    std::vector<std::vector<int>> volumeConstraintVertices;
+    std::vector<Triangle> volumeConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> volumeConstraints;
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradVolumeConstraints;
 private:
     void loadObjData(const std::string& meshPath);
     void constructDistanceConstraintVertices(const aiMesh* mesh);
-
+    void constructVolumeConstraintVertices(const aiMesh* mesh);
 
 private:
     std::string m_name;

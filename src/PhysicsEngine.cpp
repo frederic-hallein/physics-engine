@@ -86,10 +86,10 @@ PhysicsEngine::PhysicsEngine(
         "../res/meshes/cube.obj"
     );
 
-    auto sphereMesh = std::make_unique<Mesh>(
-        "sphere",
-        "../res/meshes/sphere.obj"
-    );
+    // auto sphereMesh = std::make_unique<Mesh>(
+    //     "sphere",
+    //     "../res/meshes/sphere.obj"
+    // );
 
     // auto sphereMesh = std::make_unique<Mesh>(
     //     "sphere",
@@ -108,7 +108,7 @@ PhysicsEngine::PhysicsEngine(
     shaderManager->addShader(std::move(dirtBlockShader));
     shaderManager->addShader(std::move(sphereShader));
     meshManager->addMesh(std::move(cubeMesh));
-    meshManager->addMesh(std::move(sphereMesh));
+    // meshManager->addMesh(std::move(sphereMesh));
     textureManager->addTexture(std::move(dirtBlockTexture));
 
     float FOV = 45.0f;
