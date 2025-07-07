@@ -27,11 +27,6 @@ void Transform::setProjection(const Camera& camera)
 
 void Transform::setModel(const glm::mat4& model)
 {
-    // m_position = glm::vec3(
-    //     model[3][0],
-    //     model[3][1],
-    //     model[3][2]
-    // );
     m_model = model;
 }
 

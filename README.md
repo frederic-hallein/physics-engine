@@ -9,7 +9,7 @@ A 3D physics engine written in C++ using OpenGL for rendering. This project impl
 - **3D Object Rendering**
   - Load and render `.obj` files with vertex positions, texture coordinates, and normals using [ASSIMP](https://github.com/assimp/assimp).
 - **Camera System**
-  - Move the camera with keyboard input.
+  - Move the camera with the mouse.
   - Zoom in and out using the scroll wheel.
 - **Physics Simulation**
   - Gravity applied to non-static objects.
@@ -66,16 +66,16 @@ sudo apt-get install build-essential cmake libassimp-dev libglm-dev libglfw3-dev
 
 ### Controls
 
-- **Camera Movement:**
-  - `W` — Move forward
-  - `S` — Move backward
-  - `A` — Move left
-  - `D` — Move right
-  - `SPACE` — Move up
-  - `Shift` — Move down
-- **Camera Zoom:**
-  - Use the scroll wheel to zoom in and out.
+#### Scene Controls
 
+- **Left Mouse Button + Drag:** Orbit the camera around the origin (scene center).
+    - Drag left/right: Rotate camera horizontally around the origin.
+    - Drag up/down: Rotate camera vertically (pitch) around the origin.
+- **Mouse Scroll Wheel:** Zoom in/out (move camera closer/farther along its front vector).
+
+#### ImGui Debug Window
+
+- **Reset Camera Button:** Instantly returns the camera to its original position and orientation (Key shortcut R).
 
 
 ## Notes

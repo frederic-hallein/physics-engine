@@ -40,13 +40,6 @@ PhysicsEngine::PhysicsEngine(
     framebufferSizeCallback(m_window, screenWidth, screenHeight);
     glfwSetFramebufferSizeCallback(m_window, framebufferSizeCallback);
 
-    const char* glslVersion = "#version 330";
-    m_debugWindow = std::make_unique<DebugWindow>(
-        m_window,
-        glslVersion
-    );
-    std::cout << "ImGuiWindow created.\n";
-
     m_timer = std::make_unique<Timer>();
 
     auto shaderManager = std::make_unique<ShaderManager>();
@@ -116,7 +109,7 @@ PhysicsEngine::PhysicsEngine(
     float farPlane = 100.0f;
     float aspectRatio = (float)m_screenWidth / (float)m_screenHeight;
     auto camera = std::make_unique<Camera>(
-        glm::vec3(0.0f, 3.0f,  10.0f),
+        glm::vec3(0.0f, 8.5f,  30.0f),
         glm::vec3(0.0f, 0.0f, -1.0f),
         glm::vec3(0.0f, 1.0f,  0.0f),
         FOV,
@@ -133,6 +126,13 @@ PhysicsEngine::PhysicsEngine(
         std::move(textureManager),
         std::move(camera)
     );
+
+    const char* glslVersion = "#version 330";
+    m_debugWindow = std::make_unique<DebugWindow>(
+        m_window,
+        glslVersion
+    );
+    std::cout << "ImGuiWindow created.\n";
 
 
 };

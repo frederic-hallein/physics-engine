@@ -30,6 +30,8 @@ public:
     void render();
     void clear();
 
+    Camera* getCamera() { return m_camera.get(); }
+
     glm::vec3 getCameraPosition() const { return m_camera->getPosition(); }
     const std::vector<std::unique_ptr<Object>>& getObjects() const { return m_objects; }
 
@@ -76,6 +78,5 @@ private:
     glm::vec3 m_gravitationalAcceleration;
     float alpha;
     float beta;
-
 
 };

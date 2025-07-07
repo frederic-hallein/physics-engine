@@ -289,7 +289,7 @@ void Scene::applyPBD(
 void Scene::update(float deltaTime)
 {
     m_camera->setDeltaTime(deltaTime);
-    m_camera->move();
+    // m_camera->move();
 
     for (auto& object : m_objects)
     {

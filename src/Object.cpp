@@ -47,11 +47,11 @@ Object::Object(
             m_M[i] = m_vertexTransforms[i].getMass();
         }
 
-        // distance constraints
+        // create distance constraints
         m_mesh.constructDistanceConstraints();
         m_mesh.constructGradDistanceConstraints();
 
-        // volume constraints
+        // create volume constraints
         m_mesh.constructVolumeConstraints();
         m_mesh.constructGradVolumeConstraints();
     }

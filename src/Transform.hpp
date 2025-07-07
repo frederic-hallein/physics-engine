@@ -34,6 +34,7 @@ public:
 
 private:
     float m_mass;
+
     glm::vec3 m_position;
     glm::vec3 m_velocity;
     glm::vec3 m_acceleration;
