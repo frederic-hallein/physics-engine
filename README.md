@@ -14,6 +14,7 @@ A 3D physics engine written in C++ using OpenGL for rendering. This project impl
 - **Physics Simulation**
   - Gravity applied to non-static objects.
   - Length constraints implemented with XPBD.
+  - Volume constraints implemented with XPBD (NOTE: currently unstable).
 
 
 
@@ -75,14 +76,13 @@ sudo apt-get install build-essential cmake libassimp-dev libglm-dev libglfw3-dev
 
 #### ImGui Debug Window
 
-- **Reset Camera Button:** Instantly returns the camera to its original position and orientation (Key shortcut R).
+- **Reset Camera Button:** Instantly returns the camera to its original position and orientation (Key shortcut C).
+- **Reset Scene Button:** Resets all objects to their initial positions (Key shortcut S).
+- **Gravity, Alpha, Beta Sliders:** Adjust simulation parameters using the sliders.
+- **PBD Substeps:** Adjust the number of XPBD solver substeps using the slider.
+- **Enable Distance Constraints:** Toggle distance constraint calculations on/off.
+- **Enable Volume Constraints:** Toggle volume constraint calculations on/off.
 
-
-## Notes
-
-- Meshes are loaded using ASSIMP, so you can use `.obj`, `.fbx`, and other supported formats.
-- If you encounter errors related to missing dependencies, ensure all required libraries are installed and available to CMake.
-- For custom or non-system installs of dependencies, set `CMAKE_PREFIX_PATH` or use `-D` flags with `cmake`.
 
 
 ## Screenshot

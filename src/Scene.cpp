@@ -79,7 +79,7 @@ Scene::Scene(
     // dirtBlock
     Transform dirtBlockTransform;
     dirtBlockTransform.setProjection(*m_camera);
-    glm::vec3 dirtBlockPosition(-3.0f, 3.0f, 0.0f);
+    glm::vec3 dirtBlockPosition(-0.0f, 4.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
