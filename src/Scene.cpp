@@ -16,8 +16,10 @@ Scene::Scene(
         m_textureManager(std::move(textureManager)),
         m_camera(std::move(camera)),
         m_gravitationalAcceleration(0.0f),
-        alpha(0.0f),
-        beta(1.0f)
+        m_enableDistanceConstraints(true),
+        m_pbdSubsteps(10),
+        m_alpha(0.0f),
+        m_beta(1.0f)
 {
     Shader platformShader = m_shaderManager->getShader("platform");
     Shader lightShader = m_shaderManager->getShader("light");
@@ -182,6 +184,63 @@ std::vector<glm::vec3> Scene::calculateDeltaX(
     return deltaX;
 }
 
+void Scene::solveDistanceConstraints(
+    std::vector<glm::vec3>& x,
+    const std::vector<glm::vec3>& posDiff,
+    const std::vector<float>& M,
+    float alphaTilde,
+    float gamma,
+    const std::vector<std::function<float(const std::vector<glm::vec3>&)>>& distanceC,
+    const std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>>& gradDistanceC,
+    const std::vector<Edge>& distanceConstraintVertices
+)
+{
+    for (size_t j = 0; j < distanceC.size(); ++j)
+    {
+        float C_j = distanceC[j](x);
+        std::vector<glm::vec3> gradC_j = gradDistanceC[j](x);
+
+        const Edge& edge = distanceConstraintVertices[j];
+        const std::array<unsigned int, 2> constraintVertices = { edge.v1, edge.v2 };
+
+        float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
+        std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
+
+        for (size_t k = 0; k < deltaX.size(); ++k)
+        {
+            x[k] += deltaX[k];
+        }
+    }
+}
+
+void Scene::solveVolumeConstraints(
+    std::vector<glm::vec3>& x,
+    const std::vector<glm::vec3>& posDiff,
+    const std::vector<float>& M,
+    float alphaTilde,
+    float gamma,
+    const std::vector<std::function<float(const std::vector<glm::vec3>&)>>& volumeC,
+    const std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>>& gradVolumeC,
+    const std::vector<Triangle>& volumeConstraintVertices
+)
+{
+    for (size_t j = 0; j < volumeC.size(); ++j)
+    {
+        float C_j = volumeC[j](x);
+        std::vector<glm::vec3> gradC_j = gradVolumeC[j](x);
+
+        const Triangle& tri = volumeConstraintVertices[j];
+        std::vector<unsigned int> constraintVertices = { tri.v1, tri.v2, tri.v3 };
+
+        float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
+        std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
+
+        for (size_t k = 0; k < deltaX.size(); ++k)
+        {
+            x[k] += deltaX[k];
+        }
+    }
+}
 
 void Scene::applyPBD(
     Object& object,
@@ -189,8 +248,8 @@ void Scene::applyPBD(
 )
 {
     const auto& mesh = object.getMesh();
-    const auto& distanceConstraintVertexPairs = mesh.distanceConstraintVertices;
-    const auto& volumeConstraintVertexTriples = mesh.volumeConstraintVertices;
+    const auto& distanceConstraintVertices = mesh.distanceConstraintVertices;
+    const auto& volumeConstraintVertices = mesh.volumeConstraintVertices;
     const auto& distanceC = mesh.distanceConstraints;
     const auto& volumeC = mesh.volumeConstraints;
     const auto& gradDistanceC = mesh.gradDistanceConstraints;
@@ -208,11 +267,11 @@ void Scene::applyPBD(
     std::vector<glm::vec3> deltaX(numVerts, glm::vec3(0.0f));
 
     int subStep = 1;
-    const int n = 50;
+    const int n = m_pbdSubsteps;
     float deltaTime_s = deltaTime / static_cast<float>(n);
 
-    float alphaTilde = alpha / (deltaTime_s * deltaTime_s);
-    float betaTilde = (deltaTime_s * deltaTime_s) * beta;
+    float alphaTilde = m_alpha / (deltaTime_s * deltaTime_s);
+    float betaTilde = (deltaTime_s * deltaTime_s) * m_beta;
     float gamma = (alphaTilde * betaTilde) / deltaTime_s;
 
     while (subStep < n + 1)
@@ -228,40 +287,34 @@ void Scene::applyPBD(
         }
 
         // Distance constraints
-        for (size_t j = 0; j < distanceC.size(); ++j)
+        if (m_enableDistanceConstraints)
         {
-            float C_j = distanceC[j](x);
-            std::vector<glm::vec3> gradC_j = gradDistanceC[j](x);
-
-            const Edge& edge = distanceConstraintVertexPairs[j];
-            const std::array<unsigned int, 2> constraintVertices = { edge.v1, edge.v2 };
-
-            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
-            std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
-
-            for (size_t k = 0; k < deltaX.size(); ++k)
-            {
-                x[k] += deltaX[k];
-            }
+            solveDistanceConstraints(
+                x,
+                posDiff,
+                M,
+                alphaTilde,
+                gamma,
+                distanceC,
+                gradDistanceC,
+                distanceConstraintVertices
+            );
         }
 
-        // // Volume constraints
-        // for (size_t j = 0; j < volumeC.size(); ++j)
-        // {
-        //     float C_j = volumeC[j](x);
-        //     std::vector<glm::vec3> gradC_j = gradVolumeC[j](x);
-
-        //     const Triangle& tri = volumeConstraintVertexTriples[j];
-        //     std::vector<unsigned int> constraintVertices = { tri.v1, tri.v2, tri.v3 };
-
-        //     float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
-        //     std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
-
-        //     for (size_t k = 0; k < deltaX.size(); ++k)
-        //     {
-        //         x[k] += deltaX[k];
-        //     }
-        // }
+        // Volume constraints
+        if (m_enableVolumeConstraints)
+        {
+            solveVolumeConstraints(
+                x,
+                posDiff,
+                M,
+                alphaTilde,
+                gamma,
+                volumeC,
+                gradVolumeC,
+                volumeConstraintVertices
+            );
+        }
 
         // Update positions and velocities
         for (size_t i = 0; i < numVerts; ++i)

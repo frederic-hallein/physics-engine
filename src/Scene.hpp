@@ -32,12 +32,37 @@ public:
 
     Camera* getCamera() { return m_camera.get(); }
 
-    glm::vec3 getCameraPosition() const { return m_camera->getPosition(); }
     const std::vector<std::unique_ptr<Object>>& getObjects() const { return m_objects; }
 
     glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }
-    float& getAlpha() { return alpha; }
-    float& getBeta()  { return beta;  }
+
+    void setEnableDistanceConstraints(bool enable) { m_enableDistanceConstraints = enable; }
+    void solveDistanceConstraints(
+        std::vector<glm::vec3>& x,
+        const std::vector<glm::vec3>& posDiff,
+        const std::vector<float>& M,
+        float alphaTilde,
+        float gamma,
+        const std::vector<std::function<float(const std::vector<glm::vec3>&)>>& distanceC,
+        const std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>>& gradDistanceC,
+        const std::vector<Edge>& distanceConstraintVertices
+    );
+
+    void setEnableVolumeConstraints(bool enable) { m_enableVolumeConstraints = enable; }
+    void solveVolumeConstraints(
+        std::vector<glm::vec3>& x,
+        const std::vector<glm::vec3>& posDiff,
+        const std::vector<float>& M,
+        float alphaTilde,
+        float gamma,
+        const std::vector<std::function<float(const std::vector<glm::vec3>&)>>& volumeC,
+        const std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>>& gradVolumeC,
+        const std::vector<Triangle>& volumeConstraintVertices
+    );
+
+    int& getPBDSubsteps() { return m_pbdSubsteps; }
+    float& getAlpha() { return m_alpha; }
+    float& getBeta()  { return m_beta;  }
 
 private:
     void applyGravity(
@@ -76,7 +101,11 @@ private:
     std::vector<std::unique_ptr<Object>> m_objects;
 
     glm::vec3 m_gravitationalAcceleration;
-    float alpha;
-    float beta;
+
+    int m_pbdSubsteps;
+    bool m_enableDistanceConstraints;
+    bool m_enableVolumeConstraints;
+    float m_alpha;
+    float m_beta;
 
 };

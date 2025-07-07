@@ -40,6 +40,8 @@ public:
     const Mesh& getMesh() const { return m_mesh; }
     const std::vector<float>& getMass() const { return m_M; }
 
+    void resetVertexTransforms();
+
 protected:
     std::string m_name;
     Transform m_transform;
@@ -49,6 +51,7 @@ protected:
 
     GLenum m_polygonMode;
 
+    std::vector<Transform> m_initialVertexTransforms;
     std::vector<Transform> m_vertexTransforms;
     std::vector<float> m_M;
 };

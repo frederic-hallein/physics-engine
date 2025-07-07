@@ -34,6 +34,7 @@ Object::Object(
             vertexTransform.makeNotStatic();
         }
 
+        m_initialVertexTransforms.push_back(vertexTransform);
         m_vertexTransforms.push_back(vertexTransform);
     }
 
@@ -73,6 +74,22 @@ void Object::update(float deltaTime)
     for (size_t i = 0; i < n; ++i)
     {
         positions[i] = vertexTransforms[i].getPosition();
+    }
+
+    m_mesh.update();
+}
+
+void Object::resetVertexTransforms()
+{
+    auto& positions = m_mesh.positions;
+    auto& initialVertexTransforms = m_initialVertexTransforms;
+    size_t n = positions.size();
+
+    for (size_t i = 0; i < n; ++i)
+    {
+        positions[i] = initialVertexTransforms[i].getPosition();
+        m_vertexTransforms[i].setPosition(initialVertexTransforms[i].getPosition());
+        m_vertexTransforms[i].setVelocity(initialVertexTransforms[i].getVelocity());
     }
 
     m_mesh.update();

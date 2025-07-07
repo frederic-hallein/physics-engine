@@ -52,6 +52,7 @@ void DebugWindow::update(
 )
 {
     ImGui::Begin("Debug");
+    Camera* camera = scene.getCamera();
 
     // performance
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Performance");
@@ -63,13 +64,12 @@ void DebugWindow::update(
     // camera
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Camera");
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
-    const glm::vec3& cameraPosition = scene.getCameraPosition();
+    const glm::vec3& cameraPosition = camera->getPosition();
     ImGui::Text("Pos: x = %.2f, y = %.2f, z = %.2f", cameraPosition.x, cameraPosition.y, cameraPosition.z);
 
-    Camera* camera = scene.getCamera();
-    ImGui::Text("Reset Camera [R]");
+    ImGui::Text("Reset Camera [C]");
     ImGui::SameLine();
-    if (ImGui::Button("Reset") || ImGui::IsKeyPressed(ImGuiKey_R))
+    if (ImGui::Button("Reset##ResetCamera") || ImGui::IsKeyPressed(ImGuiKey_C))
     {
         camera->resetPosition();
     }
@@ -87,8 +87,24 @@ void DebugWindow::update(
 
 
     // XPBD Parameters
-    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "XPBD Parameters");
+    ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "XPBD");
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+    int& pbdSubsteps = scene.getPBDSubsteps();
+    ImGui::Text("Substeps");
+    ImGui::SameLine();
+    ImGui::SliderInt("##Substeps n", &pbdSubsteps, 1, 100);
+
+    static bool enableDistanceConstraints = true;
+    ImGui::Checkbox("Enable Distance Constraints", &enableDistanceConstraints);
+    scene.setEnableDistanceConstraints(enableDistanceConstraints);
+
+    static bool enableVolumeConstraints = false;
+    ImGui::Checkbox("Enable Volume Constraints", &enableVolumeConstraints);
+    scene.setEnableVolumeConstraints(enableVolumeConstraints);
+
+    ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
     float& alpha = scene.getAlpha();
     ImGui::Text("alpha");
     ImGui::SameLine();
@@ -104,6 +120,17 @@ void DebugWindow::update(
     // scene objects
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Scene Objects:");
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+    ImGui::Text("Reset Scene [S]");
+    ImGui::SameLine();
+    if (ImGui::Button("Reset##ResetScene")  || ImGui::IsKeyPressed(ImGuiKey_S))
+    {
+        for (auto& obj : scene.getObjects())
+        {
+            obj->resetVertexTransforms();
+        }
+    }
+
     const std::vector<std::unique_ptr<Object>>& objects = scene.getObjects();
     std::unordered_map<std::string, int> objectCounts;
     for (size_t i = 0; i < objects.size(); ++i)
