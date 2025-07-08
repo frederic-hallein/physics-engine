@@ -111,6 +111,7 @@ void DebugWindow::update(
     ImGui::SliderFloat("##alpha", &alpha, 0.0f, 0.05f);
 
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
     float& beta = scene.getBeta();
     ImGui::Text("beta");
     ImGui::SameLine();

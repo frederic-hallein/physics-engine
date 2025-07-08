@@ -19,7 +19,7 @@ Scene::Scene(
         m_enableDistanceConstraints(true),
         m_pbdSubsteps(10),
         m_alpha(0.0f),
-        m_beta(1.0f)
+        m_beta(5.0f)
 {
     Shader platformShader = m_shaderManager->getShader("platform");
     Shader lightShader = m_shaderManager->getShader("light");
