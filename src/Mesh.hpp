@@ -58,8 +58,12 @@ public:
     void constructVolumeConstraints();
     void constructGradVolumeConstraints();
 
+    void constructCollisionConstraints();
+    void constructGradCollisionConstraints();
+
 public:
     std::vector<glm::vec3> positions;
+    std::vector<glm::vec3> normals;
 
     std::vector<Edge> distanceConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> distanceConstraints;
@@ -68,6 +72,9 @@ public:
     std::vector<Triangle> volumeConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> volumeConstraints;
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradVolumeConstraints;
+
+    std::vector<std::function<float(const std::vector<glm::vec3>&)>> collisionConstraints;
+    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradCollisionConstraints;
 private:
     void loadObjData(const std::string& meshPath);
     void constructDistanceConstraintVertices(const aiMesh* mesh);

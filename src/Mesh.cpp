@@ -136,6 +136,12 @@ void Mesh::loadObjData(const std::string& filePath)
         vector.z = mesh->mNormals[i].z;
         vertex.normal = vector;
 
+        // normals
+        if ((i + 1) % 3 == 0)
+        {
+            normals.push_back(vector);
+        }
+
         m_vertices.push_back(vertex);
     }
 
@@ -149,6 +155,7 @@ void Mesh::loadObjData(const std::string& filePath)
         }
     }
 
+    // construct vertices used for specific constraints
     constructDistanceConstraintVertices(mesh);
     constructVolumeConstraintVertices(mesh);
 }
@@ -230,6 +237,18 @@ void Mesh::constructGradVolumeConstraints()
     });
 }
 
+void Mesh::constructCollisionConstraints()
+{
+    // collisionConstraints.push_back([=](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
+    //         return
+    //     });
+}
+
+void Mesh::constructGradCollisionConstraints()
+{
+
+}
+
 Mesh::Mesh(const std::string& name, const std::string& meshPath)
     : m_name(name),
       m_meshPath(meshPath)
@@ -268,7 +287,8 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
 void Mesh::update()
 {
     size_t n = positions.size();
-    for (size_t i = 0; i < n; ++i) {
+    for (size_t i = 0; i < n; ++i)
+    {
         const glm::vec3& updatedPosition = positions[i];
         const auto& duplicates = m_duplicatePositionIndices[i];
         for (unsigned int idx : duplicates)
@@ -276,6 +296,40 @@ void Mesh::update()
             m_vertices[idx].position = updatedPosition;
         }
     }
+
+    // --- Recompute normals ---
+    // Zero out normals
+    for (auto& vertex : m_vertices) {
+        vertex.normal = glm::vec3(0.0f);
+    }
+
+    // For each triangle, compute face normal and add to each vertex normal
+    for (size_t i = 0; i + 2 < m_indices.size(); i += 3) {
+        unsigned int idx0 = m_indices[i];
+        unsigned int idx1 = m_indices[i + 1];
+        unsigned int idx2 = m_indices[i + 2];
+
+        glm::vec3 v0 = m_vertices[idx0].position;
+        glm::vec3 v1 = m_vertices[idx1].position;
+        glm::vec3 v2 = m_vertices[idx2].position;
+
+        glm::vec3 faceNormal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+
+        m_vertices[idx0].normal += faceNormal;
+        m_vertices[idx1].normal += faceNormal;
+        m_vertices[idx2].normal += faceNormal;
+    }
+
+    // Normalize all vertex normals
+    for (auto& vertex : m_vertices) {
+        vertex.normal = glm::normalize(vertex.normal);
+    }
+
+    //     // Print out all normals
+    // for (size_t i = 0; i < m_vertices.size(); ++i) {
+    //     const glm::vec3& n = m_vertices[i].normal;
+    //     std::cout << "Vertex " << i << " normal: (" << n.x << ", " << n.y << ", " << n.z << ")\n";
+    // }
 }
 
 void Mesh::draw()
@@ -288,6 +342,7 @@ void Mesh::draw()
 
     glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+
 }
 
 void Mesh::deleteMesh()

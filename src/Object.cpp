@@ -57,6 +57,10 @@ Object::Object(
         m_mesh.constructGradVolumeConstraints();
     }
 
+    // // create collision constraints
+    // m_mesh.constructCollisionConstraints();
+    // m_mesh.constructGradCollisionConstraints();
+
     std::cout << name << " created." << '\n';
 }
 

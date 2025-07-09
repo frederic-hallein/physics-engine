@@ -99,6 +99,7 @@ private:
     std::unique_ptr<Camera> m_camera;
 
     std::vector<std::unique_ptr<Object>> m_objects;
+    // std::vector<Object*> m_staticObjects;
 
     glm::vec3 m_gravitationalAcceleration;
 
