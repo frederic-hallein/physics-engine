@@ -36,7 +36,8 @@ public:
 
     glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }
 
-    void setEnableDistanceConstraints(bool enable) { m_enableDistanceConstraints = enable; }
+    // void setEnableDistanceConstraints(bool enable) { m_enableDistanceConstraints = enable; }
+    bool& enableDistanceConstraints() { return m_enableDistanceConstraints; }
     void solveDistanceConstraints(
         std::vector<glm::vec3>& x,
         const std::vector<glm::vec3>& posDiff,
@@ -48,7 +49,7 @@ public:
         const std::vector<Edge>& distanceConstraintVertices
     );
 
-    void setEnableVolumeConstraints(bool enable) { m_enableVolumeConstraints = enable; }
+    bool& enableVolumeConstraints() { return m_enableVolumeConstraints; }
     void solveVolumeConstraints(
         std::vector<glm::vec3>& x,
         const std::vector<glm::vec3>& posDiff,
@@ -60,7 +61,7 @@ public:
         const std::vector<Triangle>& volumeConstraintVertices
     );
 
-    void setEnableEnvCollisionConstraints(bool enable) { m_enableEnvCollisionConstraints = enable; }
+    bool& enableEnvCollisionConstraints() { return m_enableEnvCollisionConstraints; }
     void solveEnvCollisionConstraints(
         std::vector<glm::vec3>& x,
         const std::vector<glm::vec3>& posDiff,

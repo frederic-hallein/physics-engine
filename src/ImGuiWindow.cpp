@@ -95,17 +95,14 @@ void DebugWindow::update(
     ImGui::SameLine();
     ImGui::SliderInt("##Substeps n", &pbdSubsteps, 1, 30);
 
-    static bool enableDistanceConstraints = true;
+    bool& enableDistanceConstraints = scene.enableDistanceConstraints();
     ImGui::Checkbox("Enable Distance Constraints", &enableDistanceConstraints);
-    scene.setEnableDistanceConstraints(enableDistanceConstraints);
 
-    static bool enableVolumeConstraints = false;
+    bool& enableVolumeConstraints = scene.enableVolumeConstraints();
     ImGui::Checkbox("Enable Volume Constraints", &enableVolumeConstraints);
-    scene.setEnableVolumeConstraints(enableVolumeConstraints);
 
-    // static bool enableEnvCollisionConstraints = true;
+    // bool& enableEnvCollisionConstraints = scene.enableEnvCollisionConstraints();
     // ImGui::Checkbox("Enable Env Collision Constraints", &enableEnvCollisionConstraints);
-    // scene.setEnableVolumeConstraints(enableEnvCollisionConstraints);
 
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
 

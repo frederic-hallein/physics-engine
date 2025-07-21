@@ -18,7 +18,7 @@ Scene::Scene(
         m_gravitationalAcceleration(0.0f),
         m_enableDistanceConstraints(true),
         m_enableVolumeConstraints(true),
-        m_enableEnvCollisionConstraints(true),
+        m_enableEnvCollisionConstraints(false),
         m_pbdSubsteps(5),
         m_alpha(0.001f),
         m_beta(5.0f)
@@ -27,10 +27,10 @@ Scene::Scene(
     Shader platformShader = m_shaderManager->getShader("platform");
     Shader lightShader = m_shaderManager->getShader("light");
     Shader dirtBlockShader = m_shaderManager->getShader("dirtblock");
-    Shader sphereShader = m_shaderManager->getShader("sphere");
+    // Shader sphereShader = m_shaderManager->getShader("sphere");
 
     Mesh cubeMesh = m_meshManager->getMesh("cube");
-    Mesh sphereMesh = m_meshManager->getMesh("sphere");
+    // Mesh sphereMesh = m_meshManager->getMesh("sphere");
 
     Texture dirtBlockTexture = m_textureManager->getTexture("dirtblock");
 
@@ -83,7 +83,7 @@ Scene::Scene(
     // dirtBlock
     Transform dirtBlockTransform;
     dirtBlockTransform.setProjection(*m_camera);
-    glm::vec3 dirtBlockPosition(-5.0f, 4.0f, 0.0f);
+    glm::vec3 dirtBlockPosition(-0.0f, 4.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
@@ -110,29 +110,29 @@ Scene::Scene(
     );
     m_objects.push_back(std::move(dirtBlock));
 
-    // sphere
-    Transform sphereTransform;
-    sphereTransform.setProjection(*m_camera);
-    glm::vec3 spherePosition(5.0f, 7.5f, 0.0f);
-    glm::mat4 sphereTranslationMatrix = glm::translate(
-        glm::mat4(1.0f),
-        spherePosition
-    );
-    sphereTranslationMatrix = glm::scale(
-        sphereTranslationMatrix,
-        glm::vec3(3.0f, 3.0f, 3.0f)
-    );
-    sphereTransform.setModel(sphereTranslationMatrix);
-    sphereTransform.setView(*m_camera);
-    auto sphere = std::make_unique<Sphere>(
-        "Sphere",
-        sphereTransform,
-        sphereShader,
-        normalShader,
-        sphereMesh,
-        false
-    );
-    m_objects.push_back(std::move(sphere));
+    // // sphere
+    // Transform sphereTransform;
+    // sphereTransform.setProjection(*m_camera);
+    // glm::vec3 spherePosition(5.0f, 7.5f, 0.0f);
+    // glm::mat4 sphereTranslationMatrix = glm::translate(
+    //     glm::mat4(1.0f),
+    //     spherePosition
+    // );
+    // sphereTranslationMatrix = glm::scale(
+    //     sphereTranslationMatrix,
+    //     glm::vec3(3.0f, 3.0f, 3.0f)
+    // );
+    // sphereTransform.setModel(sphereTranslationMatrix);
+    // sphereTransform.setView(*m_camera);
+    // auto sphere = std::make_unique<Sphere>(
+    //     "Sphere",
+    //     sphereTransform,
+    //     sphereShader,
+    //     normalShader,
+    //     sphereMesh,
+    //     false
+    // );
+    // m_objects.push_back(std::move(sphere));
 
     m_meshPtrs.reserve(m_objects.size());
     for (const auto& obj : m_objects)
@@ -183,8 +183,6 @@ float Scene::calculateDeltaLambda(
     for (size_t i = 0; i < n; ++i)
     {
         unsigned int v = constraintVertices[i];
-        // std::cout << "calculateDeltaLambda: v[" << i << "] = " << v << std::endl;
-
         float w = 1.0f / M[v];
         gradCMInverseGradCT += w * glm::dot(gradC_j[i], gradC_j[i]);
         gradCPosDiff += glm::dot(gradC_j[i], posDiff[v]);
@@ -223,12 +221,6 @@ void Scene::solveDistanceConstraints(
     const std::vector<Edge>& distanceConstraintVertices
 )
 {
-    // std::cout << "solveDistanceConstraints: M.size() = " << M.size()
-    //           << ", distanceC.size() = " << distanceC.size()
-    //           << ", gradDistanceC.size() = " << gradDistanceC.size()
-    //           << ", distanceConstraintVertices.size() = " << distanceConstraintVertices.size()
-    //           << std::endl;
-
     for (size_t j = 0; j < distanceC.size(); ++j)
     {
         float C_j = distanceC[j](x);
@@ -258,13 +250,6 @@ void Scene::solveVolumeConstraints(
     const std::vector<Triangle>& volumeConstraintVertices
 )
 {
-    // std::cout << "solveVolumeConstraints: M.size() = " << M.size()
-    //         << ", volumeC.size() = " << volumeC.size()
-    //         << ", gradVolumeC.size() = " << gradVolumeC.size()
-    //         << ", volumeConstraintVertices.size() = " << volumeConstraintVertices.size()
-    //         << std::endl;
-
-
     for (size_t j = 0; j < gradVolumeC.size(); ++j)
     {
         float C_j = volumeC[0](x);
@@ -272,12 +257,6 @@ void Scene::solveVolumeConstraints(
 
         const Triangle& tri = volumeConstraintVertices[j];
         const std::array<unsigned int, 3> constraintVertices = { tri.v1, tri.v2, tri.v3 };
-
-        //                 // Print constraintVertices
-        // std::cout << "VolumeConstraint constraintVertices[" << j << "] = ("
-        //           << constraintVertices[0] << ", "
-        //           << constraintVertices[1] << ", "
-        //           << constraintVertices[2] << ")" << std::endl;
 
         float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
         std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
@@ -318,22 +297,10 @@ void Scene::solveEnvCollisionConstraints(
         float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
         std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
 
-
-        // std::cout << "EnvCollisionConstraint deltaLambda[" << j << "] = " << deltaLambda << std::endl;
-        // std::cout << "EnvCollisionConstraint deltaX[" << j << "] = ";
-        // for (size_t k = 0; k < deltaX.size(); ++k)
-        // {
-        //     const glm::vec3& dx = deltaX[k];
-        //     std::cout << "(" << dx.x << ", " << dx.y << ", " << dx.z << ")";
-        //     if (k + 1 < deltaX.size()) std::cout << ", ";
-        // }
-        // std::cout << std::endl;
-
-
-        // for (size_t k = 0; k < deltaX.size(); ++k)
-        // {
-        //     x[k] += deltaX[k];
-        // }
+        for (size_t k = 0; k < deltaX.size(); ++k)
+        {
+            x[k] += deltaX[k];
+        }
     }
 }
 
@@ -416,20 +383,20 @@ void Scene::applyPBD(
             );
         }
 
-        // // Env Collision constraints
-        // if (m_enableEnvCollisionConstraints)
-        // {
-        //     solveEnvCollisionConstraints(
-        //         x,
-        //         posDiff,
-        //         M,
-        //         alphaTilde,
-        //         gamma,
-        //         envCollisionC,
-        //         gradEnvCollisionC,
-        //         envCollisionConstraintVertices
-        //     );
-        // }
+        // Env Collision constraints
+        if (m_enableEnvCollisionConstraints)
+        {
+            solveEnvCollisionConstraints(
+                x,
+                posDiff,
+                M,
+                alphaTilde,
+                gamma,
+                envCollisionC,
+                gradEnvCollisionC,
+                envCollisionConstraintVertices
+            );
+        }
 
         // Update positions and velocities
         for (size_t i = 0; i < numVerts; ++i)
