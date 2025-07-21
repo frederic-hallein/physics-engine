@@ -17,10 +17,13 @@ Scene::Scene(
         m_camera(std::move(camera)),
         m_gravitationalAcceleration(0.0f),
         m_enableDistanceConstraints(true),
-        m_pbdSubsteps(1),
-        m_alpha(0.0f),
+        m_enableVolumeConstraints(true),
+        m_enableEnvCollisionConstraints(true),
+        m_pbdSubsteps(5),
+        m_alpha(0.001f),
         m_beta(5.0f)
 {
+    Shader normalShader = m_shaderManager->getShader("normal");
     Shader platformShader = m_shaderManager->getShader("platform");
     Shader lightShader = m_shaderManager->getShader("light");
     Shader dirtBlockShader = m_shaderManager->getShader("dirtblock");
@@ -71,6 +74,7 @@ Scene::Scene(
         "Platform",
         platformTransform,
         platformShader,
+        normalShader,
         cubeMesh
     );
     m_objects.push_back(std::move(platformBlock));
@@ -79,7 +83,7 @@ Scene::Scene(
     // dirtBlock
     Transform dirtBlockTransform;
     dirtBlockTransform.setProjection(*m_camera);
-    glm::vec3 dirtBlockPosition(-3.0f, 4.0f, 0.0f);
+    glm::vec3 dirtBlockPosition(-5.0f, 4.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
@@ -99,6 +103,7 @@ Scene::Scene(
         "DirtBlock",
         dirtBlockTransform,
         dirtBlockShader,
+        normalShader,
         cubeMesh,
         dirtBlockTexture,
         false
@@ -108,7 +113,7 @@ Scene::Scene(
     // sphere
     Transform sphereTransform;
     sphereTransform.setProjection(*m_camera);
-    glm::vec3 spherePosition(3.0f, 4.5f, 0.0f);
+    glm::vec3 spherePosition(5.0f, 7.5f, 0.0f);
     glm::mat4 sphereTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         spherePosition
@@ -123,19 +128,29 @@ Scene::Scene(
         "Sphere",
         sphereTransform,
         sphereShader,
+        normalShader,
         sphereMesh,
         false
     );
     m_objects.push_back(std::move(sphere));
 
+    m_meshPtrs.reserve(m_objects.size());
+    for (const auto& obj : m_objects)
+    {
+        m_meshPtrs.push_back(&obj->getMesh());
+    }
 
-    // for (const auto& obj : m_objects)
-    // {
-    //     if (obj && obj->isStatic())
-    //     {
-    //         m_staticObjects.push_back(obj.get());
-    //     }
-    // }
+    for (auto* mesh : m_meshPtrs)
+    {
+        mesh->setCandidateContactPlaneNormals(m_meshPtrs);
+        mesh->constructEnvCollisionConstraints();
+        mesh->constructGradEnvCollisionConstraints();
+    }
+
+    for (auto* mesh : m_meshPtrs)
+    {
+        mesh->updateEnvCollisionConstraintVertices();
+    }
 
     std::cout << name << " created.\n";
 }
@@ -168,6 +183,8 @@ float Scene::calculateDeltaLambda(
     for (size_t i = 0; i < n; ++i)
     {
         unsigned int v = constraintVertices[i];
+        // std::cout << "calculateDeltaLambda: v[" << i << "] = " << v << std::endl;
+
         float w = 1.0f / M[v];
         gradCMInverseGradCT += w * glm::dot(gradC_j[i], gradC_j[i]);
         gradCPosDiff += glm::dot(gradC_j[i], posDiff[v]);
@@ -184,12 +201,14 @@ std::vector<glm::vec3> Scene::calculateDeltaX(
 )
 {
     std::vector<glm::vec3> deltaX(M.size(), glm::vec3(0.0f));
-    for (size_t i = 0; i < constraintVertices.size(); ++i)
+    size_t n = constraintVertices.size();
+    for (size_t i = 0; i < n; ++i)
     {
         unsigned int v = constraintVertices[i];
         float w = 1.0f / M[v];
         deltaX[v] = lambda * w * gradC_j[i];
     }
+
     return deltaX;
 }
 
@@ -204,6 +223,12 @@ void Scene::solveDistanceConstraints(
     const std::vector<Edge>& distanceConstraintVertices
 )
 {
+    // std::cout << "solveDistanceConstraints: M.size() = " << M.size()
+    //           << ", distanceC.size() = " << distanceC.size()
+    //           << ", gradDistanceC.size() = " << gradDistanceC.size()
+    //           << ", distanceConstraintVertices.size() = " << distanceConstraintVertices.size()
+    //           << std::endl;
+
     for (size_t j = 0; j < distanceC.size(); ++j)
     {
         float C_j = distanceC[j](x);
@@ -233,13 +258,26 @@ void Scene::solveVolumeConstraints(
     const std::vector<Triangle>& volumeConstraintVertices
 )
 {
-    for (size_t j = 0; j < volumeC.size(); ++j)
+    // std::cout << "solveVolumeConstraints: M.size() = " << M.size()
+    //         << ", volumeC.size() = " << volumeC.size()
+    //         << ", gradVolumeC.size() = " << gradVolumeC.size()
+    //         << ", volumeConstraintVertices.size() = " << volumeConstraintVertices.size()
+    //         << std::endl;
+
+
+    for (size_t j = 0; j < gradVolumeC.size(); ++j)
     {
-        float C_j = volumeC[j](x);
+        float C_j = volumeC[0](x);
         std::vector<glm::vec3> gradC_j = gradVolumeC[j](x);
 
         const Triangle& tri = volumeConstraintVertices[j];
-        std::vector<unsigned int> constraintVertices = { tri.v1, tri.v2, tri.v3 };
+        const std::array<unsigned int, 3> constraintVertices = { tri.v1, tri.v2, tri.v3 };
+
+        //                 // Print constraintVertices
+        // std::cout << "VolumeConstraint constraintVertices[" << j << "] = ("
+        //           << constraintVertices[0] << ", "
+        //           << constraintVertices[1] << ", "
+        //           << constraintVertices[2] << ")" << std::endl;
 
         float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
         std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
@@ -251,18 +289,71 @@ void Scene::solveVolumeConstraints(
     }
 }
 
+void Scene::solveEnvCollisionConstraints(
+    std::vector<glm::vec3>& x,
+    const std::vector<glm::vec3>& posDiff,
+    const std::vector<float>& M,
+    float alphaTilde,
+    float gamma,
+    const std::vector<std::function<float(const std::vector<glm::vec3>&)>>& envCollisionC,
+    const std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>>& gradEnvCollisionC,
+    const std::vector<unsigned int>& envCollisionConstraintVertices
+)
+{
+    // std::cout << "solveEnvCollisionConstraints: M.size() = " << M.size()
+    //           << ", envCollisionC.size() = " << envCollisionC.size()
+    //           << ", gradEnvCollisionC.size() = " << gradEnvCollisionC.size()
+    //           << ", envCollisionConstraintVertices.size() = " << envCollisionConstraintVertices.size()
+    //           << std::endl;
+
+
+    for (size_t j = 0; j < envCollisionC.size(); ++j)
+    {
+        float C_j = envCollisionC[j](x);
+        std::vector<glm::vec3> gradC_j = gradEnvCollisionC[j](x);
+
+        const unsigned int& v = envCollisionConstraintVertices[j];
+        const std::array<unsigned int, 1> constraintVertices = { v };
+
+        float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
+        std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
+
+
+        // std::cout << "EnvCollisionConstraint deltaLambda[" << j << "] = " << deltaLambda << std::endl;
+        // std::cout << "EnvCollisionConstraint deltaX[" << j << "] = ";
+        // for (size_t k = 0; k < deltaX.size(); ++k)
+        // {
+        //     const glm::vec3& dx = deltaX[k];
+        //     std::cout << "(" << dx.x << ", " << dx.y << ", " << dx.z << ")";
+        //     if (k + 1 < deltaX.size()) std::cout << ", ";
+        // }
+        // std::cout << std::endl;
+
+
+        // for (size_t k = 0; k < deltaX.size(); ++k)
+        // {
+        //     x[k] += deltaX[k];
+        // }
+    }
+}
+
 void Scene::applyPBD(
     Object& object,
     float deltaTime
 )
 {
     const auto& mesh = object.getMesh();
+    // auto& mesh = object.getMesh();
+    // mesh.setCandidateContactPlaneNormals(m_meshPtrs);
     const auto& distanceConstraintVertices = mesh.distanceConstraintVertices;
     const auto& volumeConstraintVertices = mesh.volumeConstraintVertices;
+    const auto& envCollisionConstraintVertices = mesh.envCollisionConstraintVertices;
     const auto& distanceC = mesh.distanceConstraints;
     const auto& volumeC = mesh.volumeConstraints;
+    const auto& envCollisionC = mesh.envCollisionConstraints;
     const auto& gradDistanceC = mesh.gradDistanceConstraints;
     const auto& gradVolumeC = mesh.gradVolumeConstraints;
+    const auto& gradEnvCollisionC = mesh.gradEnvCollisionConstraints;
     auto& vertexTransforms = object.getVertexTransforms();
 
     const size_t numVerts = vertexTransforms.size();
@@ -324,6 +415,21 @@ void Scene::applyPBD(
                 volumeConstraintVertices
             );
         }
+
+        // // Env Collision constraints
+        // if (m_enableEnvCollisionConstraints)
+        // {
+        //     solveEnvCollisionConstraints(
+        //         x,
+        //         posDiff,
+        //         M,
+        //         alphaTilde,
+        //         gamma,
+        //         envCollisionC,
+        //         gradEnvCollisionC,
+        //         envCollisionConstraintVertices
+        //     );
+        // }
 
         // Update positions and velocities
         for (size_t i = 0; i < numVerts; ++i)
@@ -400,6 +506,7 @@ void Scene::render()
     {
         object->render();
     }
+
 }
 
 void Scene::clear()

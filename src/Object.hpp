@@ -20,6 +20,7 @@ public:
         std::string name,
         Transform transform,
         Shader shader,
+        Shader normalShader,
         Mesh mesh,
         bool isStatic = true
     );
@@ -37,7 +38,7 @@ public:
 
     Transform& getTransform() { return m_transform; }
     std::vector<Transform>& getVertexTransforms() { return m_vertexTransforms; }
-    const Mesh& getMesh() const { return m_mesh; }
+    Mesh& getMesh() { return m_mesh; }
     const std::vector<float>& getMass() const { return m_M; }
 
     void resetVertexTransforms();
@@ -64,6 +65,7 @@ public:
         std::string name,
         Transform transform,
         Shader shader,
+        Shader normalShader,
         Mesh mesh,
         bool isStatic = true
     );
@@ -77,6 +79,7 @@ public:
         std::string name,
         Transform transform,
         Shader shader,
+        Shader normalShader,
         Mesh mesh,
         Texture texture,
         bool isStatic = true
@@ -94,6 +97,7 @@ public:
         std::string name,
         Transform transform,
         Shader shader,
+        Shader normalShader,
         Mesh mesh,
         bool isStatic = true
     );

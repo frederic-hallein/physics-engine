@@ -93,7 +93,7 @@ void DebugWindow::update(
     int& pbdSubsteps = scene.getPBDSubsteps();
     ImGui::Text("Substeps");
     ImGui::SameLine();
-    ImGui::SliderInt("##Substeps n", &pbdSubsteps, 1, 100);
+    ImGui::SliderInt("##Substeps n", &pbdSubsteps, 1, 30);
 
     static bool enableDistanceConstraints = true;
     ImGui::Checkbox("Enable Distance Constraints", &enableDistanceConstraints);
@@ -103,12 +103,16 @@ void DebugWindow::update(
     ImGui::Checkbox("Enable Volume Constraints", &enableVolumeConstraints);
     scene.setEnableVolumeConstraints(enableVolumeConstraints);
 
+    // static bool enableEnvCollisionConstraints = true;
+    // ImGui::Checkbox("Enable Env Collision Constraints", &enableEnvCollisionConstraints);
+    // scene.setEnableVolumeConstraints(enableEnvCollisionConstraints);
+
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
     float& alpha = scene.getAlpha();
     ImGui::Text("alpha");
     ImGui::SameLine();
-    ImGui::SliderFloat("##alpha", &alpha, 0.0f, 0.05f);
+    ImGui::SliderFloat("##alpha", &alpha, 0.001f, 0.05f);
 
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
 

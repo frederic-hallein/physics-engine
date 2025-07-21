@@ -48,6 +48,12 @@ PhysicsEngine::PhysicsEngine(
 
     // TODO : load all files present in each folder
     // initialize shaders
+    auto normalShader = std::make_unique<Shader>(
+        "normal",
+        "../res/shaders/normal.vsh",
+        "../res/shaders/normal.fsh"
+    );
+
     auto lightShader = std::make_unique<Shader>(
         "light",
         "../res/shaders/light.vsh",
@@ -96,6 +102,7 @@ PhysicsEngine::PhysicsEngine(
         "../res/textures/dirtblock.jpg"
     );
 
+    shaderManager->addShader(std::move(normalShader));
     shaderManager->addShader(std::move(lightShader));
     shaderManager->addShader(std::move(platformShader));
     shaderManager->addShader(std::move(dirtBlockShader));

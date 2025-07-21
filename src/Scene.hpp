@@ -60,6 +60,18 @@ public:
         const std::vector<Triangle>& volumeConstraintVertices
     );
 
+    void setEnableEnvCollisionConstraints(bool enable) { m_enableEnvCollisionConstraints = enable; }
+    void solveEnvCollisionConstraints(
+        std::vector<glm::vec3>& x,
+        const std::vector<glm::vec3>& posDiff,
+        const std::vector<float>& M,
+        float alphaTilde,
+        float gamma,
+        const std::vector<std::function<float(const std::vector<glm::vec3>&)>>& envCollisionC,
+        const std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>>& gradEnvCollisionC,
+        const std::vector<unsigned int>& envCollisionConstraintVertices
+    );
+
     int& getPBDSubsteps() { return m_pbdSubsteps; }
     float& getAlpha() { return m_alpha; }
     float& getBeta()  { return m_beta;  }
@@ -99,13 +111,14 @@ private:
     std::unique_ptr<Camera> m_camera;
 
     std::vector<std::unique_ptr<Object>> m_objects;
-    // std::vector<Object*> m_staticObjects;
+    std::vector<Mesh*> m_meshPtrs;
 
     glm::vec3 m_gravitationalAcceleration;
 
     int m_pbdSubsteps;
     bool m_enableDistanceConstraints;
     bool m_enableVolumeConstraints;
+    bool m_enableEnvCollisionConstraints;
     float m_alpha;
     float m_beta;
 

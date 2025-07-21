@@ -9,7 +9,7 @@
 class Shader
 {
 public:
-    // Shader() = default;
+    Shader() = default;
     Shader(const std::string& name, const std::string& vertexPath, const std::string& fragmentPath);
 
     const std::string getName()         const { return m_name; }

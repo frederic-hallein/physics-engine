@@ -7,6 +7,7 @@ Object::Object(
     std::string name,
     Transform transform,
     Shader shader,
+    Shader normalShader,
     Mesh mesh,
     bool isStatic
 )
@@ -58,8 +59,12 @@ Object::Object(
     }
 
     // // create collision constraints
-    // m_mesh.constructCollisionConstraints();
-    // m_mesh.constructGradCollisionConstraints();
+    // m_mesh.constructEnvCollisionConstraints();
+    // m_mesh.constructGradEnvCollisionConstraints();
+
+
+
+    m_mesh.setNormalShader(std::move(normalShader));
 
     std::cout << name << " created." << '\n';
 }
@@ -118,10 +123,11 @@ Cube::Cube(
     std::string name,
     Transform transform,
     Shader shader,
+    Shader normalShader,
     Mesh mesh,
     bool isStatic
 )
-    : Object(name, std::move(transform), std::move(shader), std::move(mesh), isStatic)
+    : Object(name, std::move(transform), std::move(shader), std::move(normalShader), std::move(mesh), isStatic)
 {
 }
 
@@ -129,11 +135,12 @@ DirtBlock::DirtBlock(
     std::string name,
     Transform transform,
     Shader shader,
+    Shader normalShader,
     Mesh mesh,
     Texture texture,
     bool isStatic
 )
-    : Cube(name, transform, shader, mesh, isStatic),
+    : Cube(name, transform, shader, normalShader, mesh, isStatic),
       m_texture(std::move(texture))
 {
 }
@@ -148,10 +155,11 @@ Sphere::Sphere(
     std::string name,
     Transform transform,
     Shader shader,
+    Shader normalShader,
     Mesh mesh,
     bool isStatic
 )
-    : Object(name, std::move(transform), std::move(shader), std::move(mesh), isStatic)
+    : Object(name, std::move(transform), std::move(shader), std::move(normalShader), std::move(mesh), isStatic)
 {
 }
 

@@ -14,6 +14,7 @@
 #include <set>
 
 #include "Transform.hpp"
+#include "Shader.hpp"
 
 struct Vertex
 {
@@ -52,18 +53,22 @@ public:
     void draw();
     void deleteMesh();
 
+    void setCandidateContactPlaneNormals(const std::vector<Mesh*>& meshes);
+
     void constructDistanceConstraints();
     void constructGradDistanceConstraints();
 
     void constructVolumeConstraints();
     void constructGradVolumeConstraints();
 
-    void constructCollisionConstraints();
-    void constructGradCollisionConstraints();
+    void constructEnvCollisionConstraints();
+    void constructGradEnvCollisionConstraints();
 
 public:
     std::vector<glm::vec3> positions;
-    std::vector<glm::vec3> normals;
+    std::vector<glm::vec3> faceNormals;
+
+    void setNormalShader(Shader normalShader) { m_normalShader = std::move(normalShader); };
 
     std::vector<Edge> distanceConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> distanceConstraints;
@@ -72,13 +77,18 @@ public:
     std::vector<Triangle> volumeConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> volumeConstraints;
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradVolumeConstraints;
+    void updateVolumeConstraintVertices();
 
-    std::vector<std::function<float(const std::vector<glm::vec3>&)>> collisionConstraints;
-    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradCollisionConstraints;
+    std::vector<unsigned int> envCollisionConstraintVertices;
+    std::vector<std::function<float(const std::vector<glm::vec3>&)>> envCollisionConstraints;
+    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradEnvCollisionConstraints;
+    void updateEnvCollisionConstraintVertices();
+
 private:
     void loadObjData(const std::string& meshPath);
     void constructDistanceConstraintVertices(const aiMesh* mesh);
     void constructVolumeConstraintVertices(const aiMesh* mesh);
+    void constructEnvCollisionConstraintVertices(const aiMesh* mesh);
 
 private:
     std::string m_name;
@@ -86,8 +96,11 @@ private:
 
     std::vector<std::vector<size_t>> m_duplicatePositionIndices;
 
+    GLuint m_VAO, m_VBO, m_EBO;
     std::vector<Vertex> m_vertices;
     std::vector<unsigned int> m_indices;
 
-    GLuint m_VAO, m_VBO, m_EBO;
+    Shader m_normalShader;
+    // std::vector<const std::vector<glm::vec3>*> m_candidateNormals;
+    std::vector<const glm::vec3*> m_candidateNormals;
 };
