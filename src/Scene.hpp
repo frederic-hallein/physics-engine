@@ -76,6 +76,7 @@ public:
     int& getPBDSubsteps() { return m_pbdSubsteps; }
     float& getAlpha() { return m_alpha; }
     float& getBeta()  { return m_beta;  }
+    float& getOverpressureFactor() { return m_k; }
 
 private:
     void applyGravity(
@@ -117,10 +118,13 @@ private:
     glm::vec3 m_gravitationalAcceleration;
 
     int m_pbdSubsteps;
+
     bool m_enableDistanceConstraints;
     bool m_enableVolumeConstraints;
     bool m_enableEnvCollisionConstraints;
+
     float m_alpha;
     float m_beta;
+    float m_k;
 
 };

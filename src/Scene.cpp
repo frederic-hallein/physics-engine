@@ -21,7 +21,8 @@ Scene::Scene(
         m_enableEnvCollisionConstraints(false),
         m_pbdSubsteps(5),
         m_alpha(0.001f),
-        m_beta(5.0f)
+        m_beta(5.0f),
+        m_k(1.0f)
 {
     Shader normalShader = m_shaderManager->getShader("normal");
     Shader platformShader = m_shaderManager->getShader("platform");
@@ -50,6 +51,7 @@ Scene::Scene(
     // lightTransform.setView(*m_camera);
     // auto lightBlock = std::make_unique<Cube>(
     //     "Light",
+    //     m_k,
     //     lightTransform,
     //     lightShader,
     //     sphereMesh
@@ -73,6 +75,7 @@ Scene::Scene(
     auto platformBlock = std::make_unique<Cube>(
         "Platform",
         platformTransform,
+        m_k,
         platformShader,
         normalShader,
         cubeMesh
@@ -102,6 +105,7 @@ Scene::Scene(
     auto dirtBlock = std::make_unique<DirtBlock>(
         "DirtBlock",
         dirtBlockTransform,
+        m_k,
         dirtBlockShader,
         normalShader,
         cubeMesh,
@@ -127,6 +131,7 @@ Scene::Scene(
     // auto sphere = std::make_unique<Sphere>(
     //     "Sphere",
     //     sphereTransform,
+    //     m_k,
     //     sphereShader,
     //     normalShader,
     //     sphereMesh,
@@ -221,7 +226,7 @@ void Scene::solveDistanceConstraints(
     const std::vector<Edge>& distanceConstraintVertices
 )
 {
-    for (size_t j = 0; j < distanceC.size(); ++j)
+    for (size_t j = 0; j < gradDistanceC.size(); ++j)
     {
         float C_j = distanceC[j](x);
         std::vector<glm::vec3> gradC_j = gradDistanceC[j](x);
@@ -286,7 +291,7 @@ void Scene::solveEnvCollisionConstraints(
     //           << std::endl;
 
 
-    for (size_t j = 0; j < envCollisionC.size(); ++j)
+    for (size_t j = 0; j < gradEnvCollisionC.size(); ++j)
     {
         float C_j = envCollisionC[j](x);
         std::vector<glm::vec3> gradC_j = gradEnvCollisionC[j](x);

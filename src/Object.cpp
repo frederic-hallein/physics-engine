@@ -6,6 +6,7 @@
 Object::Object(
     std::string name,
     Transform transform,
+    float& k,
     Shader shader,
     Shader normalShader,
     Mesh mesh,
@@ -54,7 +55,7 @@ Object::Object(
         m_mesh.constructGradDistanceConstraints();
 
         // create volume constraints
-        m_mesh.constructVolumeConstraints();
+        m_mesh.constructVolumeConstraints(k);
         m_mesh.constructGradVolumeConstraints();
     }
 
@@ -122,25 +123,27 @@ void Object::render()
 Cube::Cube(
     std::string name,
     Transform transform,
+    float& k,
     Shader shader,
     Shader normalShader,
     Mesh mesh,
     bool isStatic
 )
-    : Object(name, std::move(transform), std::move(shader), std::move(normalShader), std::move(mesh), isStatic)
+    : Object(name, std::move(transform), k, std::move(shader), std::move(normalShader), std::move(mesh), isStatic)
 {
 }
 
 DirtBlock::DirtBlock(
     std::string name,
     Transform transform,
+    float& k,
     Shader shader,
     Shader normalShader,
     Mesh mesh,
     Texture texture,
     bool isStatic
 )
-    : Cube(name, transform, shader, normalShader, mesh, isStatic),
+    : Cube(name, transform, k, shader, normalShader, mesh, isStatic),
       m_texture(std::move(texture))
 {
 }
@@ -154,12 +157,13 @@ void DirtBlock::render()
 Sphere::Sphere(
     std::string name,
     Transform transform,
+    float& k,
     Shader shader,
     Shader normalShader,
     Mesh mesh,
     bool isStatic
 )
-    : Object(name, std::move(transform), std::move(shader), std::move(normalShader), std::move(mesh), isStatic)
+    : Object(name, std::move(transform), k, std::move(shader), std::move(normalShader), std::move(mesh), isStatic)
 {
 }
 

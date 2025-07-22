@@ -19,6 +19,7 @@ public:
     Object(
         std::string name,
         Transform transform,
+        float& k,
         Shader shader,
         Shader normalShader,
         Mesh mesh,
@@ -49,12 +50,13 @@ protected:
     Shader m_shader;
     Mesh m_mesh;
     bool m_isStatic;
-
     GLenum m_polygonMode;
+
 
     std::vector<Transform> m_initialVertexTransforms;
     std::vector<Transform> m_vertexTransforms;
     std::vector<float> m_M;
+
 };
 
 class Cube : public Object
@@ -64,6 +66,7 @@ public:
     Cube(
         std::string name,
         Transform transform,
+        float& k,
         Shader shader,
         Shader normalShader,
         Mesh mesh,
@@ -78,6 +81,7 @@ public:
     DirtBlock(
         std::string name,
         Transform transform,
+        float& k,
         Shader shader,
         Shader normalShader,
         Mesh mesh,
@@ -96,6 +100,7 @@ public:
     Sphere(
         std::string name,
         Transform transform,
+        float& k,
         Shader shader,
         Shader normalShader,
         Mesh mesh,

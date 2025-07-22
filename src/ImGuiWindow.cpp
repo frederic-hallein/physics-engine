@@ -119,6 +119,15 @@ void DebugWindow::update(
     ImGui::SliderFloat("##beta", &beta, 1.0f, 10.0f);
     ImGui::Separator();
 
+    ImGui::Dummy(ImVec2(0.0f, 5.0f));
+
+    float& k = scene.getOverpressureFactor();
+    ImGui::Text("k");
+    ImGui::SameLine();
+    ImGui::SliderFloat("##k", &k, 0.001f, 10.0f);
+    ImGui::Separator();
+
+
     // scene objects
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Scene Objects:");
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
@@ -146,6 +155,7 @@ void DebugWindow::update(
 
         if (ImGui::CollapsingHeader(title.c_str()))
         {
+
             if (ImGui::TreeNode(("Vertex Transforms##" + std::to_string(i)).c_str()))
             {
                 const auto& vertexTransforms = object->getVertexTransforms();
@@ -166,29 +176,6 @@ void DebugWindow::update(
 
                 ImGui::TreePop();
             }
-
-            // if (ImGui::TreeNode(("XPBD##" + std::to_string(i)).c_str()))
-            // {
-            //     // Get lambdaDifference and positionDifference
-            //     const std::vector<float>& lambdaDifference = object->getLambdaDifference();
-            //     const std::vector<float>& positionDifference = object->getPositionDifference();
-
-            //     // Display lambdaDifference
-            //     ImGui::Text("Lambda Differences:");
-            //     for (size_t j = 0; j < lambdaDifference.size(); ++j)
-            //     {
-            //         ImGui::BulletText("dLambda_%zu = %.6f", j, lambdaDifference[j]);
-            //     }
-
-            //     // Display positionDifference
-            //     ImGui::Text("Position Differences:");
-            //     for (size_t j = 0; j < positionDifference.size(); ++j)
-            //     {
-            //         ImGui::BulletText("dx_%zu = %.6f", j, positionDifference[j]);
-            //     }
-
-            //     ImGui::TreePop();
-            // }
 
             if (ImGui::TreeNode(("Polygon Mode##" + std::to_string(i)).c_str()))
             {

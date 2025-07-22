@@ -58,7 +58,7 @@ public:
     void constructDistanceConstraints();
     void constructGradDistanceConstraints();
 
-    void constructVolumeConstraints();
+    void constructVolumeConstraints(float& k);
     void constructGradVolumeConstraints();
 
     void constructEnvCollisionConstraints();
@@ -77,7 +77,6 @@ public:
     std::vector<Triangle> volumeConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> volumeConstraints;
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradVolumeConstraints;
-    void updateVolumeConstraintVertices();
 
     std::vector<unsigned int> envCollisionConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> envCollisionConstraints;
@@ -100,7 +99,9 @@ private:
     std::vector<Vertex> m_vertices;
     std::vector<unsigned int> m_indices;
 
+    GLuint m_normalVAO, m_normalVBO;
+    std::vector<glm::vec3> normalLineVertices;
+
     Shader m_normalShader;
-    // std::vector<const std::vector<glm::vec3>*> m_candidateNormals;
     std::vector<const glm::vec3*> m_candidateNormals;
 };

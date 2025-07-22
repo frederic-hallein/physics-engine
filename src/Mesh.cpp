@@ -228,7 +228,7 @@ void Mesh::constructGradDistanceConstraints()
     }
 }
 
-void Mesh::constructVolumeConstraints()
+void Mesh::constructVolumeConstraints(float& k)
 {
     float V_0 = 0.0f;
     float factor = 1.0f / 6.0f;
@@ -240,7 +240,7 @@ void Mesh::constructVolumeConstraints()
         V_0 += factor * glm::dot(glm::cross(positions[v1], positions[v2]), positions[v3]);
     }
 
-    volumeConstraints.push_back([this, factor, V_0](const std::vector<glm::vec3>& x) -> float {
+    volumeConstraints.push_back([this, factor, V_0, &k](const std::vector<glm::vec3>& x) -> float {
         float V = 0.0f;
         for (const auto& triangle : volumeConstraintVertices)
         {
@@ -250,7 +250,7 @@ void Mesh::constructVolumeConstraints()
             V += factor * glm::dot(glm::cross(x[v1], x[v2]), x[v3]);
         }
 
-        return V - V_0;
+        return V - k * V_0;
     });
 }
 
@@ -273,11 +273,6 @@ void Mesh::constructGradVolumeConstraints()
     }
 }
 
-void Mesh::updateVolumeConstraintVertices()
-{
-    std::vector<Triangle> updatedVolumeConstraintVertices;
-}
-
 void Mesh::setCandidateContactPlaneNormals(const std::vector<Mesh*>& meshes)
 {
     for (const auto* mesh : meshes)
@@ -285,7 +280,6 @@ void Mesh::setCandidateContactPlaneNormals(const std::vector<Mesh*>& meshes)
         if (mesh == this) continue; // Skip self
 
         // Store pointer to the normals vector
-        // m_candidateNormals.push_back(&mesh->faceNormals);
         for (const auto& normal : mesh->faceNormals)
         {
             m_candidateNormals.push_back(&normal);
@@ -299,8 +293,8 @@ void Mesh::constructEnvCollisionConstraints()
     {
         for (const auto& n : m_candidateNormals)
         {
-            envCollisionConstraints.push_back([=](const std::vector<glm::vec3>& x) -> float {
-                return glm::dot(*n, x[v]);
+            envCollisionConstraints.push_back([=, this](const std::vector<glm::vec3>& x) -> float {
+                return glm::dot(*n, x[v] - positions[v]);
             });
         }
     }
@@ -352,7 +346,7 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
 
     // Bind and set VBO
     glBindBuffer(GL_ARRAY_BUFFER, m_VBO);
-    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), &m_vertices[0], GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * sizeof(Vertex), &m_vertices[0], GL_DYNAMIC_DRAW);
 
     // Bind and set EBO
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_EBO);
@@ -404,6 +398,17 @@ void Mesh::update()
 
         faceNormals[tri] = faceNormal;
     }
+
+    // // Print m_candidateNormals
+    // std::cout << "m_candidateNormals (" << m_candidateNormals.size() << "):" << std::endl;
+    // for (size_t i = 0; i < m_candidateNormals.size(); ++i)
+    // {
+    //     const glm::vec3* n = m_candidateNormals[i];
+    //     if (n)
+    //     {
+    //         std::cout << "  [" << i << "]: (" << n->x << ", " << n->y << ", " << n->z << ")" << std::endl;
+    //     }
+    // }
 }
 
 void Mesh::draw()
@@ -416,6 +421,7 @@ void Mesh::draw()
 
     glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
+
 }
 
 void Mesh::deleteMesh()
