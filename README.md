@@ -14,7 +14,7 @@ A 3D physics engine written in C++ using OpenGL for rendering. This project impl
 - **Physics Simulation**
   - Gravity applied to non-static objects.
   - Length constraints implemented with XPBD.
-  - Volume constraints implemented with XPBD (NOTE: currently unstable).
+  - Volume constraints implemented with XPBD.
 
 
 
@@ -46,14 +46,13 @@ sudo apt-get install build-essential cmake libassimp-dev libglm-dev libglfw3-dev
 
 2. **Create a build directory and configure the project:**
     ```sh
-    mkdir build
+    cmake -B build .
     cd build
-    cmake ..
     ```
 
 3. **Build the project:**
     ```sh
-    cmake --build .
+    make
     ```
 
 4. **Run the executable:**
