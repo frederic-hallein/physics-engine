@@ -12,6 +12,21 @@ void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
     camera->setPosition(camera->getPosition() + camera->getFront() * static_cast<float>(yoffset) * scrollSpeed);
 }
 
+void Camera::setOrbit()
+{
+    m_orbitRadius = glm::length(m_cameraPos);
+    if (m_orbitRadius > 0.0f)
+    {
+        m_orbitPitch = std::asin(m_cameraPos.y / m_orbitRadius);
+        m_orbitYaw = std::atan2(m_cameraPos.x, m_cameraPos.z);
+    }
+    else
+    {
+        m_orbitPitch = 0.0f;
+        m_orbitYaw = 0.0f;
+    }
+}
+
 void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
 {
     if (ImGui::IsWindowHovered(ImGuiHoveredFlags_AnyWindow)) return;
@@ -35,6 +50,23 @@ void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
     }
 }
 
+void Camera::updateOrbit()
+{
+    // Clamp pitch to avoid flipping
+    if (m_orbitPitch > glm::radians(89.0f)) m_orbitPitch = glm::radians(89.0f);
+    if (m_orbitPitch < glm::radians(-89.0f)) m_orbitPitch = glm::radians(-89.0f);
+
+    m_cameraPos.x = m_orbitRadius * cos(m_orbitPitch) * sin(m_orbitYaw);
+    m_cameraPos.y = m_orbitRadius * sin(m_orbitPitch);
+    m_cameraPos.z = m_orbitRadius * cos(m_orbitPitch) * cos(m_orbitYaw);
+
+    m_cameraFront = glm::normalize(-m_cameraPos); // Always look at origin
+    m_cameraRight = glm::normalize(glm::cross(m_cameraUp, m_cameraPos));
+    // m_cameraUp    = glm::normalize(glm::cross(m_cameraPos, m_cameraRight));
+
+    // m_cameraOrbitPos = glm::vec3(m_orbitRadius, m_orbitPitch, m_orbitYaw);
+}
+
 void cursorPosCallback(GLFWwindow* window, double xpos, double ypos)
 {
     Camera* camera = static_cast<Camera*>(glfwGetWindowUserPointer(window));
@@ -51,36 +83,6 @@ void cursorPosCallback(GLFWwindow* window, double xpos, double ypos)
     camera->m_orbitPitch += yoffset * sensitivity;
 
     camera->updateOrbit();
-}
-
-void Camera::setOrbit()
-{
-    m_orbitRadius = glm::length(m_cameraPos);
-    if (m_orbitRadius > 0.0f)
-    {
-        m_orbitPitch = std::asin(m_cameraPos.y / m_orbitRadius);
-        m_orbitYaw = std::atan2(m_cameraPos.x, m_cameraPos.z);
-    }
-    else
-    {
-        m_orbitPitch = 0.0f;
-        m_orbitYaw = 0.0f;
-    }
-}
-
-void Camera::updateOrbit()
-{
-    // Clamp pitch to avoid flipping
-    if (m_orbitPitch > glm::radians(89.0f)) m_orbitPitch = glm::radians(89.0f);
-    if (m_orbitPitch < glm::radians(-89.0f)) m_orbitPitch = glm::radians(-89.0f);
-
-    m_cameraPos.x = m_orbitRadius * cos(m_orbitPitch) * sin(m_orbitYaw);
-    m_cameraPos.y = m_orbitRadius * sin(m_orbitPitch);
-    m_cameraPos.z = m_orbitRadius * cos(m_orbitPitch) * cos(m_orbitYaw);
-
-    m_cameraFront = glm::normalize(-m_cameraPos); // Always look at origin
-    m_cameraRight = glm::normalize(glm::cross(m_cameraUp, m_cameraPos));
-    // m_cameraUp    = glm::normalize(glm::cross(m_cameraPos, m_cameraRight));
 }
 
 void Camera::resetPosition()

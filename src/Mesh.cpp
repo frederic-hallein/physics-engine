@@ -365,6 +365,7 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 
     glBindVertexArray(0);
+
 }
 
 void Mesh::update()
@@ -399,6 +400,7 @@ void Mesh::update()
         faceNormals[tri] = faceNormal;
     }
 
+
     // // Print m_candidateNormals
     // std::cout << "m_candidateNormals (" << m_candidateNormals.size() << "):" << std::endl;
     // for (size_t i = 0; i < m_candidateNormals.size(); ++i)
@@ -421,7 +423,6 @@ void Mesh::draw()
 
     glDrawElements(GL_TRIANGLES, m_indices.size(), GL_UNSIGNED_INT, 0);
     glBindVertexArray(0);
-
 }
 
 void Mesh::deleteMesh()

@@ -15,6 +15,7 @@ Object::Object(
     : m_name(name),
       m_transform(std::move(transform)),
       m_shader(std::move(shader)),
+      m_normalShader(std::move(normalShader)),
       m_mesh(mesh),
       m_isStatic(isStatic),
       m_polygonMode(GL_FILL)
@@ -63,9 +64,6 @@ Object::Object(
     // m_mesh.constructEnvCollisionConstraints();
     // m_mesh.constructGradEnvCollisionConstraints();
 
-
-
-    m_mesh.setNormalShader(std::move(normalShader));
 
     std::cout << name << " created." << '\n';
 }

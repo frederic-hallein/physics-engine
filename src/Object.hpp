@@ -48,6 +48,7 @@ protected:
     std::string m_name;
     Transform m_transform;
     Shader m_shader;
+    Shader m_normalShader;
     Mesh m_mesh;
     bool m_isStatic;
     GLenum m_polygonMode;

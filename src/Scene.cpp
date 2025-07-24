@@ -3,26 +3,7 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
-Scene::Scene(
-    const std::string& name,
-    std::unique_ptr<ShaderManager> shaderManager,
-    std::unique_ptr<MeshManager> meshManager,
-    std::unique_ptr<TextureManager> textureManager,
-    std::unique_ptr<Camera> camera
-)
-    :   m_name(name),
-        m_shaderManager(std::move(shaderManager)),
-        m_meshManager(std::move(meshManager)),
-        m_textureManager(std::move(textureManager)),
-        m_camera(std::move(camera)),
-        m_gravitationalAcceleration(0.0f),
-        m_enableDistanceConstraints(true),
-        m_enableVolumeConstraints(true),
-        m_enableEnvCollisionConstraints(false),
-        m_pbdSubsteps(5),
-        m_alpha(0.001f),
-        m_beta(5.0f),
-        m_k(1.0f)
+void Scene::createObjects()
 {
     Shader normalShader = m_shaderManager->getShader("normal");
     Shader platformShader = m_shaderManager->getShader("platform");
@@ -138,7 +119,10 @@ Scene::Scene(
     //     false
     // );
     // m_objects.push_back(std::move(sphere));
+}
 
+void Scene::setupMeshEnvCollisionConstraints()
+{
     m_meshPtrs.reserve(m_objects.size());
     for (const auto& obj : m_objects)
     {
@@ -156,6 +140,31 @@ Scene::Scene(
     {
         mesh->updateEnvCollisionConstraintVertices();
     }
+}
+
+Scene::Scene(
+    const std::string& name,
+    std::unique_ptr<ShaderManager> shaderManager,
+    std::unique_ptr<MeshManager> meshManager,
+    std::unique_ptr<TextureManager> textureManager,
+    std::unique_ptr<Camera> camera
+)
+    :   m_name(name),
+        m_shaderManager(std::move(shaderManager)),
+        m_meshManager(std::move(meshManager)),
+        m_textureManager(std::move(textureManager)),
+        m_camera(std::move(camera)),
+        m_gravitationalAcceleration(0.0f),
+        m_enableDistanceConstraints(true),
+        m_enableVolumeConstraints(true),
+        m_enableEnvCollisionConstraints(false),
+        m_pbdSubsteps(5),
+        m_alpha(0.001f),
+        m_beta(5.0f),
+        m_k(1.0f)
+{
+    createObjects();
+    setupMeshEnvCollisionConstraints();
 
     std::cout << name << " created.\n";
 }
@@ -315,8 +324,6 @@ void Scene::applyPBD(
 )
 {
     const auto& mesh = object.getMesh();
-    // auto& mesh = object.getMesh();
-    // mesh.setCandidateContactPlaneNormals(m_meshPtrs);
     const auto& distanceConstraintVertices = mesh.distanceConstraintVertices;
     const auto& volumeConstraintVertices = mesh.volumeConstraintVertices;
     const auto& envCollisionConstraintVertices = mesh.envCollisionConstraintVertices;
@@ -445,22 +452,6 @@ void Scene::update(float deltaTime)
         object->update(deltaTime);
 
     }
-
-    // TODO : check for many objects
-    // #pragma omp parallel for
-    // for (size_t i = 0; i < m_objects.size(); ++i)
-    // {
-    //     Transform& transform = m_objects[i]->getTransform();
-    //     transform.setView(*m_camera);
-
-    //     if (!m_objects[i]->isStatic())
-    //     {
-    //         applyGravity(*m_objects[i], deltaTime);
-    //         applyPBD(*m_objects[i], deltaTime);
-    //     }
-
-    //     m_objects[i]->update(deltaTime);
-    // }
 }
 
 void Scene::render()

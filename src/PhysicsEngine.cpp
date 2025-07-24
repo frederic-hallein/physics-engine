@@ -114,7 +114,7 @@ PhysicsEngine::PhysicsEngine(
     float FOV = 45.0f;
     float nearPlane = 0.1f;
     float farPlane = 100.0f;
-    float aspectRatio = (float)m_screenWidth / (float)m_screenHeight;
+    float aspectRatio = static_cast<float>(m_screenWidth) / static_cast<float>(m_screenHeight);
     auto camera = std::make_unique<Camera>(
         glm::vec3(0.0f, 8.5f,  30.0f),
         glm::vec3(0.0f, 0.0f, -1.0f),

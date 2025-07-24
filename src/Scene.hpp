@@ -79,6 +79,8 @@ public:
     float& getOverpressureFactor() { return m_k; }
 
 private:
+    void createObjects();
+    void setupMeshEnvCollisionConstraints();
     void applyGravity(
         Object& object,
         float deltaTime

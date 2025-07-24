@@ -63,12 +63,11 @@ public:
 
     void constructEnvCollisionConstraints();
     void constructGradEnvCollisionConstraints();
+    void updateEnvCollisionConstraintVertices();
 
 public:
     std::vector<glm::vec3> positions;
     std::vector<glm::vec3> faceNormals;
-
-    void setNormalShader(Shader normalShader) { m_normalShader = std::move(normalShader); };
 
     std::vector<Edge> distanceConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> distanceConstraints;
@@ -81,7 +80,6 @@ public:
     std::vector<unsigned int> envCollisionConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> envCollisionConstraints;
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradEnvCollisionConstraints;
-    void updateEnvCollisionConstraintVertices();
 
 private:
     void loadObjData(const std::string& meshPath);
@@ -102,6 +100,5 @@ private:
     GLuint m_normalVAO, m_normalVBO;
     std::vector<glm::vec3> normalLineVertices;
 
-    Shader m_normalShader;
     std::vector<const glm::vec3*> m_candidateNormals;
 };
