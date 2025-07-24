@@ -9,7 +9,7 @@ void Scene::createObjects()
     Shader platformShader = m_shaderManager->getShader("platform");
     Shader lightShader = m_shaderManager->getShader("light");
     Shader dirtBlockShader = m_shaderManager->getShader("dirtblock");
-    // Shader sphereShader = m_shaderManager->getShader("sphere");
+    Shader sphereShader = m_shaderManager->getShader("sphere");
 
     Mesh cubeMesh = m_meshManager->getMesh("cube");
     // Mesh sphereMesh = m_meshManager->getMesh("sphere");
@@ -53,7 +53,7 @@ void Scene::createObjects()
     );
     platformTransform.setModel(platformTranslationMatrix);
     platformTransform.setView(*m_camera);
-    auto platformBlock = std::make_unique<Cube>(
+    auto platformBlock = std::make_unique<Object>(
         "Platform",
         platformTransform,
         m_k,
@@ -83,7 +83,7 @@ void Scene::createObjects()
     );
     dirtBlockTransform.setModel(dirtBlockTranslationMatrix);
     dirtBlockTransform.setView(*m_camera);
-    auto dirtBlock = std::make_unique<DirtBlock>(
+    auto dirtBlock = std::make_unique<Object>(
         "DirtBlock",
         dirtBlockTransform,
         m_k,
@@ -109,13 +109,14 @@ void Scene::createObjects()
     // );
     // sphereTransform.setModel(sphereTranslationMatrix);
     // sphereTransform.setView(*m_camera);
-    // auto sphere = std::make_unique<Sphere>(
+    // auto sphere = std::make_unique<Object>(
     //     "Sphere",
     //     sphereTransform,
     //     m_k,
     //     sphereShader,
     //     normalShader,
     //     sphereMesh,
+    //     std::nullopt,
     //     false
     // );
     // m_objects.push_back(std::move(sphere));

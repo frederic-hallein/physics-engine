@@ -10,6 +10,7 @@ Object::Object(
     Shader shader,
     Shader normalShader,
     Mesh mesh,
+    std::optional<Texture> texture,
     bool isStatic
 )
     : m_name(name),
@@ -17,9 +18,11 @@ Object::Object(
       m_shader(std::move(shader)),
       m_normalShader(std::move(normalShader)),
       m_mesh(mesh),
+      m_texture(texture),
       m_isStatic(isStatic),
       m_polygonMode(GL_FILL)
 {
+
     std::vector<glm::vec3>& positions = m_mesh.positions;
     glm::mat3 rot = glm::mat3(m_transform.getModelMatrix());
     glm::vec3 trans = glm::vec3(m_transform.getModelMatrix()[3]);
@@ -59,11 +62,6 @@ Object::Object(
         m_mesh.constructVolumeConstraints(k);
         m_mesh.constructGradVolumeConstraints();
     }
-
-    // // create collision constraints
-    // m_mesh.constructEnvCollisionConstraints();
-    // m_mesh.constructGradEnvCollisionConstraints();
-
 
     std::cout << name << " created." << '\n';
 }
@@ -105,6 +103,11 @@ void Object::resetVertexTransforms()
 
 void Object::render()
 {
+    if (m_texture.has_value())
+    {
+        m_texture->bind();
+    }
+
     glPolygonMode(GL_FRONT_AND_BACK, m_polygonMode);
 
     m_shader.useProgram();
@@ -117,52 +120,3 @@ void Object::render()
 
     m_mesh.draw();
 }
-
-Cube::Cube(
-    std::string name,
-    Transform transform,
-    float& k,
-    Shader shader,
-    Shader normalShader,
-    Mesh mesh,
-    bool isStatic
-)
-    : Object(name, std::move(transform), k, std::move(shader), std::move(normalShader), std::move(mesh), isStatic)
-{
-}
-
-DirtBlock::DirtBlock(
-    std::string name,
-    Transform transform,
-    float& k,
-    Shader shader,
-    Shader normalShader,
-    Mesh mesh,
-    Texture texture,
-    bool isStatic
-)
-    : Cube(name, transform, k, shader, normalShader, mesh, isStatic),
-      m_texture(std::move(texture))
-{
-}
-
-void DirtBlock::render()
-{
-    m_texture.bind();
-    Cube::render();
-}
-
-Sphere::Sphere(
-    std::string name,
-    Transform transform,
-    float& k,
-    Shader shader,
-    Shader normalShader,
-    Mesh mesh,
-    bool isStatic
-)
-    : Object(name, std::move(transform), k, std::move(shader), std::move(normalShader), std::move(mesh), isStatic)
-{
-}
-
-

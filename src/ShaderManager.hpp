@@ -9,11 +9,10 @@
 class ShaderManager
 {
 public:
-
-    void addShader(std::unique_ptr<Shader> shader);
-    Shader& getShader(const std::string& name) { return *shaders[name]; }
+    void addShaders(std::vector<std::unique_ptr<Shader>> shaders);
+    Shader& getShader(const std::string& name);
     void deleteAllShaders();
 
 private:
-    std::unordered_map<std::string, std::unique_ptr<Shader>> shaders;
+    std::unordered_map<std::string, std::unique_ptr<Shader>> m_shaders;
 };

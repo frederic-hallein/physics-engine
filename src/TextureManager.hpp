@@ -9,11 +9,10 @@
 class TextureManager
 {
 public:
-
-    void addTexture(std::unique_ptr<Texture> texture);
-    Texture& getTexture(const std::string& name) { return *textures[name]; }
+    void addTextures(std::vector<std::unique_ptr<Texture>> textures);
+    Texture& getTexture(const std::string& name);
     void deleteAllTextures();
 
 private:
-    std::unordered_map<std::string, std::unique_ptr<Texture>> textures;
+    std::unordered_map<std::string, std::unique_ptr<Texture>> m_textures;
 };

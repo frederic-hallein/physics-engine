@@ -9,11 +9,10 @@
 class MeshManager
 {
 public:
-
-    void addMesh(std::unique_ptr<Mesh> mesh);
-    Mesh& getMesh(const std::string& name) { return *meshes[name]; }
+    void addMeshes(std::vector<std::unique_ptr<Mesh>> meshes);
+    Mesh& getMesh(const std::string& name);
     void deleteAllMeshes();
 
 private:
-    std::unordered_map<std::string, std::unique_ptr<Mesh>> meshes;
+    std::unordered_map<std::string, std::unique_ptr<Mesh>> m_meshes;
 };

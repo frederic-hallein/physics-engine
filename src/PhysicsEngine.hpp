@@ -31,6 +31,7 @@ private:
     int unsigned m_screenHeight;
     GLFWwindow* m_window;
 
+    const int m_targetFPS = 60;
     std::unique_ptr<Timer> m_timer;
 
     std::unique_ptr<DebugWindow> m_debugWindow;

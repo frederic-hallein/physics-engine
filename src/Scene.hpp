@@ -31,12 +31,8 @@ public:
     void clear();
 
     Camera* getCamera() { return m_camera.get(); }
-
     const std::vector<std::unique_ptr<Object>>& getObjects() const { return m_objects; }
 
-    glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }
-
-    // void setEnableDistanceConstraints(bool enable) { m_enableDistanceConstraints = enable; }
     bool& enableDistanceConstraints() { return m_enableDistanceConstraints; }
     void solveDistanceConstraints(
         std::vector<glm::vec3>& x,
@@ -73,6 +69,7 @@ public:
         const std::vector<unsigned int>& envCollisionConstraintVertices
     );
 
+    glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }
     int& getPBDSubsteps() { return m_pbdSubsteps; }
     float& getAlpha() { return m_alpha; }
     float& getBeta()  { return m_beta;  }
