@@ -1,8 +1,5 @@
 #include "Object.hpp"
 
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
-
 Object::Object(
     std::string name,
     Transform transform,
