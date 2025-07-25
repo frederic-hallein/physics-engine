@@ -55,7 +55,6 @@ void Mesh::constructDistanceConstraintVertices(const aiMesh* mesh)
 
 void Mesh::constructVolumeConstraintVertices(const aiMesh* mesh)
 {
-    // volumeConstraintVertices.clear();
     for (unsigned int i = 0; i < mesh->mNumFaces; ++i)
     {
         const aiFace& face = mesh->mFaces[i];
@@ -167,6 +166,8 @@ void Mesh::loadObjData(const std::string& filePath)
         vector.z = mesh->mNormals[i].z;
         vertex.normal = vector;
 
+        normals.push_back(vertex.normal);
+
         m_vertices.push_back(vertex);
     }
 
@@ -180,19 +181,19 @@ void Mesh::loadObjData(const std::string& filePath)
         }
     }
 
-    for (size_t i = 0; i + 2 < m_indices.size(); i += 3)
-    {
-        unsigned int idx0 = m_indices[i];
-        unsigned int idx1 = m_indices[i + 1];
-        unsigned int idx2 = m_indices[i + 2];
+    // for (size_t i = 0; i + 2 < m_indices.size(); i += 3)
+    // {
+    //     unsigned int idx0 = m_indices[i];
+    //     unsigned int idx1 = m_indices[i + 1];
+    //     unsigned int idx2 = m_indices[i + 2];
 
-        const glm::vec3& v0 = m_vertices[idx0].position;
-        const glm::vec3& v1 = m_vertices[idx1].position;
-        const glm::vec3& v2 = m_vertices[idx2].position;
+    //     const glm::vec3& v0 = m_vertices[idx0].position;
+    //     const glm::vec3& v1 = m_vertices[idx1].position;
+    //     const glm::vec3& v2 = m_vertices[idx2].position;
 
-        glm::vec3 faceNormal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
-        faceNormals.push_back(faceNormal);
-    }
+    //     glm::vec3 faceNormal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+    //     faceNormals.push_back(faceNormal);
+    // }
 
     // construct vertices used for specific constraints
     constructDistanceConstraintVertices(mesh);
@@ -273,57 +274,94 @@ void Mesh::constructGradVolumeConstraints()
     }
 }
 
-void Mesh::setCandidateContactPlaneNormals(const std::vector<Mesh*>& meshes)
+void Mesh::setCandidateVertices(const std::vector<Mesh*>& meshes)
 {
     for (const auto* mesh : meshes)
     {
         if (mesh == this) continue; // Skip self
 
-        // Store pointer to the normals vector
-        for (const auto& normal : mesh->faceNormals)
+        // // Store pointer to the normals vector
+        // for (const auto& normal : mesh->normals)
+        // {
+        //     m_candidateNormals.push_back(&normal);
+        // }
+
+        for (const auto& vertex : mesh->m_vertices)
         {
-            m_candidateNormals.push_back(&normal);
+            m_candidateVertices.push_back(&vertex);
         }
     }
+
+    //     // Print m_candidateVertices
+    // std::cout << "m_candidateVertices (" << m_candidateVertices.size() << "):" << std::endl;
+    // for (size_t i = 0; i < m_candidateVertices.size(); ++i)
+    // {
+    //     const Vertex* v = m_candidateVertices[i];
+    //     if (v)
+    //     {
+    //         std::cout << "  [" << i << "]: position = ("
+    //                   << v->position.x << ", " << v->position.y << ", " << v->position.z << "), normal = ("
+    //                   << v->normal.x << ", " << v->normal.y << ", " << v->normal.z << ")\n";
+    //     }
+    // }
 }
 
 void Mesh::constructEnvCollisionConstraints()
 {
     for (const auto& v : envCollisionConstraintVertices)
     {
-        for (const auto& n : m_candidateNormals)
+        // for (const auto& n : m_candidateNormals)
+        // {
+        //     envCollisionConstraints.push_back([=, this](const std::vector<glm::vec3>& x) -> float {
+        //         return glm::dot(*n, x[v] - positions[v]);
+        //     });
+        // }
+
+        for (const auto& cVertex : m_candidateVertices)
         {
             envCollisionConstraints.push_back([=, this](const std::vector<glm::vec3>& x) -> float {
-                return glm::dot(*n, x[v] - positions[v]);
+                return glm::dot(cVertex->normal, x[v] - cVertex->position);
             });
         }
     }
-
-    // std::cout << "envCollisionConstraints size: " << envCollisionConstraints.size() << std::endl;
-
 }
 
 void Mesh::constructGradEnvCollisionConstraints()
 {
     for (const auto& v : envCollisionConstraintVertices)
     {
-        for (const auto& n : m_candidateNormals)
+        // for (const auto& n : m_candidateNormals)
+        // {
+        //     gradEnvCollisionConstraints.push_back([=](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
+        //         return { *n };
+        //     });
+        // }
+
+        for (const auto& cVertex : m_candidateVertices)
         {
             gradEnvCollisionConstraints.push_back([=](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
-                return { *n };
+                return { cVertex->normal };
             });
         }
     }
-
-    // std::cout << "gradEnvCollisionConstraints size: " << gradEnvCollisionConstraints.size() << std::endl;
 }
 
 void Mesh::updateEnvCollisionConstraintVertices()
 {
+    // std::vector<unsigned int> updatedEnvCollisionConstraintVertices;
+    // for (const auto& v : envCollisionConstraintVertices)
+    // {
+    //     for (const auto& n : m_candidateNormals)
+    //     {
+    //         updatedEnvCollisionConstraintVertices.push_back(v);
+    //     }
+    // }
+    // envCollisionConstraintVertices = std::move(updatedEnvCollisionConstraintVertices);
+
     std::vector<unsigned int> updatedEnvCollisionConstraintVertices;
     for (const auto& v : envCollisionConstraintVertices)
     {
-        for (const auto& n : m_candidateNormals)
+        for (const auto& cVertex : m_candidateVertices)
         {
             updatedEnvCollisionConstraintVertices.push_back(v);
         }
@@ -397,20 +435,22 @@ void Mesh::update()
         m_vertices[idx1].normal = faceNormal;
         m_vertices[idx2].normal = faceNormal;
 
-        faceNormals[tri] = faceNormal;
+        normals[tri] = faceNormal;
     }
 
-
-    // // Print m_candidateNormals
-    // std::cout << "m_candidateNormals (" << m_candidateNormals.size() << "):" << std::endl;
-    // for (size_t i = 0; i < m_candidateNormals.size(); ++i)
+    // // Print m_candidateVertices
+    // std::cout << "m_candidateVertices (" << m_candidateVertices.size() << "):" << std::endl;
+    // for (size_t i = 0; i < m_candidateVertices.size(); ++i)
     // {
-    //     const glm::vec3* n = m_candidateNormals[i];
-    //     if (n)
+    //     const Vertex* v = m_candidateVertices[i];
+    //     if (v)
     //     {
-    //         std::cout << "  [" << i << "]: (" << n->x << ", " << n->y << ", " << n->z << ")" << std::endl;
+    //         std::cout << "  [" << i << "]: position = ("
+    //                   << v->position.x << ", " << v->position.y << ", " << v->position.z << "), normal = ("
+    //                   << v->normal.x << ", " << v->normal.y << ", " << v->normal.z << ")\n";
     //     }
     // }
+
 }
 
 void Mesh::draw()
@@ -425,7 +465,7 @@ void Mesh::draw()
     glBindVertexArray(0);
 }
 
-void Mesh::deleteMesh()
+void Mesh::destroy()
 {
     glDeleteVertexArrays(1, &m_VAO);
     glDeleteBuffers(1, &m_VBO);

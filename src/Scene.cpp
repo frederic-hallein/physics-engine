@@ -5,16 +5,24 @@
 
 void Scene::createObjects()
 {
-    Shader normalShader = m_shaderManager->getShader("normal");
-    Shader platformShader = m_shaderManager->getShader("platform");
-    Shader lightShader = m_shaderManager->getShader("light");
-    Shader dirtBlockShader = m_shaderManager->getShader("dirtblock");
-    Shader sphereShader = m_shaderManager->getShader("sphere");
+    // Shader normalShader = m_shaderManager->getShader("normal");
+    // Shader platformShader = m_shaderManager->getShader("platform");
+    // Shader lightShader = m_shaderManager->getShader("light");
+    // Shader dirtBlockShader = m_shaderManager->getShader("dirtblock");
+    // Shader sphereShader = m_shaderManager->getShader("sphere");
 
-    Mesh cubeMesh = m_meshManager->getMesh("cube");
+    Shader normalShader = m_shaderManager->getResource("normal");
+    Shader platformShader = m_shaderManager->getResource("platform");
+    Shader lightShader = m_shaderManager->getResource("light");
+    Shader dirtBlockShader = m_shaderManager->getResource("dirtblock");
+    Shader sphereShader = m_shaderManager->getResource("sphere");
+
+    // Mesh cubeMesh = m_meshManager->getMesh("cube");
+    Mesh cubeMesh = m_meshManager->getResource("cube");
     // Mesh sphereMesh = m_meshManager->getMesh("sphere");
 
-    Texture dirtBlockTexture = m_textureManager->getTexture("dirtblock");
+    // Texture dirtBlockTexture = m_textureManager->getTexture("dirtblock");
+    Texture dirtBlockTexture = m_textureManager->getResource("dirtblock");
 
     // // light
     // Transform lightTransform;
@@ -132,7 +140,7 @@ void Scene::setupMeshEnvCollisionConstraints()
 
     for (auto* mesh : m_meshPtrs)
     {
-        mesh->setCandidateContactPlaneNormals(m_meshPtrs);
+        mesh->setCandidateVertices(m_meshPtrs);
         mesh->constructEnvCollisionConstraints();
         mesh->constructGradEnvCollisionConstraints();
     }
@@ -239,17 +247,20 @@ void Scene::solveDistanceConstraints(
     for (size_t j = 0; j < gradDistanceC.size(); ++j)
     {
         float C_j = distanceC[j](x);
-        std::vector<glm::vec3> gradC_j = gradDistanceC[j](x);
-
-        const Edge& edge = distanceConstraintVertices[j];
-        const std::array<unsigned int, 2> constraintVertices = { edge.v1, edge.v2 };
-
-        float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
-        std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
-
-        for (size_t k = 0; k < deltaX.size(); ++k)
+        if (C_j < 0.0f || C_j > 0.0f)
         {
-            x[k] += deltaX[k];
+            std::vector<glm::vec3> gradC_j = gradDistanceC[j](x);
+
+            const Edge& edge = distanceConstraintVertices[j];
+            const std::array<unsigned int, 2> constraintVertices = { edge.v1, edge.v2 };
+
+            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
+            std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
+
+            for (size_t k = 0; k < deltaX.size(); ++k)
+            {
+                x[k] += deltaX[k];
+            }
         }
     }
 }
@@ -268,21 +279,25 @@ void Scene::solveVolumeConstraints(
     for (size_t j = 0; j < gradVolumeC.size(); ++j)
     {
         float C_j = volumeC[0](x);
-        std::vector<glm::vec3> gradC_j = gradVolumeC[j](x);
-
-        const Triangle& tri = volumeConstraintVertices[j];
-        const std::array<unsigned int, 3> constraintVertices = { tri.v1, tri.v2, tri.v3 };
-
-        float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
-        std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
-
-        for (size_t k = 0; k < deltaX.size(); ++k)
+        if (C_j < 0.0f || C_j > 0.0f)
         {
-            x[k] += deltaX[k];
+            std::vector<glm::vec3> gradC_j = gradVolumeC[j](x);
+
+            const Triangle& tri = volumeConstraintVertices[j];
+            const std::array<unsigned int, 3> constraintVertices = { tri.v1, tri.v2, tri.v3 };
+
+            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
+            std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
+
+            for (size_t k = 0; k < deltaX.size(); ++k)
+            {
+                x[k] += deltaX[k];
+            }
         }
     }
 }
 
+// TODO : FIXME
 void Scene::solveEnvCollisionConstraints(
     std::vector<glm::vec3>& x,
     const std::vector<glm::vec3>& posDiff,
@@ -304,18 +319,22 @@ void Scene::solveEnvCollisionConstraints(
     for (size_t j = 0; j < gradEnvCollisionC.size(); ++j)
     {
         float C_j = envCollisionC[j](x);
-        std::vector<glm::vec3> gradC_j = gradEnvCollisionC[j](x);
-
-        const unsigned int& v = envCollisionConstraintVertices[j];
-        const std::array<unsigned int, 1> constraintVertices = { v };
-
-        float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
-        std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
-
-        for (size_t k = 0; k < deltaX.size(); ++k)
+        if (C_j < 0.0f)
         {
-            x[k] += deltaX[k];
+            std::vector<glm::vec3> gradC_j = gradEnvCollisionC[j](x);
+
+            const unsigned int& v = envCollisionConstraintVertices[j];
+            const std::array<unsigned int, 1> constraintVertices = { v };
+
+            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
+            std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
+
+            for (size_t k = 0; k < deltaX.size(); ++k)
+            {
+                x[k] += deltaX[k];
+            }
         }
+
     }
 }
 
@@ -396,7 +415,7 @@ void Scene::applyPBD(
             );
         }
 
-        // Env Collision constraints
+        // Environment Collision constraints
         if (m_enableEnvCollisionConstraints)
         {
             solveEnvCollisionConstraints(
@@ -475,9 +494,12 @@ void Scene::render()
 
 void Scene::clear()
 {
-    m_textureManager->deleteAllTextures();
-    m_meshManager->deleteAllMeshes();
-    m_shaderManager->deleteAllShaders();
+    // m_textureManager->deleteAllTextures();
+    // m_meshManager->deleteAllMeshes();
+    // m_shaderManager->deleteAllShaders();
+    m_textureManager->deleteAllResources();
+    m_meshManager->deleteAllResources();
+    m_shaderManager->deleteAllResources();
     m_objects.clear();
 
     std::cout << m_name << " cleared.\n";

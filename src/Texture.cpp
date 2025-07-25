@@ -43,7 +43,7 @@ void Texture::bind()
     glBindTexture(GL_TEXTURE_2D, m_ID);
 }
 
-void Texture::deleteTexture()
+void Texture::destroy()
 {
     glDeleteTextures(1, &m_ID);
 }

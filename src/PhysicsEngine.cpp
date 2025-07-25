@@ -75,7 +75,7 @@ PhysicsEngine::PhysicsEngine(
         "../res/shaders/sphere.vsh",
         "../res/shaders/sphere.fsh"
     ));
-    shaderManager->addShaders(std::move(shaders));
+    shaderManager->addResources(std::move(shaders));
 
 
     // adding  meshes
@@ -93,7 +93,7 @@ PhysicsEngine::PhysicsEngine(
     //     "sphere",
     //     "../res/meshes/monkey.obj"
     // ));
-    meshManager->addMeshes(std::move(meshes));
+    meshManager->addResources(std::move(meshes));
 
 
     // adding textures
@@ -103,7 +103,7 @@ PhysicsEngine::PhysicsEngine(
         "dirtblock",
         "../res/textures/dirtblock.jpg"
     ));
-    textureManager->addTextures(std::move(textures));
+    textureManager->addResources(std::move(textures));
 
 
     // create camera

@@ -17,7 +17,7 @@ public:
     const unsigned int getID()         const { return m_ID; }
 
     void bind();
-    void deleteTexture();
+    void destroy();
 
 private:
     std::string m_name;
