@@ -70,11 +70,11 @@ PhysicsEngine::PhysicsEngine(
         "../res/shaders/dirtblock.vsh",
         "../res/shaders/dirtblock.fsh"
     ));
-    shaders.push_back(std::make_unique<Shader>(
-        "sphere",
-        "../res/shaders/sphere.vsh",
-        "../res/shaders/sphere.fsh"
-    ));
+    // shaders.push_back(std::make_unique<Shader>(
+    //     "sphere",
+    //     "../res/shaders/sphere.vsh",
+    //     "../res/shaders/sphere.fsh"
+    // ));
     shaderManager->addResources(std::move(shaders));
 
 
@@ -122,7 +122,7 @@ PhysicsEngine::PhysicsEngine(
         m_window
     );
 
-
+    // TODO : REFACTOR SUCH THAT IT CAN CREATE MULTIPLE SCENE ENVIRONMENTS THAT CAN BE SELECTED
     // create scene
     m_scene = std::make_unique<Scene>(
         "Test Scene",

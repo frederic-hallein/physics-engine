@@ -116,4 +116,18 @@ void Object::render()
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
 
     m_mesh.draw();
+
+
+    // --- Draw normals with the normal shader ---
+    m_normalShader.useProgram();
+
+    // Set the same uniforms for the normal shader
+    projectionLoc = glGetUniformLocation(m_normalShader.getID(), "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
+
+    viewLoc = glGetUniformLocation(m_normalShader.getID(), "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
+
+    m_mesh.drawNormals();
+
 }

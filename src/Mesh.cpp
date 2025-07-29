@@ -286,7 +286,7 @@ void Mesh::setCandidateVertices(const std::vector<Mesh*>& meshes)
         //     m_candidateNormals.push_back(&normal);
         // }
 
-        for (const auto& vertex : mesh->m_vertices)
+        for (const auto& vertex : mesh->getVertices())
         {
             m_candidateVertices.push_back(&vertex);
         }
@@ -370,12 +370,8 @@ void Mesh::updateEnvCollisionConstraintVertices()
     envCollisionConstraintVertices = std::move(updatedEnvCollisionConstraintVertices);
 }
 
-Mesh::Mesh(const std::string& name, const std::string& meshPath)
-    : m_name(name),
-      m_meshPath(meshPath)
+void Mesh::initVertices()
 {
-    loadObjData(meshPath);
-
     glGenVertexArrays(1, &m_VAO);
     glGenBuffers(1, &m_VBO);
     glGenBuffers(1, &m_EBO);
@@ -403,7 +399,31 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
     glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, normal));
 
     glBindVertexArray(0);
+}
 
+void Mesh::initVertexNormals()
+{
+    glGenVertexArrays(1, &m_normalVAO);
+    glGenBuffers(1, &m_normalVBO);
+
+    glBindVertexArray(m_normalVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_normalVBO);
+
+    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+
+    glBindVertexArray(0);
+}
+
+Mesh::Mesh(const std::string& name, const std::string& meshPath)
+    : m_name(name),
+      m_meshPath(meshPath)
+{
+    loadObjData(meshPath);
+    initVertices();
+    initVertexNormals();
 }
 
 void Mesh::update()
@@ -465,9 +485,32 @@ void Mesh::draw()
     glBindVertexArray(0);
 }
 
+void Mesh::drawNormals()
+{
+    std::vector<glm::vec3> lineVertices;
+    float normalLength = 1.0f; // Adjust as needed
+
+    for (const auto& v : m_vertices)
+    {
+        lineVertices.push_back(v.position);
+        lineVertices.push_back(v.position + v.normal * normalLength);
+    }
+
+    glBindVertexArray(m_normalVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_normalVBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, lineVertices.size() * sizeof(glm::vec3), lineVertices.data());
+
+    glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(lineVertices.size()));
+
+    glBindVertexArray(0);
+}
+
 void Mesh::destroy()
 {
     glDeleteVertexArrays(1, &m_VAO);
     glDeleteBuffers(1, &m_VBO);
     glDeleteBuffers(1, &m_EBO);
+
+    glDeleteVertexArrays(1, &m_normalVAO);
+    glDeleteBuffers(1, &m_normalVBO);
 }
