@@ -3,19 +3,22 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/string_cast.hpp>
 
+Shader Object::s_vertexNormalShader;
+Shader Object::s_faceNormalShader;
+
 void Scene::createObjects()
 {
-    Shader normalShader = m_shaderManager->getResource("normal");
+    Object::setVertexNormalShader(m_shaderManager->getResource("vertexNormal"));
+    Object::setFaceNormalShader(m_shaderManager->getResource("faceNormal"));
+
     Shader platformShader = m_shaderManager->getResource("platform");
     Shader lightShader = m_shaderManager->getResource("light");
     Shader dirtBlockShader = m_shaderManager->getResource("dirtblock");
     // Shader sphereShader = m_shaderManager->getResource("sphere");
 
-    // Mesh cubeMesh = m_meshManager->getMesh("cube");
     Mesh cubeMesh = m_meshManager->getResource("cube");
     // Mesh sphereMesh = m_meshManager->getResource("sphere");
 
-    // Texture dirtBlockTexture = m_textureManager->getTexture("dirtblock");
     Texture dirtBlockTexture = m_textureManager->getResource("dirtblock");
 
     // // light
@@ -44,14 +47,14 @@ void Scene::createObjects()
     // platform
     Transform platformTransform;
     platformTransform.setProjection(*m_camera);
-    glm::vec3 platformPosition(-8.0f, -5.0f, 0.0f);
+    glm::vec3 platformPosition(-0.0f, -0.5f, 0.0f);
     glm::mat4 platformTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         platformPosition
     );
     platformTranslationMatrix = glm::rotate(
         platformTranslationMatrix,
-        glm::radians(-30.0f),
+        glm::radians(-0.0f),
         glm::vec3(0.0f, 0.0f, 1.0f)
     );
     platformTranslationMatrix = glm::scale(
@@ -65,51 +68,51 @@ void Scene::createObjects()
         platformTransform,
         m_k,
         platformShader,
-        normalShader,
+        // vertexNormalShader,
         cubeMesh
     );
     m_objects.push_back(std::move(platformBlock));
 
-    Transform platformTransform2;
-    platformTransform2.setProjection(*m_camera);
-    glm::vec3 platformPosition2(8.0f, 8.0f, 0.0f);
-    glm::mat4 platformTranslationMatrix2 = glm::translate(
-        glm::mat4(1.0f),
-        platformPosition2
-    );
-    platformTranslationMatrix2 = glm::rotate(
-        platformTranslationMatrix2,
-        glm::radians(30.0f),
-        glm::vec3(0.0f, 0.0f, 1.0f)
-    );
-    platformTranslationMatrix2 = glm::scale(
-        platformTranslationMatrix2,
-        glm::vec3(10.0f, 0.5f, 10.0f)
-    );
-    platformTransform2.setModel(platformTranslationMatrix2);
-    platformTransform2.setView(*m_camera);
-    auto platformBlock2 = std::make_unique<Object>(
-        "Platform",
-        platformTransform2,
-        m_k,
-        platformShader,
-        normalShader,
-        cubeMesh
-    );
-    m_objects.push_back(std::move(platformBlock2));
+    // Transform platformTransform2;
+    // platformTransform2.setProjection(*m_camera);
+    // glm::vec3 platformPosition2(8.0f, 8.0f, 0.0f);
+    // glm::mat4 platformTranslationMatrix2 = glm::translate(
+    //     glm::mat4(1.0f),
+    //     platformPosition2
+    // );
+    // platformTranslationMatrix2 = glm::rotate(
+    //     platformTranslationMatrix2,
+    //     glm::radians(30.0f),
+    //     glm::vec3(0.0f, 0.0f, 1.0f)
+    // );
+    // platformTranslationMatrix2 = glm::scale(
+    //     platformTranslationMatrix2,
+    //     glm::vec3(10.0f, 0.5f, 10.0f)
+    // );
+    // platformTransform2.setModel(platformTranslationMatrix2);
+    // platformTransform2.setView(*m_camera);
+    // auto platformBlock2 = std::make_unique<Object>(
+    //     "Platform",
+    //     platformTransform2,
+    //     m_k,
+    //     platformShader,
+    //     normalShader,
+    //     cubeMesh
+    // );
+    // m_objects.push_back(std::move(platformBlock2));
 
 
     // dirtBlock
     Transform dirtBlockTransform;
     dirtBlockTransform.setProjection(*m_camera);
-    glm::vec3 dirtBlockPosition(-0.0f, 10.0f, 0.0f);
+    glm::vec3 dirtBlockPosition(-0.0f, 5.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
     );
     dirtBlockTranslationMatrix = glm::rotate(
         dirtBlockTranslationMatrix,
-        glm::radians(45.0f),
+        glm::radians(0.0f),
         glm::vec3(0.0f, 1.0f, 1.0f)
     );
     dirtBlockTranslationMatrix = glm::scale(
@@ -123,7 +126,6 @@ void Scene::createObjects()
         dirtBlockTransform,
         m_k,
         dirtBlockShader,
-        normalShader,
         cubeMesh,
         dirtBlockTexture,
         false
@@ -149,7 +151,6 @@ void Scene::createObjects()
     //     sphereTransform,
     //     m_k,
     //     sphereShader,
-    //     normalShader,
     //     sphereMesh,
     //     std::nullopt,
     //     false
@@ -167,7 +168,7 @@ void Scene::setupMeshEnvCollisionConstraints()
 
     for (auto* mesh : m_meshPtrs)
     {
-        mesh->setCandidateVertices(m_meshPtrs);
+        mesh->setCandidateMeshes(m_meshPtrs);
         mesh->constructEnvCollisionConstraints();
         mesh->constructGradEnvCollisionConstraints();
     }
@@ -331,46 +332,10 @@ void Scene::solveEnvCollisionConstraints(
     const std::vector<float>& M,
     float alphaTilde,
     float gamma,
-    const std::vector<std::function<float(const std::vector<glm::vec3>&)>>& envCollisionC,
-    const std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>>& gradEnvCollisionC,
-    const std::vector<unsigned int>& envCollisionConstraintVertices
+    std::vector<Mesh::MeshCollisionConstraint> envCollisionConstraints
 )
 {
-    std::cout << "solveEnvCollisionConstraints: M.size() = " << M.size()
-              << ", envCollisionC.size() = " << envCollisionC.size()
-              << ", gradEnvCollisionC.size() = " << gradEnvCollisionC.size()
-              << ", envCollisionConstraintVertices.size() = " << envCollisionConstraintVertices.size()
-              << std::endl;
 
-
-    // // Print all envCollisionConstraintVertices
-    // std::cout << "envCollisionConstraintVertices: [";
-    // for (size_t i = 0; i < envCollisionConstraintVertices.size(); ++i) {
-    //     std::cout << envCollisionConstraintVertices[i];
-    //     if (i + 1 < envCollisionConstraintVertices.size()) std::cout << ", ";
-    // }
-    // std::cout << "]" << std::endl;
-
-    for (size_t j = 0; j < gradEnvCollisionC.size(); ++j)
-    {
-        float C_j = envCollisionC[j](x);
-        if (C_j < 0.0f)
-        {
-            std::vector<glm::vec3> gradC_j = gradEnvCollisionC[j](x);
-
-            const unsigned int& v = envCollisionConstraintVertices[j];
-            const std::array<unsigned int, 1> constraintVertices = { v };
-
-            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
-            std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
-
-            for (size_t k = 0; k < deltaX.size(); ++k)
-            {
-                x[k] += deltaX[k];
-            }
-        }
-
-    }
 }
 
 void Scene::applyPBD(
@@ -379,15 +344,19 @@ void Scene::applyPBD(
 )
 {
     const auto& mesh = object.getMesh();
+
     const auto& distanceConstraintVertices = mesh.distanceConstraintVertices;
     const auto& volumeConstraintVertices = mesh.volumeConstraintVertices;
-    const auto& envCollisionConstraintVertices = mesh.envCollisionConstraintVertices;
+    // const auto& envCollisionConstraintVertices = mesh.envCollisionConstraintVertices;
+
     const auto& distanceC = mesh.distanceConstraints;
     const auto& volumeC = mesh.volumeConstraints;
     const auto& envCollisionC = mesh.envCollisionConstraints;
+
     const auto& gradDistanceC = mesh.gradDistanceConstraints;
     const auto& gradVolumeC = mesh.gradVolumeConstraints;
-    const auto& gradEnvCollisionC = mesh.gradEnvCollisionConstraints;
+    // const auto& gradEnvCollisionC = mesh.gradEnvCollisionConstraints;
+
     auto& vertexTransforms = object.getVertexTransforms();
 
     const size_t numVerts = vertexTransforms.size();
@@ -459,9 +428,10 @@ void Scene::applyPBD(
                 M,
                 alphaTilde,
                 gamma,
-                envCollisionC,
-                gradEnvCollisionC,
-                envCollisionConstraintVertices
+                envCollisionC
+                // envCollisionC,
+                // gradEnvCollisionC,
+                // envCollisionConstraintVertices
             );
         }
 
@@ -473,11 +443,11 @@ void Scene::applyPBD(
             glm::vec3 newX = x[i];
             glm::vec3 newV = (newX - p[i]) / deltaTime_s;
 
-            // if (newX.y < 0.0f && newV.y < 0.0f)
-            // {
-            //     newX.y = 0.0f;
-            //     newV.y = 0.0f;
-            // }
+            if (newX.y < 0.0f && newV.y < 0.0f)
+            {
+                newX.y = 0.0f;
+                newV.y = 0.0f;
+            }
 
             vertexTransform.setPosition(newX);
             vertexTransform.setVelocity(newV);

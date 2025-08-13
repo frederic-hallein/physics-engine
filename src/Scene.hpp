@@ -16,6 +16,7 @@
 #include <span>
 #include <omp.h>
 
+
 class Scene
 {
 public:
@@ -65,9 +66,7 @@ public:
         const std::vector<float>& M,
         float alphaTilde,
         float gamma,
-        const std::vector<std::function<float(const std::vector<glm::vec3>&)>>& envCollisionC,
-        const std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>>& gradEnvCollisionC,
-        const std::vector<unsigned int>& envCollisionConstraintVertices
+        std::vector<Mesh::MeshCollisionConstraint> envCollisionConstraints
     );
 
     glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }
@@ -126,5 +125,4 @@ private:
     float m_alpha;
     float m_beta;
     float m_k;
-
 };

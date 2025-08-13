@@ -5,7 +5,7 @@ Object::Object(
     Transform transform,
     float& k,
     Shader shader,
-    Shader normalShader,
+    // Shader vertexNormalShader,
     Mesh mesh,
     std::optional<Texture> texture,
     bool isStatic
@@ -13,7 +13,6 @@ Object::Object(
     : m_name(name),
       m_transform(std::move(transform)),
       m_shader(std::move(shader)),
-      m_normalShader(std::move(normalShader)),
       m_mesh(mesh),
       m_texture(texture),
       m_isStatic(isStatic),
@@ -118,16 +117,37 @@ void Object::render()
     m_mesh.draw();
 
 
-    // --- Draw normals with the normal shader ---
-    m_normalShader.useProgram();
+    // // draw vertex normals
+    // m_vertexNormalShader.useProgram();
 
-    // Set the same uniforms for the normal shader
-    projectionLoc = glGetUniformLocation(m_normalShader.getID(), "projection");
+    // projectionLoc = glGetUniformLocation(m_vertexNormalShader.getID(), "projection");
+    // glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
+
+    // viewLoc = glGetUniformLocation(m_vertexNormalShader.getID(), "view");
+    // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
+
+    // m_mesh.drawVertexNormals();
+
+    // draw vertex normals
+    s_vertexNormalShader.useProgram();
+
+    projectionLoc = glGetUniformLocation(s_vertexNormalShader.getID(), "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
 
-    viewLoc = glGetUniformLocation(m_normalShader.getID(), "view");
+    viewLoc = glGetUniformLocation(s_vertexNormalShader.getID(), "view");
     glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
 
-    m_mesh.drawNormals();
+    m_mesh.drawVertexNormals();
 
+
+    // draw face normals
+    s_faceNormalShader.useProgram();
+
+    projectionLoc = glGetUniformLocation(s_faceNormalShader.getID(), "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
+
+    viewLoc = glGetUniformLocation(s_faceNormalShader.getID(), "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
+
+    m_mesh.drawFaceNormals();
 }

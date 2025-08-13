@@ -23,12 +23,6 @@ struct Vertex
     glm::vec2 texCoords;
 };
 
-// struct NormalLine
-// {
-//     const glm::vec3* x1;
-//     const glm::vec3* x2;
-// };
-
 struct Edge
 {
     unsigned int v1;
@@ -57,10 +51,11 @@ public:
 
     void update();
     void draw();
-    void drawNormals();
+    void drawVertexNormals();
+    void drawFaceNormals();
     void destroy();
 
-    void setCandidateVertices(const std::vector<Mesh*>& meshes);
+    void setCandidateMeshes(const std::vector<Mesh*>& meshes);
 
     void constructDistanceConstraints();
     void constructGradDistanceConstraints();
@@ -73,11 +68,11 @@ public:
     void updateEnvCollisionConstraintVertices();
 
 public:
-    // std::vector<Vertex> m_vertices;
     const std::vector<Vertex>& getVertices() const { return m_vertices; }
 
     std::vector<glm::vec3> positions;
-    std::vector<glm::vec3> normals;
+    std::vector<glm::vec3> vertexNormals;
+    std::vector<glm::vec3> faceNormals;
 
     std::vector<Edge> distanceConstraintVertices;
     std::vector<std::function<float(const std::vector<glm::vec3>&)>> distanceConstraints;
@@ -88,13 +83,20 @@ public:
     std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradVolumeConstraints;
 
     std::vector<unsigned int> envCollisionConstraintVertices;
-    std::vector<std::function<float(const std::vector<glm::vec3>&)>> envCollisionConstraints;
-    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradEnvCollisionConstraints;
+    struct MeshCollisionConstraint
+    {
+        const Mesh* mesh;
+        std::vector<unsigned int> constraintVertices;
+        std::vector<std::function<float(const std::vector<glm::vec3>&)>> constraints;
+        std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradConstraints;
+    };
+    std::vector<MeshCollisionConstraint> envCollisionConstraints;
 
 private:
     void loadObjData(const std::string& meshPath);
     void initVertices();
     void initVertexNormals();
+    void initFaceNormals();
     void constructDistanceConstraintVertices(const aiMesh* mesh);
     void constructVolumeConstraintVertices(const aiMesh* mesh);
     void constructEnvCollisionConstraintVertices(const aiMesh* mesh);
@@ -109,7 +111,8 @@ private:
     std::vector<Vertex> m_vertices;
     std::vector<unsigned int> m_indices;
 
-    GLuint m_normalVAO, m_normalVBO;
-    std::vector<const Vertex*> m_candidateVertices;
+    GLuint m_vertexNormalVAO, m_vertexNormalVBO;
+    GLuint m_faceNormalVAO, m_faceNormalVBO;
 
+    std::vector<const Mesh*> m_candidateMeshes;
 };

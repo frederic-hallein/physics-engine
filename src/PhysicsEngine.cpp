@@ -51,9 +51,14 @@ PhysicsEngine::PhysicsEngine(
     auto shaderManager = std::make_unique<ShaderManager>();
     std::vector<std::unique_ptr<Shader>> shaders;
     shaders.push_back(std::make_unique<Shader>(
-        "normal",
-        "../res/shaders/normal.vsh",
-        "../res/shaders/normal.fsh"
+        "vertexNormal",
+        "../res/shaders/vertexNormal.vsh",
+        "../res/shaders/vertexNormal.fsh"
+    ));
+    shaders.push_back(std::make_unique<Shader>(
+        "faceNormal",
+        "../res/shaders/faceNormal.vsh",
+        "../res/shaders/faceNormal.fsh"
     ));
     shaders.push_back(std::make_unique<Shader>(
         "light",

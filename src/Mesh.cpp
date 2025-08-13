@@ -1,7 +1,5 @@
 #include "Mesh.hpp"
 
-// #define GLM_ENABLE_EXPERIMENTAL
-// #include <glm/gtx/string_cast.hpp>
 
 void Mesh::constructDistanceConstraintVertices(const aiMesh* mesh)
 {
@@ -82,6 +80,7 @@ void Mesh::constructVolumeConstraintVertices(const aiMesh* mesh)
 
 void Mesh::constructEnvCollisionConstraintVertices(const aiMesh* mesh)
 {
+    std::set<size_t> uniqueIndices;
     for (size_t i = 0; i < mesh->mNumVertices; ++i)
     {
         glm::vec3 pos(mesh->mVertices[i].x,
@@ -92,18 +91,13 @@ void Mesh::constructEnvCollisionConstraintVertices(const aiMesh* mesh)
         auto it = std::find(positions.begin(), positions.end(), pos);
         if (it != positions.end())
         {
-            size_t idx = static_cast<unsigned int>(std::distance(positions.begin(), it));
-            envCollisionConstraintVertices.push_back(idx);
+            size_t idx = static_cast<size_t>(std::distance(positions.begin(), it));
+            if (uniqueIndices.insert(idx).second) // Only insert if not already present
+            {
+                envCollisionConstraintVertices.push_back(idx);
+            }
         }
     }
-
-    //     // Print out envCollisionConstraintVertices
-    // std::cout << "envCollisionConstraintVertices: ";
-    // for (auto idx : envCollisionConstraintVertices)
-    // {
-    //     std::cout << idx << " ";
-    // }
-    // std::cout << std::endl;
 }
 
 void Mesh::loadObjData(const std::string& filePath)
@@ -160,13 +154,13 @@ void Mesh::loadObjData(const std::string& filePath)
             vertex.texCoords = glm::vec2(0.0f, 0.0f);
         }
 
-        // vertex texture normals
+        // vertex normals
         vector.x = mesh->mNormals[i].x;
         vector.y = mesh->mNormals[i].y;
         vector.z = mesh->mNormals[i].z;
         vertex.normal = vector;
 
-        normals.push_back(vertex.normal);
+        vertexNormals.push_back(vertex.normal);
 
         m_vertices.push_back(vertex);
     }
@@ -181,19 +175,20 @@ void Mesh::loadObjData(const std::string& filePath)
         }
     }
 
-    // for (size_t i = 0; i + 2 < m_indices.size(); i += 3)
-    // {
-    //     unsigned int idx0 = m_indices[i];
-    //     unsigned int idx1 = m_indices[i + 1];
-    //     unsigned int idx2 = m_indices[i + 2];
+    // face normals
+    for (size_t i = 0; i + 2 < m_indices.size(); i += 3)
+    {
+        unsigned int idx0 = m_indices[i];
+        unsigned int idx1 = m_indices[i + 1];
+        unsigned int idx2 = m_indices[i + 2];
 
-    //     const glm::vec3& v0 = m_vertices[idx0].position;
-    //     const glm::vec3& v1 = m_vertices[idx1].position;
-    //     const glm::vec3& v2 = m_vertices[idx2].position;
+        const glm::vec3& v0 = m_vertices[idx0].position;
+        const glm::vec3& v1 = m_vertices[idx1].position;
+        const glm::vec3& v2 = m_vertices[idx2].position;
 
-    //     glm::vec3 faceNormal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
-    //     faceNormals.push_back(faceNormal);
-    // }
+        glm::vec3 faceNormal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+        faceNormals.push_back(faceNormal);
+    }
 
     // construct vertices used for specific constraints
     constructDistanceConstraintVertices(mesh);
@@ -274,76 +269,70 @@ void Mesh::constructGradVolumeConstraints()
     }
 }
 
-void Mesh::setCandidateVertices(const std::vector<Mesh*>& meshes)
+void Mesh::setCandidateMeshes(const std::vector<Mesh*>& meshes)
 {
     for (const auto* mesh : meshes)
     {
         if (mesh == this) continue; // Skip self
-
-        // // Store pointer to the normals vector
-        // for (const auto& normal : mesh->normals)
-        // {
-        //     m_candidateNormals.push_back(&normal);
-        // }
-
-        for (const auto& vertex : mesh->getVertices())
-        {
-            m_candidateVertices.push_back(&vertex);
-        }
+        m_candidateMeshes.push_back(mesh);
     }
-
-    //     // Print m_candidateVertices
-    // std::cout << "m_candidateVertices (" << m_candidateVertices.size() << "):" << std::endl;
-    // for (size_t i = 0; i < m_candidateVertices.size(); ++i)
-    // {
-    //     const Vertex* v = m_candidateVertices[i];
-    //     if (v)
-    //     {
-    //         std::cout << "  [" << i << "]: position = ("
-    //                   << v->position.x << ", " << v->position.y << ", " << v->position.z << "), normal = ("
-    //                   << v->normal.x << ", " << v->normal.y << ", " << v->normal.z << ")\n";
-    //     }
-    // }
 }
 
 void Mesh::constructEnvCollisionConstraints()
 {
-    for (const auto& v : envCollisionConstraintVertices)
+    for (const auto& cMesh : m_candidateMeshes)
     {
-        // for (const auto& n : m_candidateNormals)
-        // {
-        //     envCollisionConstraints.push_back([=, this](const std::vector<glm::vec3>& x) -> float {
-        //         return glm::dot(*n, x[v] - positions[v]);
-        //     });
-        // }
-
-        for (const auto& cVertex : m_candidateVertices)
+        MeshCollisionConstraint mcc;
+        mcc.mesh = cMesh;
+        for (const auto& v : envCollisionConstraintVertices)
         {
-            envCollisionConstraints.push_back([=, this](const std::vector<glm::vec3>& x) -> float {
-                return glm::dot(cVertex->normal, x[v] - cVertex->position);
-            });
+            for (const auto& cVertex : cMesh->getVertices())
+            {
+                const Vertex* cVertexPtr = &cVertex;
+                mcc.constraints.push_back([=](const std::vector<glm::vec3>& x) -> float {
+                    float dot = glm::dot(cVertexPtr->normal, x[v] - cVertexPtr->position);
+                    return dot;
+                });
+                mcc.gradConstraints.push_back([=](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
+                    return { cVertexPtr->normal };
+                });
+            }
+
+            break;
+
         }
+
+        std::vector<unsigned int> updatedEnvCollisionConstraintVertices;
+        for (const auto& v : envCollisionConstraintVertices)
+        {
+            for (const auto& cVertex : cMesh->getVertices())
+            {
+                updatedEnvCollisionConstraintVertices.push_back(v);
+            }
+
+            break;
+
+        }
+
+        mcc.constraintVertices = std::move(updatedEnvCollisionConstraintVertices);
+
+        envCollisionConstraints.push_back(mcc);
     }
 }
 
 void Mesh::constructGradEnvCollisionConstraints()
 {
-    for (const auto& v : envCollisionConstraintVertices)
-    {
-        // for (const auto& n : m_candidateNormals)
-        // {
-        //     gradEnvCollisionConstraints.push_back([=](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
-        //         return { *n };
-        //     });
-        // }
+    // for (const auto& v : envCollisionConstraintVertices)
+    // {
+    //     for (const auto& cVertex : m_candidateVertices)
+    //     {
+    //         gradEnvCollisionConstraints.push_back([=](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
+    //             return { cVertex->normal };
+    //         });
+    //     }
 
-        for (const auto& cVertex : m_candidateVertices)
-        {
-            gradEnvCollisionConstraints.push_back([=](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
-                return { cVertex->normal };
-            });
-        }
-    }
+    //     break;
+    // }
 }
 
 void Mesh::updateEnvCollisionConstraintVertices()
@@ -351,23 +340,17 @@ void Mesh::updateEnvCollisionConstraintVertices()
     // std::vector<unsigned int> updatedEnvCollisionConstraintVertices;
     // for (const auto& v : envCollisionConstraintVertices)
     // {
-    //     for (const auto& n : m_candidateNormals)
+    //     for (const auto& cVertex : m_candidateVertices)
     //     {
     //         updatedEnvCollisionConstraintVertices.push_back(v);
     //     }
+
+    //     break;
     // }
+
     // envCollisionConstraintVertices = std::move(updatedEnvCollisionConstraintVertices);
 
-    std::vector<unsigned int> updatedEnvCollisionConstraintVertices;
-    for (const auto& v : envCollisionConstraintVertices)
-    {
-        for (const auto& cVertex : m_candidateVertices)
-        {
-            updatedEnvCollisionConstraintVertices.push_back(v);
-        }
-    }
 
-    envCollisionConstraintVertices = std::move(updatedEnvCollisionConstraintVertices);
 }
 
 void Mesh::initVertices()
@@ -403,13 +386,30 @@ void Mesh::initVertices()
 
 void Mesh::initVertexNormals()
 {
-    glGenVertexArrays(1, &m_normalVAO);
-    glGenBuffers(1, &m_normalVBO);
+    glGenVertexArrays(1, &m_vertexNormalVAO);
+    glGenBuffers(1, &m_vertexNormalVBO);
 
-    glBindVertexArray(m_normalVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_normalVBO);
+    glBindVertexArray(m_vertexNormalVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexNormalVBO);
 
     glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+
+    glBindVertexArray(0);
+}
+
+// TODO : combine in 1 function with Mesh::initVertexNormals()
+void Mesh::initFaceNormals()
+{
+    glGenVertexArrays(1, &m_faceNormalVAO);
+    glGenBuffers(1, &m_faceNormalVBO);
+
+    glBindVertexArray(m_faceNormalVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_faceNormalVBO);
+
+    glBufferData(GL_ARRAY_BUFFER, faceNormals.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
@@ -424,6 +424,7 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
     loadObjData(meshPath);
     initVertices();
     initVertexNormals();
+    initFaceNormals();
 }
 
 void Mesh::update()
@@ -455,22 +456,12 @@ void Mesh::update()
         m_vertices[idx1].normal = faceNormal;
         m_vertices[idx2].normal = faceNormal;
 
-        normals[tri] = faceNormal;
+        vertexNormals[tri] = faceNormal;
+        if (tri < faceNormals.size())
+        {
+            faceNormals[tri] = faceNormal;
+        }
     }
-
-    // // Print m_candidateVertices
-    // std::cout << "m_candidateVertices (" << m_candidateVertices.size() << "):" << std::endl;
-    // for (size_t i = 0; i < m_candidateVertices.size(); ++i)
-    // {
-    //     const Vertex* v = m_candidateVertices[i];
-    //     if (v)
-    //     {
-    //         std::cout << "  [" << i << "]: position = ("
-    //                   << v->position.x << ", " << v->position.y << ", " << v->position.z << "), normal = ("
-    //                   << v->normal.x << ", " << v->normal.y << ", " << v->normal.z << ")\n";
-    //     }
-    // }
-
 }
 
 void Mesh::draw()
@@ -485,7 +476,7 @@ void Mesh::draw()
     glBindVertexArray(0);
 }
 
-void Mesh::drawNormals()
+void Mesh::drawVertexNormals()
 {
     std::vector<glm::vec3> lineVertices;
     float normalLength = 1.0f; // Adjust as needed
@@ -496,8 +487,35 @@ void Mesh::drawNormals()
         lineVertices.push_back(v.position + v.normal * normalLength);
     }
 
-    glBindVertexArray(m_normalVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_normalVBO);
+    glBindVertexArray(m_vertexNormalVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_vertexNormalVBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0, lineVertices.size() * sizeof(glm::vec3), lineVertices.data());
+
+    glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(lineVertices.size()));
+
+    glBindVertexArray(0);
+}
+
+void Mesh::drawFaceNormals()
+{
+    std::vector<glm::vec3> lineVertices;
+    float normalLength = 1.0f; // Adjust as needed
+
+    for (size_t i = 0; i + 2 < m_indices.size(); i += 3)
+    {
+        unsigned int idx0 = m_indices[i];
+        unsigned int idx1 = m_indices[i + 1];
+        unsigned int idx2 = m_indices[i + 2];
+
+        glm::vec3 centroid = (m_vertices[idx0].position + m_vertices[idx1].position + m_vertices[idx2].position) / 3.0f;
+        glm::vec3 normal = faceNormals[i / 3];
+
+        lineVertices.push_back(centroid);
+        lineVertices.push_back(centroid + normal * normalLength);
+    }
+
+    glBindVertexArray(m_faceNormalVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, m_faceNormalVBO);
     glBufferSubData(GL_ARRAY_BUFFER, 0, lineVertices.size() * sizeof(glm::vec3), lineVertices.data());
 
     glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(lineVertices.size()));
@@ -511,6 +529,9 @@ void Mesh::destroy()
     glDeleteBuffers(1, &m_VBO);
     glDeleteBuffers(1, &m_EBO);
 
-    glDeleteVertexArrays(1, &m_normalVAO);
-    glDeleteBuffers(1, &m_normalVBO);
+    glDeleteVertexArrays(1, &m_vertexNormalVAO);
+    glDeleteBuffers(1, &m_vertexNormalVBO);
+
+    glDeleteVertexArrays(1, &m_faceNormalVAO);
+    glDeleteBuffers(1, &m_faceNormalVBO);
 }

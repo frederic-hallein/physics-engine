@@ -22,7 +22,6 @@ public:
         Transform transform,
         float& k,
         Shader shader,
-        Shader normalShader,
         Mesh mesh,
         std::optional<Texture> texture = std::nullopt,
         bool isStatic = true
@@ -46,11 +45,15 @@ public:
 
     void resetVertexTransforms();
 
+    static void setVertexNormalShader(const Shader& shader) { s_vertexNormalShader = shader; }
+    static void setFaceNormalShader(const Shader& shader)   { s_faceNormalShader = shader; }
+
 private:
     std::string m_name;
     Transform m_transform;
     Shader m_shader;
-    Shader m_normalShader;
+    static Shader s_vertexNormalShader;
+    static Shader s_faceNormalShader;
     Mesh m_mesh;
     std::optional<Texture> m_texture;
     bool m_isStatic;
