@@ -90,10 +90,10 @@ PhysicsEngine::PhysicsEngine(
         "cube",
         "../res/meshes/cube.obj"
     ));
-    meshes.push_back(std::make_unique<Mesh>(
-        "sphere",
-        "../res/meshes/sphere.obj"
-    ));
+    // meshes.push_back(std::make_unique<Mesh>(
+    //     "sphere",
+    //     "../res/meshes/sphere.obj"
+    // ));
     // meshes.push_back(std::make_unique<Mesh>(
     //     "sphere",
     //     "../res/meshes/sphere2.obj"

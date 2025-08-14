@@ -142,7 +142,7 @@ void Scene::createObjects()
     // );
     // sphereTranslationMatrix = glm::scale(
     //     sphereTranslationMatrix,
-    //     glm::vec3(3.0f, 3.0f, 3.0f)
+    //     glm::vec3(1.0f, 1.0f, 1.0f)
     // );
     // sphereTransform.setModel(sphereTranslationMatrix);
     // sphereTransform.setView(*m_camera);
@@ -434,9 +434,6 @@ void Scene::applyPBD(
                 alphaTilde,
                 gamma,
                 envCollisionConstraints
-                // envCollisionC,
-                // gradEnvCollisionC,
-                // envCollisionConstraintVertices
             );
         }
 
