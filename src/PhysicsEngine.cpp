@@ -75,11 +75,11 @@ PhysicsEngine::PhysicsEngine(
         "../res/shaders/dirtblock.vsh",
         "../res/shaders/dirtblock.fsh"
     ));
-    // shaders.push_back(std::make_unique<Shader>(
-    //     "sphere",
-    //     "../res/shaders/sphere.vsh",
-    //     "../res/shaders/sphere.fsh"
-    // ));
+    shaders.push_back(std::make_unique<Shader>(
+        "sphere",
+        "../res/shaders/sphere.vsh",
+        "../res/shaders/sphere.fsh"
+    ));
     shaderManager->addResources(std::move(shaders));
 
 
@@ -90,13 +90,13 @@ PhysicsEngine::PhysicsEngine(
         "cube",
         "../res/meshes/cube.obj"
     ));
+    meshes.push_back(std::make_unique<Mesh>(
+        "sphere",
+        "../res/meshes/sphere.obj"
+    ));
     // meshes.push_back(std::make_unique<Mesh>(
     //     "sphere",
-    //     "../res/meshes/sphere.obj"
-    // ));
-    // meshes.push_back(std::make_unique<Mesh>(
-    //     "sphere",
-    //     "../res/meshes/monkey.obj"
+    //     "../res/meshes/sphere2.obj"
     // ));
     meshManager->addResources(std::move(meshes));
 

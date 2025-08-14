@@ -46,7 +46,7 @@ public:
     void resetVertexTransforms();
 
     static void setVertexNormalShader(const Shader& shader) { s_vertexNormalShader = shader; }
-    static void setFaceNormalShader(const Shader& shader)   { s_faceNormalShader = shader; }
+    static void setFaceNormalShader(const Shader& shader)   { s_faceNormalShader   = shader; }
 
 private:
     std::string m_name;

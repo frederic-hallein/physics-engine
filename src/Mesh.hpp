@@ -58,10 +58,7 @@ public:
     void setCandidateMeshes(const std::vector<Mesh*>& meshes);
 
     void constructDistanceConstraints();
-    void constructGradDistanceConstraints();
-
     void constructVolumeConstraints(float& k);
-    void constructGradVolumeConstraints();
 
     void constructEnvCollisionConstraints();
     void constructGradEnvCollisionConstraints();
@@ -74,13 +71,21 @@ public:
     std::vector<glm::vec3> vertexNormals;
     std::vector<glm::vec3> faceNormals;
 
-    std::vector<Edge> distanceConstraintVertices;
-    std::vector<std::function<float(const std::vector<glm::vec3>&)>> distanceConstraints;
-    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradDistanceConstraints;
+    struct DistanceConstraints
+    {
+        std::vector<Edge> edgeVertices;
+        std::vector<std::function<float(const std::vector<glm::vec3>&)>> constraints;
+        std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradConstraints;
+    };
+    DistanceConstraints distanceConstraints;
 
-    std::vector<Triangle> volumeConstraintVertices;
-    std::vector<std::function<float(const std::vector<glm::vec3>&)>> volumeConstraints;
-    std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradVolumeConstraints;
+    struct VolumeConstraints
+    {
+        std::vector<Triangle> triangleVertices;
+        std::vector<std::function<float(const std::vector<glm::vec3>&)>> constraints;
+        std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradConstraints;
+    };
+    VolumeConstraints volumeConstraints;
 
     std::vector<unsigned int> envCollisionConstraintVertices;
     struct MeshCollisionConstraint
@@ -105,7 +110,8 @@ private:
     std::string m_name;
     std::string m_meshPath;
 
-    std::vector<std::vector<size_t>> m_duplicatePositionIndices;
+    // std::vector<std::vector<size_t>> m_duplicatePositionIndices;
+    std::vector<std::vector<unsigned int>> m_duplicatePositionIndices;
 
     GLuint m_VAO, m_VBO, m_EBO;
     std::vector<Vertex> m_vertices;

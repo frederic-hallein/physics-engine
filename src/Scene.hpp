@@ -6,7 +6,6 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-// #include "ResourceManager.hpp"
 #include "ShaderManager.hpp"
 #include "MeshManager.hpp"
 #include "TextureManager.hpp"
@@ -42,9 +41,7 @@ public:
         const std::vector<float>& M,
         float alphaTilde,
         float gamma,
-        const std::vector<std::function<float(const std::vector<glm::vec3>&)>>& distanceC,
-        const std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>>& gradDistanceC,
-        const std::vector<Edge>& distanceConstraintVertices
+        const Mesh::DistanceConstraints& distanceConstraints
     );
 
     bool& enableVolumeConstraints() { return m_enableVolumeConstraints; }
@@ -54,9 +51,10 @@ public:
         const std::vector<float>& M,
         float alphaTilde,
         float gamma,
-        const std::vector<std::function<float(const std::vector<glm::vec3>&)>>& volumeC,
-        const std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>>& gradVolumeC,
-        const std::vector<Triangle>& volumeConstraintVertices
+        const Mesh::VolumeConstraints& volumeConstraints
+        // const std::vector<std::function<float(const std::vector<glm::vec3>&)>>& volumeC,
+        // const std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>>& gradVolumeC,
+        // const std::vector<Triangle>& volumeConstraintVertices
     );
 
     bool& enableEnvCollisionConstraints() { return m_enableEnvCollisionConstraints; }

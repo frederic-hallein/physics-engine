@@ -101,8 +101,8 @@ void DebugWindow::update(
     bool& enableVolumeConstraints = scene.enableVolumeConstraints();
     ImGui::Checkbox("Enable Volume Constraints", &enableVolumeConstraints);
 
-    // bool& enableEnvCollisionConstraints = scene.enableEnvCollisionConstraints();
-    // ImGui::Checkbox("Enable Env Collision Constraints", &enableEnvCollisionConstraints);
+    bool& enableEnvCollisionConstraints = scene.enableEnvCollisionConstraints();
+    ImGui::Checkbox("Enable Env Collision Constraints", &enableEnvCollisionConstraints);
 
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
 

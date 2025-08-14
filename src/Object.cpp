@@ -5,7 +5,6 @@ Object::Object(
     Transform transform,
     float& k,
     Shader shader,
-    // Shader vertexNormalShader,
     Mesh mesh,
     std::optional<Texture> texture,
     bool isStatic
@@ -52,11 +51,10 @@ Object::Object(
 
         // create distance constraints
         m_mesh.constructDistanceConstraints();
-        m_mesh.constructGradDistanceConstraints();
 
         // create volume constraints
         m_mesh.constructVolumeConstraints(k);
-        m_mesh.constructGradVolumeConstraints();
+        // m_mesh.constructGradVolumeConstraints();
     }
 
     std::cout << name << " created." << '\n';
@@ -97,6 +95,7 @@ void Object::resetVertexTransforms()
     m_mesh.update();
 }
 
+// TODO : refactoring
 void Object::render()
 {
     if (m_texture.has_value())
@@ -116,17 +115,6 @@ void Object::render()
 
     m_mesh.draw();
 
-
-    // // draw vertex normals
-    // m_vertexNormalShader.useProgram();
-
-    // projectionLoc = glGetUniformLocation(m_vertexNormalShader.getID(), "projection");
-    // glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
-
-    // viewLoc = glGetUniformLocation(m_vertexNormalShader.getID(), "view");
-    // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
-
-    // m_mesh.drawVertexNormals();
 
     // draw vertex normals
     s_vertexNormalShader.useProgram();
