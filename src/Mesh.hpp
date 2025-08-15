@@ -73,29 +73,29 @@ public:
 
     struct DistanceConstraints
     {
-        std::vector<Edge> edgeVertices;
-        std::vector<std::function<float(const std::vector<glm::vec3>&)>> constraints;
-        std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradConstraints;
+        std::vector<Edge> edges;
+        std::vector<std::function<float(const std::vector<glm::vec3>&)>> C;
+        std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradC;
     };
     DistanceConstraints distanceConstraints;
 
     struct VolumeConstraints
     {
-        std::vector<Triangle> triangleVertices;
-        std::vector<std::function<float(const std::vector<glm::vec3>&)>> constraints;
-        std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradConstraints;
+        std::vector<Triangle> triangles;
+        std::vector<std::function<float(const std::vector<glm::vec3>&)>> C;
+        std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradC;
     };
     VolumeConstraints volumeConstraints;
 
     std::vector<unsigned int> envCollisionConstraintVertices;
-    struct MeshCollisionConstraint
+    struct EnvCollisionConstraints
     {
         const Mesh* mesh;
-        std::vector<unsigned int> constraintVertices;
-        std::vector<std::function<float(const std::vector<glm::vec3>&)>> constraints;
-        std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradConstraints;
+        std::vector<unsigned int> vertices;
+        std::vector<std::function<float(const std::vector<glm::vec3>&)>> C;
+        std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradC;
     };
-    std::vector<MeshCollisionConstraint> envCollisionConstraints;
+    std::vector<EnvCollisionConstraints> perEnvCollisionConstraints;
 
 private:
     void loadObjData(const std::string& meshPath);
@@ -110,7 +110,6 @@ private:
     std::string m_name;
     std::string m_meshPath;
 
-    // std::vector<std::vector<size_t>> m_duplicatePositionIndices;
     std::vector<std::vector<unsigned int>> m_duplicatePositionIndices;
 
     GLuint m_VAO, m_VBO, m_EBO;
@@ -119,6 +118,8 @@ private:
 
     GLuint m_vertexNormalVAO, m_vertexNormalVBO;
     GLuint m_faceNormalVAO, m_faceNormalVBO;
+    float m_vertexNormalLength;
+    float m_faceNormalLength;
 
     std::vector<const Mesh*> m_candidateMeshes;
 };

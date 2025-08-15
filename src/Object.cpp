@@ -54,7 +54,6 @@ Object::Object(
 
         // create volume constraints
         m_mesh.constructVolumeConstraints(k);
-        // m_mesh.constructGradVolumeConstraints();
     }
 
     std::cout << name << " created." << '\n';
@@ -116,26 +115,26 @@ void Object::render()
     m_mesh.draw();
 
 
-    // // draw vertex normals
-    // s_vertexNormalShader.useProgram();
+    // draw vertex normals
+    s_vertexNormalShader.useProgram();
 
-    // projectionLoc = glGetUniformLocation(s_vertexNormalShader.getID(), "projection");
-    // glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
+    projectionLoc = glGetUniformLocation(s_vertexNormalShader.getID(), "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
 
-    // viewLoc = glGetUniformLocation(s_vertexNormalShader.getID(), "view");
-    // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
+    viewLoc = glGetUniformLocation(s_vertexNormalShader.getID(), "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
 
-    // m_mesh.drawVertexNormals();
+    m_mesh.drawVertexNormals();
 
 
-    // // draw face normals
-    // s_faceNormalShader.useProgram();
+    // draw face normals
+    s_faceNormalShader.useProgram();
 
-    // projectionLoc = glGetUniformLocation(s_faceNormalShader.getID(), "projection");
-    // glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
+    projectionLoc = glGetUniformLocation(s_faceNormalShader.getID(), "projection");
+    glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));
 
-    // viewLoc = glGetUniformLocation(s_faceNormalShader.getID(), "view");
-    // glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
+    viewLoc = glGetUniformLocation(s_faceNormalShader.getID(), "view");
+    glUniformMatrix4fv(viewLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getViewMatrix()));
 
-    // m_mesh.drawFaceNormals();
+    m_mesh.drawFaceNormals();
 }

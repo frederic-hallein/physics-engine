@@ -52,9 +52,6 @@ public:
         float alphaTilde,
         float gamma,
         const Mesh::VolumeConstraints& volumeConstraints
-        // const std::vector<std::function<float(const std::vector<glm::vec3>&)>>& volumeC,
-        // const std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>>& gradVolumeC,
-        // const std::vector<Triangle>& volumeConstraintVertices
     );
 
     bool& enableEnvCollisionConstraints() { return m_enableEnvCollisionConstraints; }
@@ -64,7 +61,7 @@ public:
         const std::vector<float>& M,
         float alphaTilde,
         float gamma,
-        std::vector<Mesh::MeshCollisionConstraint> envCollisionConstraints
+        std::vector<Mesh::EnvCollisionConstraints> perEnvCollisionConstraints
     );
 
     glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }

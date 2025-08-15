@@ -170,12 +170,6 @@ void Scene::setupMeshEnvCollisionConstraints()
     {
         mesh->setCandidateMeshes(m_meshPtrs);
         mesh->constructEnvCollisionConstraints();
-        mesh->constructGradEnvCollisionConstraints();
-    }
-
-    for (auto* mesh : m_meshPtrs)
-    {
-        mesh->updateEnvCollisionConstraintVertices();
     }
 }
 
@@ -270,26 +264,26 @@ void Scene::solveDistanceConstraints(
     const Mesh::DistanceConstraints& distanceConstraints
 )
 {
-    size_t vertSize = distanceConstraints.edgeVertices.size();
-    size_t consSize = distanceConstraints.constraints.size();
-    size_t gradSize = distanceConstraints.gradConstraints.size();
-    if (gradSize != vertSize)
+    size_t edgesSize = distanceConstraints.edges.size();
+    size_t CSize = distanceConstraints.C.size();
+    size_t gradCSize = distanceConstraints.gradC.size();
+    if (edgesSize != gradCSize)
     {
         std::cerr << "DistanceConstraints size mismatch:\n"
-                  << "constraints = " << consSize << ", "
-                  << "gradConstraints = " << gradSize << ", "
-                  << "edgeVertices = " << vertSize << std::endl;
+                  << "constraints = " << CSize << ", "
+                  << "gradConstraints = " << gradCSize << ", "
+                  << "edgeVertices = " << edgesSize << std::endl;
         return;
     }
 
-    for (size_t j = 0; j < distanceConstraints.gradConstraints.size(); ++j)
+    for (size_t j = 0; j < distanceConstraints.edges.size(); ++j)
     {
-        float C_j = distanceConstraints.constraints[j](x);
+        float C_j = distanceConstraints.C[j](x);
         if (C_j < 0.0f || C_j > 0.0f)
         {
-            std::vector<glm::vec3> gradC_j = distanceConstraints.gradConstraints[j](x);
+            std::vector<glm::vec3> gradC_j = distanceConstraints.gradC[j](x);
 
-            const Edge& edge = distanceConstraints.edgeVertices[j];
+            const Edge& edge = distanceConstraints.edges[j];
             const std::array<unsigned int, 2> constraintVertices = { edge.v1, edge.v2 };
 
             float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
@@ -312,26 +306,26 @@ void Scene::solveVolumeConstraints(
     const Mesh::VolumeConstraints& volumeConstraints
 )
 {
-    size_t vertSize = volumeConstraints.triangleVertices.size();
-    size_t consSize = volumeConstraints.constraints.size();
-    size_t gradSize = volumeConstraints.gradConstraints.size();
-    if (gradSize != vertSize)
+    size_t trianglesSize = volumeConstraints.triangles.size();
+    size_t CSize = volumeConstraints.C.size();
+    size_t gradCSize = volumeConstraints.gradC.size();
+    if (trianglesSize != gradCSize)
     {
         std::cerr << "VolumeConstraints size mismatch:\n"
-                  << "constraints = " << consSize << ", "
-                  << "gradConstraints = " << gradSize << ", "
-                  << "triangleVertices = " << vertSize << std::endl;
+                  << "constraints = " << CSize << ", "
+                  << "gradConstraints = " << gradCSize << ", "
+                  << "triangleVertices = " << trianglesSize << std::endl;
         return;
     }
 
-    for (size_t j = 0; j < volumeConstraints.gradConstraints.size(); ++j)
+    for (size_t j = 0; j < volumeConstraints.triangles.size(); ++j)
     {
-        float C_j = volumeConstraints.constraints[0](x);
+        float C_j = volumeConstraints.C[0](x);
         if (C_j < 0.0f || C_j > 0.0f)
         {
-            std::vector<glm::vec3> gradC_j = volumeConstraints.gradConstraints[j](x);
+            std::vector<glm::vec3> gradC_j = volumeConstraints.gradC[j](x);
 
-            const Triangle& tri = volumeConstraints.triangleVertices[j];
+            const Triangle& tri = volumeConstraints.triangles[j];
             const std::array<unsigned int, 3> constraintVertices = { tri.v1, tri.v2, tri.v3 };
 
             float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
@@ -351,7 +345,7 @@ void Scene::solveEnvCollisionConstraints(
     const std::vector<float>& M,
     float alphaTilde,
     float gamma,
-    std::vector<Mesh::MeshCollisionConstraint> envCollisionConstraints
+    std::vector<Mesh::EnvCollisionConstraints> perEnvCollisionConstraints
 )
 {
     // TODO : FIXME
@@ -365,7 +359,7 @@ void Scene::applyPBD(
     const auto& mesh = object.getMesh();
     const auto& distanceConstraints = mesh.distanceConstraints;
     const auto& volumeConstraints = mesh.volumeConstraints;
-    const auto& envCollisionConstraints = mesh.envCollisionConstraints;
+    const auto& perEnvCollisionConstraints = mesh.perEnvCollisionConstraints;
 
     auto& vertexTransforms = object.getVertexTransforms();
     const size_t numVerts = vertexTransforms.size();
@@ -433,7 +427,7 @@ void Scene::applyPBD(
                 M,
                 alphaTilde,
                 gamma,
-                envCollisionConstraints
+                perEnvCollisionConstraints
             );
         }
 
