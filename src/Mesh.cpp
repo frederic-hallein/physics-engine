@@ -33,8 +33,8 @@ void Mesh::constructDistanceConstraintVertices(const aiMesh* mesh)
                           mesh->mVertices[face.mIndices[j]].y,
                           mesh->mVertices[face.mIndices[j]].z
             );
-            auto it = std::find(positions.begin(), positions.end(), pos);
-            idx[j] = static_cast<int>(std::distance(positions.begin(), it));
+            auto it = std::find(m_positions.begin(), m_positions.end(), pos);
+            idx[j] = static_cast<int>(std::distance(m_positions.begin(), it));
         }
 
         uniqueEdges.insert(UniqueEdge{idx[0], idx[1]});
@@ -66,8 +66,8 @@ void Mesh::constructVolumeConstraintVertices(const aiMesh* mesh)
                           mesh->mVertices[face.mIndices[j]].y,
                           mesh->mVertices[face.mIndices[j]].z
             );
-            auto it = std::find(positions.begin(), positions.end(), pos);
-            idx[j] = static_cast<unsigned int>(std::distance(positions.begin(), it));
+            auto it = std::find(m_positions.begin(), m_positions.end(), pos);
+            idx[j] = static_cast<unsigned int>(std::distance(m_positions.begin(), it));
         }
 
         Triangle tri;
@@ -80,24 +80,24 @@ void Mesh::constructVolumeConstraintVertices(const aiMesh* mesh)
 
 void Mesh::constructEnvCollisionConstraintVertices(const aiMesh* mesh)
 {
-    // std::set<size_t> uniqueIndices;
-    // for (size_t i = 0; i < mesh->mNumVertices; ++i)
-    // {
-    //     glm::vec3 pos(mesh->mVertices[i].x,
-    //                   mesh->mVertices[i].y,
-    //                   mesh->mVertices[i].z
-    //     );
+    std::set<size_t> uniqueIndices;
+    for (size_t i = 0; i < mesh->mNumVertices; ++i)
+    {
+        glm::vec3 pos(mesh->mVertices[i].x,
+                      mesh->mVertices[i].y,
+                      mesh->mVertices[i].z
+        );
 
-    //     auto it = std::find(positions.begin(), positions.end(), pos);
-    //     if (it != positions.end())
-    //     {
-    //         size_t idx = static_cast<size_t>(std::distance(positions.begin(), it));
-    //         if (uniqueIndices.insert(idx).second) // Only insert if not already present
-    //         {
-    //             envCollisionConstraintVertices.push_back(idx);
-    //         }
-    //     }
-    // }
+        auto it = std::find(m_positions.begin(), m_positions.end(), pos);
+        if (it != m_positions.end())
+        {
+            size_t idx = static_cast<size_t>(std::distance(m_positions.begin(), it));
+            if (uniqueIndices.insert(idx).second) // Only insert if not already present
+            {
+                envCollisionConstraintVertices.push_back(idx);
+            }
+        }
+    }
 }
 
 void Mesh::loadObjData(const std::string& filePath)
@@ -129,15 +129,15 @@ void Mesh::loadObjData(const std::string& filePath)
 
         // TODO : maybe simply refer to the address with pointers and store only unique ones
         // keep track of only unique vertex positions
-        auto pit = std::find(positions.begin(), positions.end(), vertex.position);
-        if (pit == positions.end())
+        auto pit = std::find(m_positions.begin(), m_positions.end(), vertex.position);
+        if (pit == m_positions.end())
         {
-            positions.push_back(vertex.position);
+            m_positions.push_back(vertex.position);
             m_duplicatePositionIndices.push_back({static_cast<unsigned int>(i)});
         }
         else
         {
-            size_t pidx = std::distance(positions.begin(), pit);
+            size_t pidx = std::distance(m_positions.begin(), pit);
             m_duplicatePositionIndices[pidx].push_back(i);
         }
 
@@ -160,7 +160,7 @@ void Mesh::loadObjData(const std::string& filePath)
         vector.z = mesh->mNormals[i].z;
         vertex.normal = vector;
 
-        vertexNormals.push_back(vertex.normal);
+        m_vertexNormals.push_back(vertex.normal);
 
         m_vertices.push_back(vertex);
     }
@@ -187,7 +187,7 @@ void Mesh::loadObjData(const std::string& filePath)
         const glm::vec3& v2 = m_vertices[idx2].position;
 
         glm::vec3 faceNormal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
-        faceNormals.push_back(faceNormal);
+        m_faceNormals.push_back(faceNormal);
     }
 
     // construct vertices used for specific constraints
@@ -202,7 +202,7 @@ void Mesh::constructDistanceConstraints()
     {
         unsigned int v1 = edge.v1;
         unsigned int v2 = edge.v2;
-        float d_0 = glm::distance(positions[v1], positions[v2]);
+        float d_0 = glm::distance(m_positions[v1], m_positions[v2]);
 
         distanceConstraints.C.push_back([=](const std::vector<glm::vec3>& x) -> float {
             return glm::distance(x[v1], x[v2]) - d_0;
@@ -224,7 +224,7 @@ void Mesh::constructVolumeConstraints(float& k)
         unsigned int v1 = triangle.v1;
         unsigned int v2 = triangle.v2;
         unsigned int v3 = triangle.v3;
-        V_0 += factor * glm::dot(glm::cross(positions[v1], positions[v2]), positions[v3]);
+        V_0 += factor * glm::dot(glm::cross(m_positions[v1], m_positions[v2]), m_positions[v3]);
     }
 
     volumeConstraints.C.push_back([this, factor, V_0, &k](const std::vector<glm::vec3>& x) -> float {
@@ -307,7 +307,7 @@ void Mesh::initVertexNormals()
     glBindVertexArray(m_vertexNormalVAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexNormalVBO);
 
-    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_vertexNormals.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
@@ -324,7 +324,7 @@ void Mesh::initFaceNormals()
     glBindVertexArray(m_faceNormalVAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_faceNormalVBO);
 
-    glBufferData(GL_ARRAY_BUFFER, faceNormals.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_faceNormals.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
@@ -346,10 +346,10 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
 
 void Mesh::update()
 {
-    size_t n = positions.size();
+    size_t n = m_positions.size();
     for (size_t i = 0; i < n; ++i)
     {
-        const glm::vec3& updatedPosition = positions[i];
+        const glm::vec3& updatedPosition = m_positions[i];
         const auto& duplicates = m_duplicatePositionIndices[i];
         for (unsigned int idx : duplicates)
         {
@@ -373,10 +373,10 @@ void Mesh::update()
         m_vertices[idx1].normal = faceNormal;
         m_vertices[idx2].normal = faceNormal;
 
-        vertexNormals[tri] = faceNormal;
-        if (tri < faceNormals.size())
+        m_vertexNormals[tri] = faceNormal;
+        if (tri < m_faceNormals.size())
         {
-            faceNormals[tri] = faceNormal;
+            m_faceNormals[tri] = faceNormal;
         }
     }
 }
@@ -421,7 +421,7 @@ void Mesh::drawFaceNormals()
         unsigned int idx2 = m_indices[i + 2];
 
         glm::vec3 centroid = (m_vertices[idx0].position + m_vertices[idx1].position + m_vertices[idx2].position) / 3.0f;
-        glm::vec3 normal = faceNormals[i / 3];
+        glm::vec3 normal = m_faceNormals[i / 3];
 
         lineVertices.push_back(centroid);
         lineVertices.push_back(centroid + normal * m_faceNormalLength);

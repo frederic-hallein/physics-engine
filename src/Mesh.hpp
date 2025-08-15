@@ -59,17 +59,11 @@ public:
 
     void constructDistanceConstraints();
     void constructVolumeConstraints(float& k);
-
     void constructEnvCollisionConstraints();
-    void constructGradEnvCollisionConstraints();
-    void updateEnvCollisionConstraintVertices();
 
 public:
+    std::vector<glm::vec3>& getPositions() { return m_positions; }
     const std::vector<Vertex>& getVertices() const { return m_vertices; }
-
-    std::vector<glm::vec3> positions;
-    std::vector<glm::vec3> vertexNormals;
-    std::vector<glm::vec3> faceNormals;
 
     struct DistanceConstraints
     {
@@ -99,9 +93,11 @@ public:
 
 private:
     void loadObjData(const std::string& meshPath);
+
     void initVertices();
     void initVertexNormals();
     void initFaceNormals();
+
     void constructDistanceConstraintVertices(const aiMesh* mesh);
     void constructVolumeConstraintVertices(const aiMesh* mesh);
     void constructEnvCollisionConstraintVertices(const aiMesh* mesh);
@@ -110,6 +106,7 @@ private:
     std::string m_name;
     std::string m_meshPath;
 
+    std::vector<glm::vec3> m_positions;
     std::vector<std::vector<unsigned int>> m_duplicatePositionIndices;
 
     GLuint m_VAO, m_VBO, m_EBO;
@@ -118,6 +115,8 @@ private:
 
     GLuint m_vertexNormalVAO, m_vertexNormalVBO;
     GLuint m_faceNormalVAO, m_faceNormalVBO;
+    std::vector<glm::vec3> m_vertexNormals;
+    std::vector<glm::vec3> m_faceNormals;
     float m_vertexNormalLength;
     float m_faceNormalLength;
 

@@ -18,7 +18,7 @@ Object::Object(
       m_polygonMode(GL_FILL)
 {
 
-    std::vector<glm::vec3>& positions = m_mesh.positions;
+    std::vector<glm::vec3>& positions = m_mesh.getPositions();
     glm::mat3 rot = glm::mat3(m_transform.getModelMatrix());
     glm::vec3 trans = glm::vec3(m_transform.getModelMatrix()[3]);
 
@@ -66,7 +66,7 @@ Object::~Object()
 
 void Object::update(float deltaTime)
 {
-    auto& positions = m_mesh.positions;
+    auto& positions = m_mesh.getPositions();
     auto& vertexTransforms = m_vertexTransforms;
     size_t n = positions.size();
 
@@ -80,7 +80,7 @@ void Object::update(float deltaTime)
 
 void Object::resetVertexTransforms()
 {
-    auto& positions = m_mesh.positions;
+    auto& positions = m_mesh.getPositions();
     auto& initialVertexTransforms = m_initialVertexTransforms;
     size_t n = positions.size();
 
