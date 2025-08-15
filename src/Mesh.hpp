@@ -36,6 +36,11 @@ struct Triangle
     unsigned int v3;
 };
 
+struct TriangleFaceNormal
+{
+    const Triangle* triangle;
+    const glm::vec3* faceNormal;
+};
 
 class Mesh
 {
@@ -121,4 +126,5 @@ private:
     float m_faceNormalLength;
 
     std::vector<const Mesh*> m_candidateMeshes;
+    std::vector<const TriangleFaceNormal*> m_triangleFaceNormals;
 };

@@ -116,6 +116,7 @@ void Mesh::loadObjData(const std::string& filePath)
 
     const aiMesh* mesh = scene->mMeshes[0];
 
+    // construct m_vertices
     for (size_t i = 0; i < mesh->mNumVertices; ++i)
     {
         Vertex vertex;
@@ -165,7 +166,7 @@ void Mesh::loadObjData(const std::string& filePath)
         m_vertices.push_back(vertex);
     }
 
-    // indices
+    // construct m_indices
     for(size_t i = 0; i < mesh->mNumFaces; i++)
     {
         aiFace face = mesh->mFaces[i];
@@ -175,7 +176,7 @@ void Mesh::loadObjData(const std::string& filePath)
         }
     }
 
-    // face normals
+    // construct vertex and face normals
     for (size_t i = 0; i + 2 < m_indices.size(); i += 3)
     {
         unsigned int idx0 = m_indices[i];
@@ -188,7 +189,11 @@ void Mesh::loadObjData(const std::string& filePath)
 
         glm::vec3 faceNormal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
         m_faceNormals.push_back(faceNormal);
+
     }
+
+
+
 
     // construct vertices used for specific constraints
     constructDistanceConstraintVertices(mesh);
@@ -265,7 +270,7 @@ void Mesh::setCandidateMeshes(const std::vector<Mesh*>& meshes)
 
 void Mesh::constructEnvCollisionConstraints()
 {
-
+    // TODO
 }
 
 void Mesh::initVertices()
@@ -346,6 +351,7 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
 
 void Mesh::update()
 {
+    // update m_vertices positions
     size_t n = m_positions.size();
     for (size_t i = 0; i < n; ++i)
     {
@@ -357,6 +363,7 @@ void Mesh::update()
         }
     }
 
+    // update m_vertices normals
     for (size_t i = 0, tri = 0; i + 2 < m_indices.size(); i += 3, ++tri)
     {
         unsigned int idx0 = m_indices[i];
@@ -373,7 +380,9 @@ void Mesh::update()
         m_vertices[idx1].normal = faceNormal;
         m_vertices[idx2].normal = faceNormal;
 
+        // update vertex and face normals
         m_vertexNormals[tri] = faceNormal;
+
         if (tri < m_faceNormals.size())
         {
             m_faceNormals[tri] = faceNormal;
