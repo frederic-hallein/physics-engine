@@ -1,7 +1,134 @@
 #include "Mesh.hpp"
 
+void Mesh::constructVertices(const aiMesh* mesh)
+{
+    for (size_t i = 0; i < mesh->mNumVertices; ++i)
+    {
+        Vertex vertex;
 
-void Mesh::constructDistanceConstraintVertices(const aiMesh* mesh)
+        // Vertex positions
+        glm::vec3 vector;
+        vector.x = mesh->mVertices[i].x;
+        vector.y = mesh->mVertices[i].y;
+        vector.z = mesh->mVertices[i].z;
+        vertex.position = vector;
+
+        // Keep track of only unique vertex positions
+        auto pit = std::find(m_positions.begin(), m_positions.end(), vertex.position);
+        if (pit == m_positions.end())
+        {
+            m_positions.push_back(vertex.position);
+            m_duplicatePositionIndices.push_back({static_cast<unsigned int>(i)});
+        }
+        else
+        {
+            size_t pidx = std::distance(m_positions.begin(), pit);
+            m_duplicatePositionIndices[pidx].push_back(i);
+        }
+
+        // Vertex texture coordinates
+        if(mesh->mTextureCoords[0])
+        {
+            glm::vec2 vec;
+            vec.x = mesh->mTextureCoords[0][i].x;
+            vec.y = mesh->mTextureCoords[0][i].y;
+            vertex.texCoords = vec;
+        }
+        else
+        {
+            vertex.texCoords = glm::vec2(0.0f, 0.0f);
+        }
+
+        // Vertex normals
+        vector.x = mesh->mNormals[i].x;
+        vector.y = mesh->mNormals[i].y;
+        vector.z = mesh->mNormals[i].z;
+        vertex.normal = vector;
+
+        m_vertices.push_back(vertex);
+    }
+}
+
+void Mesh::constructIndices(const aiMesh* mesh)
+{
+    for(size_t i = 0; i < mesh->mNumFaces; i++)
+    {
+        aiFace face = mesh->mFaces[i];
+        for(unsigned int j = 0; j < face.mNumIndices; j++)
+        {
+            m_indices.push_back(face.mIndices[j]);
+        }
+    }
+}
+
+std::vector<Triangle> Mesh::constructTriangles()
+{
+    std::vector<Triangle> triangles;
+    triangles.reserve(m_indices.size() / 3);
+
+    // Process triangles directly from m_indices
+    for (size_t i = 0; i + 2 < m_indices.size(); i += 3)
+    {
+        // Get position indices for each vertex in the triangle
+        unsigned int posIndices[3];
+        for (int j = 0; j < 3; ++j)
+        {
+            unsigned int vertexIdx = m_indices[i + j];
+            const glm::vec3& pos = m_vertices[vertexIdx].position;
+
+            // Find this position in m_positions
+            auto it = std::find(m_positions.begin(), m_positions.end(), pos);
+            posIndices[j] = static_cast<unsigned int>(std::distance(m_positions.begin(), it));
+        }
+
+        Triangle tri;
+        tri.v1 = posIndices[0];
+        tri.v2 = posIndices[1];
+        tri.v3 = posIndices[2];
+        triangles.push_back(tri);
+    }
+
+    return triangles;
+}
+
+std::vector<glm::vec3> Mesh::calculateFaceNormals()
+{
+    std::vector<glm::vec3> faceNormals;
+    size_t numTriangles = m_indices.size() / 3;
+    faceNormals.reserve(numTriangles);
+
+    for (size_t i = 0; i + 2 < m_indices.size(); i += 3)
+    {
+        unsigned int idx0 = m_indices[i];
+        unsigned int idx1 = m_indices[i + 1];
+        unsigned int idx2 = m_indices[i + 2];
+
+        const glm::vec3& v0 = m_vertices[idx0].position;
+        const glm::vec3& v1 = m_vertices[idx1].position;
+        const glm::vec3& v2 = m_vertices[idx2].position;
+
+        glm::vec3 faceNormal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
+        faceNormals.push_back(faceNormal);
+    }
+
+    return faceNormals;
+}
+
+// void Mesh::constructVertexNormals()
+// {
+//     m_vertexNormals.reserve(m_vertices.size());
+//     for (const auto& vertex : m_vertices)
+//     {
+//         m_vertexNormals.push_back(vertex.normal);
+//     }
+// }
+
+// void Mesh::constructFaceNormals()
+// {
+//     m_faceNormals = calculateFaceNormals();
+// }
+
+void Mesh::constructDistanceConstraintVertices()
 {
     struct UniqueEdge
     {
@@ -20,28 +147,29 @@ void Mesh::constructDistanceConstraintVertices(const aiMesh* mesh)
     };
 
     std::set<UniqueEdge> uniqueEdges;
-    for (unsigned int i = 0; i < mesh->mNumFaces; ++i)
-    {
-        const aiFace& face = mesh->mFaces[i];
-        if (face.mNumIndices != 3) continue;
 
-        // Map mesh vertex indices to unique position indices
+    // Process triangles directly from m_indices
+    for (size_t i = 0; i + 2 < m_indices.size(); i += 3)
+    {
+        // Get position indices for each vertex in the triangle
         unsigned int idx[3];
         for (int j = 0; j < 3; ++j)
         {
-            glm::vec3 pos(mesh->mVertices[face.mIndices[j]].x,
-                          mesh->mVertices[face.mIndices[j]].y,
-                          mesh->mVertices[face.mIndices[j]].z
-            );
+            unsigned int vertexIdx = m_indices[i + j];
+            const glm::vec3& pos = m_vertices[vertexIdx].position;
+
+            // Find this position in m_positions
             auto it = std::find(m_positions.begin(), m_positions.end(), pos);
-            idx[j] = static_cast<int>(std::distance(m_positions.begin(), it));
+            idx[j] = static_cast<unsigned int>(std::distance(m_positions.begin(), it));
         }
 
+        // Add three edges for this triangle
         uniqueEdges.insert(UniqueEdge{idx[0], idx[1]});
         uniqueEdges.insert(UniqueEdge{idx[1], idx[2]});
         uniqueEdges.insert(UniqueEdge{idx[2], idx[0]});
     }
 
+    // Create edges from unique pairs
     for (const auto& e : uniqueEdges)
     {
         Edge edge;
@@ -51,54 +179,47 @@ void Mesh::constructDistanceConstraintVertices(const aiMesh* mesh)
     }
 }
 
-void Mesh::constructVolumeConstraintVertices(const aiMesh* mesh)
+void Mesh::constructVolumeConstraintVertices()
 {
-    for (unsigned int i = 0; i < mesh->mNumFaces; ++i)
-    {
-        const aiFace& face = mesh->mFaces[i];
-        if (face.mNumIndices != 3) continue;
-
-        // For each triangle, find the indices in positions
-        unsigned int idx[3];
-        for (int j = 0; j < 3; ++j)
-        {
-            glm::vec3 pos(mesh->mVertices[face.mIndices[j]].x,
-                          mesh->mVertices[face.mIndices[j]].y,
-                          mesh->mVertices[face.mIndices[j]].z
-            );
-            auto it = std::find(m_positions.begin(), m_positions.end(), pos);
-            idx[j] = static_cast<unsigned int>(std::distance(m_positions.begin(), it));
-        }
-
-        Triangle tri;
-        tri.v1 = idx[0];
-        tri.v2 = idx[1];
-        tri.v3 = idx[2];
-        volumeConstraints.triangles.push_back(tri);
-    }
+    std::vector<Triangle> triangles = constructTriangles();
+    volumeConstraints.triangles.assign(triangles.begin(), triangles.end());
 }
 
-void Mesh::constructEnvCollisionConstraintVertices(const aiMesh* mesh)
+void Mesh::constructEnvCollisionConstraintVertices()
 {
-    std::set<size_t> uniqueIndices;
-    for (size_t i = 0; i < mesh->mNumVertices; ++i)
-    {
-        glm::vec3 pos(mesh->mVertices[i].x,
-                      mesh->mVertices[i].y,
-                      mesh->mVertices[i].z
-        );
+    std::set<unsigned int> uniqueIndices;
 
+    // Directly iterate through m_vertices
+    for (size_t i = 0; i < m_vertices.size(); ++i)
+    {
+        const glm::vec3& pos = m_vertices[i].position;
+
+        // Find in m_positions
         auto it = std::find(m_positions.begin(), m_positions.end(), pos);
         if (it != m_positions.end())
         {
-            size_t idx = static_cast<size_t>(std::distance(m_positions.begin(), it));
-            if (uniqueIndices.insert(idx).second) // Only insert if not already present
-            {
-                envCollisionConstraintVertices.push_back(idx);
-            }
+            unsigned int idx = static_cast<unsigned int>(std::distance(m_positions.begin(), it));
+            uniqueIndices.insert(idx);
         }
     }
 }
+
+// void Mesh::constructTriangleFaceNormals()
+// {
+//     // Get triangles and face normals
+//     std::vector<Triangle> triangles = constructTriangles();
+//     std::vector<glm::vec3> faceNormals = calculateFaceNormals();
+
+//     // Combine them
+//     m_triangleFaceNormals.reserve(triangles.size());
+//     for (size_t i = 0; i < triangles.size(); ++i)
+//     {
+//         TriangleFaceNormal tfn;
+//         tfn.triangle = triangles[i];
+//         tfn.faceNormal = faceNormals[i];
+//         m_triangleFaceNormals.push_back(tfn);
+//     }
+// }
 
 void Mesh::loadObjData(const std::string& filePath)
 {
@@ -116,89 +237,24 @@ void Mesh::loadObjData(const std::string& filePath)
 
     const aiMesh* mesh = scene->mMeshes[0];
 
-    // construct m_vertices
-    for (size_t i = 0; i < mesh->mNumVertices; ++i)
-    {
-        Vertex vertex;
+    // Construct m_vertices and m_indices
+    constructVertices(mesh);
+    constructIndices(mesh);
 
-        // vertex positions
-        glm::vec3 vector;
-        vector.x = mesh->mVertices[i].x;
-        vector.y = mesh->mVertices[i].y;
-        vector.z = mesh->mVertices[i].z;
-        vertex.position = vector;
+    // // construct m_vertexNormals
+    // constructVertexNormals();
 
-        // TODO : maybe simply refer to the address with pointers and store only unique ones
-        // keep track of only unique vertex positions
-        auto pit = std::find(m_positions.begin(), m_positions.end(), vertex.position);
-        if (pit == m_positions.end())
-        {
-            m_positions.push_back(vertex.position);
-            m_duplicatePositionIndices.push_back({static_cast<unsigned int>(i)});
-        }
-        else
-        {
-            size_t pidx = std::distance(m_positions.begin(), pit);
-            m_duplicatePositionIndices[pidx].push_back(i);
-        }
-
-        // vertex texture coordinates
-        if(mesh->mTextureCoords[0])
-        {
-            glm::vec2 vec;
-            vec.x = mesh->mTextureCoords[0][i].x;
-            vec.y = mesh->mTextureCoords[0][i].y;
-            vertex.texCoords = vec;
-        }
-        else
-        {
-            vertex.texCoords = glm::vec2(0.0f, 0.0f);
-        }
-
-        // vertex normals
-        vector.x = mesh->mNormals[i].x;
-        vector.y = mesh->mNormals[i].y;
-        vector.z = mesh->mNormals[i].z;
-        vertex.normal = vector;
-
-        m_vertexNormals.push_back(vertex.normal);
-
-        m_vertices.push_back(vertex);
-    }
-
-    // construct m_indices
-    for(size_t i = 0; i < mesh->mNumFaces; i++)
-    {
-        aiFace face = mesh->mFaces[i];
-        for(unsigned int j = 0; j < face.mNumIndices; j++)
-        {
-            m_indices.push_back(face.mIndices[j]);
-        }
-    }
-
-    // construct vertex and face normals
-    for (size_t i = 0; i + 2 < m_indices.size(); i += 3)
-    {
-        unsigned int idx0 = m_indices[i];
-        unsigned int idx1 = m_indices[i + 1];
-        unsigned int idx2 = m_indices[i + 2];
-
-        const glm::vec3& v0 = m_vertices[idx0].position;
-        const glm::vec3& v1 = m_vertices[idx1].position;
-        const glm::vec3& v2 = m_vertices[idx2].position;
-
-        glm::vec3 faceNormal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
-        m_faceNormals.push_back(faceNormal);
-
-    }
-
-
+    // // construct m_faceNormals
+    // constructFaceNormals();
 
 
     // construct vertices used for specific constraints
-    constructDistanceConstraintVertices(mesh);
-    constructVolumeConstraintVertices(mesh);
-    constructEnvCollisionConstraintVertices(mesh);
+    constructDistanceConstraintVertices();
+    constructVolumeConstraintVertices();
+    constructEnvCollisionConstraintVertices();
+
+    // // Construct triangle-face normal pairs
+    // constructTriangleFaceNormals();
 }
 
 void Mesh::constructDistanceConstraints()
@@ -273,7 +329,7 @@ void Mesh::constructEnvCollisionConstraints()
     // TODO
 }
 
-void Mesh::initVertices()
+void Mesh::initVerticesBuffer()
 {
     glGenVertexArrays(1, &m_VAO);
     glGenBuffers(1, &m_VBO);
@@ -304,7 +360,7 @@ void Mesh::initVertices()
     glBindVertexArray(0);
 }
 
-void Mesh::initVertexNormals()
+void Mesh::initVertexNormalsBuffer()
 {
     glGenVertexArrays(1, &m_vertexNormalVAO);
     glGenBuffers(1, &m_vertexNormalVBO);
@@ -312,7 +368,8 @@ void Mesh::initVertexNormals()
     glBindVertexArray(m_vertexNormalVAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_vertexNormalVBO);
 
-    glBufferData(GL_ARRAY_BUFFER, m_vertexNormals.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+    // glBufferData(GL_ARRAY_BUFFER, m_vertexNormals.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
@@ -321,7 +378,7 @@ void Mesh::initVertexNormals()
 }
 
 // TODO : combine in 1 function with Mesh::initVertexNormals()
-void Mesh::initFaceNormals()
+void Mesh::initFaceNormalsBuffer()
 {
     glGenVertexArrays(1, &m_faceNormalVAO);
     glGenBuffers(1, &m_faceNormalVBO);
@@ -329,7 +386,9 @@ void Mesh::initFaceNormals()
     glBindVertexArray(m_faceNormalVAO);
     glBindBuffer(GL_ARRAY_BUFFER, m_faceNormalVBO);
 
-    glBufferData(GL_ARRAY_BUFFER, m_faceNormals.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+    // glBufferData(GL_ARRAY_BUFFER, m_faceNormals.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+    size_t numTriangles = m_indices.size() / 3;
+    glBufferData(GL_ARRAY_BUFFER, numTriangles * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
@@ -344,9 +403,9 @@ Mesh::Mesh(const std::string& name, const std::string& meshPath)
       m_faceNormalLength(1.0f)
 {
     loadObjData(meshPath);
-    initVertices();
-    initVertexNormals();
-    initFaceNormals();
+    initVerticesBuffer();
+    initVertexNormalsBuffer();
+    initFaceNormalsBuffer();
 }
 
 void Mesh::update()
@@ -363,31 +422,36 @@ void Mesh::update()
         }
     }
 
-    // update m_vertices normals
+    // Recalculate face normals using the helper
+    std::vector<glm::vec3> updatedFaceNormals = calculateFaceNormals();
+
+    // // Update m_faceNormals
+    // for (size_t i = 0; i < updatedFaceNormals.size() && i < m_faceNormals.size(); ++i)
+    // {
+    //     m_faceNormals[i] = updatedFaceNormals[i];
+    // }
+
+    // Update m_vertices normals
     for (size_t i = 0, tri = 0; i + 2 < m_indices.size(); i += 3, ++tri)
     {
         unsigned int idx0 = m_indices[i];
         unsigned int idx1 = m_indices[i + 1];
         unsigned int idx2 = m_indices[i + 2];
 
-        glm::vec3& v0 = m_vertices[idx0].position;
-        glm::vec3& v1 = m_vertices[idx1].position;
-        glm::vec3& v2 = m_vertices[idx2].position;
+        // Use the precomputed normal
+        glm::vec3& faceNormal = updatedFaceNormals[tri];
 
-        glm::vec3 faceNormal = glm::normalize(glm::cross(v1 - v0, v2 - v0));
-
+        // Update vertex normals
         m_vertices[idx0].normal = faceNormal;
         m_vertices[idx1].normal = faceNormal;
         m_vertices[idx2].normal = faceNormal;
-
-        // update vertex and face normals
-        m_vertexNormals[tri] = faceNormal;
-
-        if (tri < m_faceNormals.size())
-        {
-            m_faceNormals[tri] = faceNormal;
-        }
     }
+
+    // // Update triangle-face normals
+    // for (size_t i = 0; i < updatedFaceNormals.size() && i < m_triangleFaceNormals.size(); ++i)
+    // {
+    //     m_triangleFaceNormals[i].faceNormal = updatedFaceNormals[i];
+    // }
 }
 
 void Mesh::draw()
@@ -430,7 +494,8 @@ void Mesh::drawFaceNormals()
         unsigned int idx2 = m_indices[i + 2];
 
         glm::vec3 centroid = (m_vertices[idx0].position + m_vertices[idx1].position + m_vertices[idx2].position) / 3.0f;
-        glm::vec3 normal = m_faceNormals[i / 3];
+        // glm::vec3 normal = m_faceNormals[i / 3];
+        glm::vec3 normal = m_vertices[idx0].normal;
 
         lineVertices.push_back(centroid);
         lineVertices.push_back(centroid + normal * m_faceNormalLength);

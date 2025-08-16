@@ -36,11 +36,11 @@ struct Triangle
     unsigned int v3;
 };
 
-struct TriangleFaceNormal
-{
-    const Triangle* triangle;
-    const glm::vec3* faceNormal;
-};
+// struct TriangleFaceNormal
+// {
+//     Triangle triangle;
+//     glm::vec3 faceNormal;
+// };
 
 class Mesh
 {
@@ -65,6 +65,8 @@ public:
     void constructDistanceConstraints();
     void constructVolumeConstraints(float& k);
     void constructEnvCollisionConstraints();
+
+    // void constructTriangleFaceNormals();
 
 public:
     std::vector<glm::vec3>& getPositions() { return m_positions; }
@@ -99,13 +101,22 @@ public:
 private:
     void loadObjData(const std::string& meshPath);
 
-    void initVertices();
-    void initVertexNormals();
-    void initFaceNormals();
+    void initVerticesBuffer();
+    void initVertexNormalsBuffer();
+    void initFaceNormalsBuffer();
 
-    void constructDistanceConstraintVertices(const aiMesh* mesh);
-    void constructVolumeConstraintVertices(const aiMesh* mesh);
-    void constructEnvCollisionConstraintVertices(const aiMesh* mesh);
+    void constructVertices(const aiMesh* mesh);
+    void constructIndices(const aiMesh* mesh);
+
+    std::vector<Triangle> constructTriangles();
+    std::vector<glm::vec3> calculateFaceNormals();
+
+    // void constructVertexNormals();
+    // void constructFaceNormals();
+
+    void constructDistanceConstraintVertices();
+    void constructVolumeConstraintVertices();
+    void constructEnvCollisionConstraintVertices();
 
 private:
     std::string m_name;
@@ -120,11 +131,11 @@ private:
 
     GLuint m_vertexNormalVAO, m_vertexNormalVBO;
     GLuint m_faceNormalVAO, m_faceNormalVBO;
-    std::vector<glm::vec3> m_vertexNormals;
-    std::vector<glm::vec3> m_faceNormals;
+    // std::vector<glm::vec3> m_vertexNormals;
+    // std::vector<glm::vec3> m_faceNormals;
     float m_vertexNormalLength;
     float m_faceNormalLength;
 
     std::vector<const Mesh*> m_candidateMeshes;
-    std::vector<const TriangleFaceNormal*> m_triangleFaceNormals;
+    // std::vector<TriangleFaceNormal> m_triangleFaceNormals;
 };

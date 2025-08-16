@@ -279,7 +279,7 @@ void Scene::solveDistanceConstraints(
     for (size_t j = 0; j < distanceConstraints.edges.size(); ++j)
     {
         float C_j = distanceConstraints.C[j](x);
-        if (C_j < 0.0f || C_j > 0.0f)
+        if (std::abs(C_j) > 1e-6f)
         {
             std::vector<glm::vec3> gradC_j = distanceConstraints.gradC[j](x);
 
@@ -321,7 +321,7 @@ void Scene::solveVolumeConstraints(
     for (size_t j = 0; j < volumeConstraints.triangles.size(); ++j)
     {
         float C_j = volumeConstraints.C[0](x);
-        if (C_j < 0.0f || C_j > 0.0f)
+        if (std::abs(C_j) > 1e-6f)
         {
             std::vector<glm::vec3> gradC_j = volumeConstraints.gradC[j](x);
 
@@ -348,7 +348,7 @@ void Scene::solveEnvCollisionConstraints(
     std::vector<Mesh::EnvCollisionConstraints> perEnvCollisionConstraints
 )
 {
-    // TODO : FIXME
+    // TODO
 }
 
 void Scene::applyPBD(
