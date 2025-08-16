@@ -68,7 +68,6 @@ void Scene::createObjects()
         platformTransform,
         m_k,
         platformShader,
-        // vertexNormalShader,
         cubeMesh
     );
     m_objects.push_back(std::move(platformBlock));
@@ -158,18 +157,33 @@ void Scene::createObjects()
     // m_objects.push_back(std::move(sphere));
 }
 
-void Scene::setupMeshEnvCollisionConstraints()
+void Scene::setupEnvCollisionConstraints()
 {
-    m_meshPtrs.reserve(m_objects.size());
+    // m_meshPtrs.reserve(m_objects.size());
+    // for (const auto& obj : m_objects)
+    // {
+    //     m_meshPtrs.push_back(&obj->getMesh());
+    // }
+
+    // for (auto* mesh : m_meshPtrs)
+    // {
+    //     mesh->setCandidateMeshes(m_meshPtrs);
+    //     mesh->constructEnvCollisionConstraints();
+    // }
+
     for (const auto& obj : m_objects)
     {
-        m_meshPtrs.push_back(&obj->getMesh());
-    }
+        if (obj->isStatic()) continue;
 
-    for (auto* mesh : m_meshPtrs)
-    {
-        mesh->setCandidateMeshes(m_meshPtrs);
-        mesh->constructEnvCollisionConstraints();
+        std::vector<Object*> candidateObjects;
+        candidateObjects.reserve(m_objects.size());
+        for (const auto& objPtr : m_objects) {
+            candidateObjects.push_back(objPtr.get());
+        }
+
+        Mesh& mesh = obj->getMesh();
+        mesh.setCandidateObjectMeshes(candidateObjects);
+        mesh.constructEnvCollisionConstraints();
     }
 }
 
@@ -195,7 +209,7 @@ Scene::Scene(
         m_k(1.0f)
 {
     createObjects();
-    setupMeshEnvCollisionConstraints();
+    setupEnvCollisionConstraints();
 
     std::cout << name << " created.\n";
 }
@@ -348,7 +362,90 @@ void Scene::solveEnvCollisionConstraints(
     std::vector<Mesh::EnvCollisionConstraints> perEnvCollisionConstraints
 )
 {
-    // TODO
+    // std::cout << "Solving environment collision constraints:" << std::endl;
+    // std::cout << "Number of constraint sets: " << perEnvCollisionConstraints.size() << std::endl;
+    for (size_t setIdx = 0; setIdx < perEnvCollisionConstraints.size(); ++setIdx)
+    {
+        const auto& constraints = perEnvCollisionConstraints[setIdx];
+        size_t verticesSize = constraints.vertices.size();
+        size_t CSize = constraints.C.size();
+        size_t gradCSize = constraints.gradC.size();
+
+        // std::cout << "Set " << setIdx << " with candidate mesh: "
+        //           << (constraints.candidateMesh ? constraints.candidateMesh->getName() : "nullptr") << std::endl;
+        // std::cout << "  Constraints: " << CSize
+        //           << ", Gradients: " << gradCSize
+        //           << ", Vertices: " << verticesSize << std::endl;
+
+        if (verticesSize != gradCSize)
+        {
+            std::cerr << "EnvCollisionConstraints size mismatch in set " << setIdx << std::endl;
+            continue;
+        }
+
+        for (const auto& [vertex, constraintIndices] : constraints.vertexToConstraints)
+        {
+            // std::cout << "  Vertex " << vertex << " has " << constraintIndices.size()
+            //          << " constraints:" << std::endl;
+
+            bool allNegative = true;
+            float maxNegativeC = -std::numeric_limits<float>::max(); // Initialize to most negative possible value
+            size_t maxIdx = 0;
+            for (size_t idx : constraintIndices)
+            {
+                float C_j = constraints.C[idx](x);
+                // std::vector<glm::vec3> gradC_j = constraints.gradC[idx](x);
+
+                // // Print constraint value
+                // std::cout << "    Constraint " << idx << ": C_j = " << C_j
+                //         << ", Gradient = ("
+                //         << gradC_j[vertex].x << ", "
+                //         << gradC_j[vertex].y << ", "
+                //         << gradC_j[vertex].z << ")\n";
+
+                if (C_j >= 0.0f)
+                {
+                    allNegative = false;
+                }
+
+                // Track the constraint closest to zero (biggest negative value)
+                if (C_j < 0.0f && C_j > maxNegativeC)
+                {
+                    maxNegativeC = C_j;
+                    maxIdx = idx;
+                }
+            }
+
+            // If all constraints are negative, we have a collision with this vertex
+            if (allNegative && !constraintIndices.empty())
+            {
+                // std::cout << "  *** COLLISION DETECTED with vertex " << vertex
+                //         << " at position (" << x[vertex].x << ", "
+                //         << x[vertex].y << ", " << x[vertex].z << ")" << std::endl;
+
+
+                // Use maxIdx instead of minIdx - this has the constraint closest to zero
+                float C_j = maxNegativeC;
+                std::vector<glm::vec3> gradC_j = constraints.gradC[maxIdx](x);
+
+
+                // Set up a single-vertex constraint
+                std::array<unsigned int, 1> constraintVertices = { vertex };
+
+                // Calculate position correction (similar to other constraint solvers)
+                float deltaLambda = calculateDeltaLambda(
+                    C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
+                std::vector<glm::vec3> deltaX = calculateDeltaX(
+                    deltaLambda, M, gradC_j, constraintVertices);
+
+                // Apply the correction
+                for (size_t k = 0; k < deltaX.size(); ++k)
+                {
+                    x[k] += deltaX[k];
+                }
+            }
+        }
+    }
 }
 
 void Scene::applyPBD(
@@ -439,11 +536,11 @@ void Scene::applyPBD(
             glm::vec3 newX = x[i];
             glm::vec3 newV = (newX - p[i]) / deltaTime_s;
 
-            if (newX.y < 0.0f && newV.y < 0.0f)
-            {
-                newX.y = 0.0f;
-                newV.y = 0.0f;
-            }
+            // if (newX.y < 0.0f && newV.y < 0.0f)
+            // {
+            //     newX.y = 0.0f;
+            //     newV.y = 0.0f;
+            // }
 
             vertexTransform.setPosition(newX);
             vertexTransform.setVelocity(newV);
@@ -452,6 +549,7 @@ void Scene::applyPBD(
         subStep++;
     }
 
+    m_envCollisionConstraints = perEnvCollisionConstraints; // make copy for collision detection
 }
 
 void Scene::update(float deltaTime)

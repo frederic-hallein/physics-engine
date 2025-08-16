@@ -1,4 +1,6 @@
 #include "Mesh.hpp"
+#include "Object.hpp"
+
 
 void Mesh::constructVertices(const aiMesh* mesh)
 {
@@ -202,6 +204,12 @@ void Mesh::constructEnvCollisionConstraintVertices()
             uniqueIndices.insert(idx);
         }
     }
+
+    envCollisionConstraintVertices.insert(
+        envCollisionConstraintVertices.end(),
+        uniqueIndices.begin(),
+        uniqueIndices.end()
+    );
 }
 
 // void Mesh::constructTriangleFaceNormals()
@@ -255,6 +263,30 @@ void Mesh::loadObjData(const std::string& filePath)
 
     // // Construct triangle-face normal pairs
     // constructTriangleFaceNormals();
+}
+
+// void Mesh::setCandidateMeshes(const std::vector<Mesh*>& meshes)
+// {
+//     for (const auto* mesh : meshes)
+//     {
+//         if (mesh == this) continue; // Skip self
+//         m_candidateMeshes.push_back(mesh);
+//     }
+// }
+
+void Mesh::setCandidateObjectMeshes(const std::vector<Object*>& objects)
+{
+    for (auto* obj : objects)
+    {
+        // Skip null objects
+        if (!obj) continue;
+
+        const Mesh& objMesh = obj->getMesh();
+        if (&objMesh != this)
+        {
+            m_candidateObjectMeshes.push_back(&objMesh);
+        }
+    }
 }
 
 void Mesh::constructDistanceConstraints()
@@ -315,18 +347,63 @@ void Mesh::constructVolumeConstraints(float& k)
     }
 }
 
-void Mesh::setCandidateMeshes(const std::vector<Mesh*>& meshes)
-{
-    for (const auto* mesh : meshes)
-    {
-        if (mesh == this) continue; // Skip self
-        m_candidateMeshes.push_back(mesh);
-    }
-}
-
 void Mesh::constructEnvCollisionConstraints()
 {
-    // TODO
+    // std::cout << "\n=== ENV COLLISION CONSTRAINT DEBUG ===\n";
+    // std::cout << "Source mesh: " << m_name << std::endl;
+    // std::cout << "Number of constraint vertices: " << envCollisionConstraintVertices.size() << std::endl;
+    // std::cout << "Number of candidate meshes: " << m_candidateObjectMeshes.size() << std::endl;
+
+    for (size_t meshIdx = 0; meshIdx < m_candidateObjectMeshes.size(); ++meshIdx)
+    {
+        const auto& cMesh = m_candidateObjectMeshes[meshIdx];
+        if (!cMesh) continue;
+
+        // Create a new EnvCollisionConstraints for this mesh
+        EnvCollisionConstraints envCollisionConstraints;
+        envCollisionConstraints.candidateMesh = cMesh;
+
+        // Get vertices from the candidate mesh
+        const auto& vertices = cMesh->getVertices();
+
+        // Loop through source vertices
+        for (const auto& v : envCollisionConstraintVertices)
+        {
+            // Only process every third vertex (first vertex of each triangle)
+            for (size_t vIdx = 0; vIdx < vertices.size(); vIdx += 3)
+            {
+                // Store the index where this constraint will be added
+                size_t constraintIdx = envCollisionConstraints.C.size();
+
+                // Add to map of vertex to constraint indices
+                envCollisionConstraints.vertexToConstraints[v].push_back(constraintIdx);
+
+                // Create constraint function
+                envCollisionConstraints.C.push_back(
+                    [v, vIdx, cMesh=cMesh](const std::vector<glm::vec3>& x) -> float {
+                        const auto& cVertex = cMesh->getVertices()[vIdx];
+                        float dot = glm::dot(cVertex.normal, x[v] - cVertex.position);
+                        return dot;
+                    });
+
+                // Create gradient function
+                envCollisionConstraints.gradC.push_back(
+                    [v, vIdx, cMesh=cMesh](const std::vector<glm::vec3>& x) -> std::vector<glm::vec3> {
+                        const auto& cVertex = cMesh->getVertices()[vIdx];
+                        return { cVertex.normal };
+                    });
+
+                // Store affected vertex
+                envCollisionConstraints.vertices.push_back(v);
+            }
+        }
+
+        // Only add if we have constraints
+        if (!envCollisionConstraints.C.empty())
+        {
+            perEnvCollisionConstraints.push_back(envCollisionConstraints);
+        }
+    }
 }
 
 void Mesh::initVerticesBuffer()

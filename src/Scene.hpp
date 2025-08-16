@@ -5,6 +5,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+// #include <map>
 
 #include "ShaderManager.hpp"
 #include "MeshManager.hpp"
@@ -72,7 +73,7 @@ public:
 
 private:
     void createObjects();
-    void setupMeshEnvCollisionConstraints();
+    void setupEnvCollisionConstraints();
     void applyGravity(
         Object& object,
         float deltaTime
@@ -107,7 +108,7 @@ private:
     std::unique_ptr<Camera> m_camera;
 
     std::vector<std::unique_ptr<Object>> m_objects;
-    std::vector<Mesh*> m_meshPtrs;
+    // std::vector<Mesh*> m_meshPtrs;
 
     glm::vec3 m_gravitationalAcceleration;
 
@@ -120,4 +121,7 @@ private:
     float m_alpha;
     float m_beta;
     float m_k;
+
+
+    std::vector<Mesh::EnvCollisionConstraints> m_envCollisionConstraints;
 };

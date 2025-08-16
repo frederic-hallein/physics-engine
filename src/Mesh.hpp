@@ -12,9 +12,14 @@
 #include <assimp/scene.h>
 #include <assimp/postprocess.h>
 #include <set>
+#include <map>
+
 
 #include "Transform.hpp"
 #include "Shader.hpp"
+
+class Object; // Forward declaration
+
 
 struct Vertex
 {
@@ -42,6 +47,7 @@ struct Triangle
 //     glm::vec3 faceNormal;
 // };
 
+
 class Mesh
 {
 public:
@@ -60,7 +66,8 @@ public:
     void drawFaceNormals();
     void destroy();
 
-    void setCandidateMeshes(const std::vector<Mesh*>& meshes);
+    // void setCandidateMeshes(const std::vector<Mesh*>& meshes);
+    void setCandidateObjectMeshes(const std::vector<Object*>& objects);
 
     void constructDistanceConstraints();
     void constructVolumeConstraints(float& k);
@@ -91,10 +98,12 @@ public:
     std::vector<unsigned int> envCollisionConstraintVertices;
     struct EnvCollisionConstraints
     {
-        const Mesh* mesh;
         std::vector<unsigned int> vertices;
+        const Mesh* candidateMesh;
         std::vector<std::function<float(const std::vector<glm::vec3>&)>> C;
         std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradC;
+
+        std::map<unsigned int, std::vector<size_t>> vertexToConstraints;
     };
     std::vector<EnvCollisionConstraints> perEnvCollisionConstraints;
 
@@ -136,6 +145,6 @@ private:
     float m_vertexNormalLength;
     float m_faceNormalLength;
 
-    std::vector<const Mesh*> m_candidateMeshes;
+    std::vector<const Mesh*> m_candidateObjectMeshes;
     // std::vector<TriangleFaceNormal> m_triangleFaceNormals;
 };
