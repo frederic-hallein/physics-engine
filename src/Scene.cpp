@@ -104,7 +104,7 @@ void Scene::createObjects()
     // dirtBlock
     Transform dirtBlockTransform;
     dirtBlockTransform.setProjection(*m_camera);
-    glm::vec3 dirtBlockPosition(-0.0f, 5.0f, 0.0f);
+    glm::vec3 dirtBlockPosition(-0.5f, 5.0f, 0.0f);
     glm::mat4 dirtBlockTranslationMatrix = glm::translate(
         glm::mat4(1.0f),
         dirtBlockPosition
@@ -134,7 +134,7 @@ void Scene::createObjects()
     // // sphere
     // Transform sphereTransform;
     // sphereTransform.setProjection(*m_camera);
-    // glm::vec3 spherePosition(0.0f, 7.5f, 0.0f);
+    // glm::vec3 spherePosition(-1.0f, 7.5f, 0.0f);
     // glm::mat4 sphereTranslationMatrix = glm::translate(
     //     glm::mat4(1.0f),
     //     spherePosition
@@ -204,7 +204,7 @@ Scene::Scene(
         m_enableVolumeConstraints(true),
         m_enableEnvCollisionConstraints(false),
         m_pbdSubsteps(5),
-        m_alpha(0.001f),
+        m_alpha(0.0f),
         m_beta(5.0f),
         m_k(1.0f)
 {
@@ -473,9 +473,13 @@ void Scene::applyPBD(
     const int n = m_pbdSubsteps;
     float deltaTime_s = deltaTime / static_cast<float>(n);
 
-    float alphaTilde = m_alpha / (deltaTime_s * deltaTime_s);
-    float betaTilde = (deltaTime_s * deltaTime_s) * m_beta;
-    float gamma = (alphaTilde * betaTilde) / deltaTime_s;
+    // float alphaTilde = m_alpha / (deltaTime_s * deltaTime_s);
+    // float betaTilde = (deltaTime_s * deltaTime_s) * m_beta;
+    // float gamma = (alphaTilde * betaTilde) / deltaTime_s;
+
+    float alphaTilde;
+    float betaTilde;
+    float gamma;
 
     while (subStep < n + 1)
     {
@@ -492,6 +496,9 @@ void Scene::applyPBD(
         // Distance constraints
         if (m_enableDistanceConstraints)
         {
+            alphaTilde = m_alpha / (deltaTime_s * deltaTime_s);
+            betaTilde = (deltaTime_s * deltaTime_s) * m_beta;
+            gamma = (alphaTilde * betaTilde) / deltaTime_s;
             solveDistanceConstraints(
                 x,
                 posDiff,
@@ -505,6 +512,9 @@ void Scene::applyPBD(
         // Volume constraints
         if (m_enableVolumeConstraints)
         {
+            alphaTilde = (m_alpha + 0.001f) / (deltaTime_s * deltaTime_s);
+            betaTilde = (deltaTime_s * deltaTime_s) * m_beta;
+            gamma = (alphaTilde * betaTilde) / deltaTime_s;
             solveVolumeConstraints(
                 x,
                 posDiff,
@@ -518,6 +528,9 @@ void Scene::applyPBD(
         // Environment Collision constraints
         if (m_enableEnvCollisionConstraints)
         {
+            alphaTilde = 0.0f;
+            betaTilde = (deltaTime_s * deltaTime_s) * m_beta;
+            gamma = (alphaTilde * betaTilde) / deltaTime_s;
             solveEnvCollisionConstraints(
                 x,
                 posDiff,
