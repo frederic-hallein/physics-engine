@@ -102,7 +102,6 @@ public:
         const Mesh* candidateMesh;
         std::vector<std::function<float(const std::vector<glm::vec3>&)>> C;
         std::vector<std::function<std::vector<glm::vec3>(const std::vector<glm::vec3>&)>> gradC;
-
         std::map<unsigned int, std::vector<size_t>> vertexToConstraints;
     };
     std::vector<EnvCollisionConstraints> perEnvCollisionConstraints;
@@ -119,9 +118,6 @@ private:
 
     std::vector<Triangle> constructTriangles();
     std::vector<glm::vec3> calculateFaceNormals();
-
-    // void constructVertexNormals();
-    // void constructFaceNormals();
 
     void constructDistanceConstraintVertices();
     void constructVolumeConstraintVertices();
@@ -140,11 +136,8 @@ private:
 
     GLuint m_vertexNormalVAO, m_vertexNormalVBO;
     GLuint m_faceNormalVAO, m_faceNormalVBO;
-    // std::vector<glm::vec3> m_vertexNormals;
-    // std::vector<glm::vec3> m_faceNormals;
     float m_vertexNormalLength;
     float m_faceNormalLength;
 
     std::vector<const Mesh*> m_candidateObjectMeshes;
-    // std::vector<TriangleFaceNormal> m_triangleFaceNormals;
 };

@@ -65,6 +65,14 @@ public:
         std::vector<Mesh::EnvCollisionConstraints> perEnvCollisionConstraints
     );
 
+    // void solveEnvCollisionConstraints(
+    //     std::vector<glm::vec3>& x,
+    //     const std::vector<glm::vec3>& posDiff,
+    //     const std::vector<float>& M,
+    //     float alphaTilde,
+    //     float gamma
+    // );
+
     glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }
     int& getPBDSubsteps() { return m_pbdSubsteps; }
     float& getAlpha() { return m_alpha; }
@@ -108,7 +116,6 @@ private:
     std::unique_ptr<Camera> m_camera;
 
     std::vector<std::unique_ptr<Object>> m_objects;
-    // std::vector<Mesh*> m_meshPtrs;
 
     glm::vec3 m_gravitationalAcceleration;
 
@@ -123,5 +130,16 @@ private:
     float m_k;
 
 
-    std::vector<Mesh::EnvCollisionConstraints> m_envCollisionConstraints;
+
+
+    // collision
+    struct CollisionInfo {
+        unsigned int vertex;
+        size_t constraintIdx;
+        float penetrationDepth;
+        const Mesh::EnvCollisionConstraints* constraints;
+    };
+
+    std::vector<CollisionInfo> m_collisions;
+    void detectCollisions(Object& object, float deltaTime);
 };

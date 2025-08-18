@@ -349,11 +349,6 @@ void Mesh::constructVolumeConstraints(float& k)
 
 void Mesh::constructEnvCollisionConstraints()
 {
-    // std::cout << "\n=== ENV COLLISION CONSTRAINT DEBUG ===\n";
-    // std::cout << "Source mesh: " << m_name << std::endl;
-    // std::cout << "Number of constraint vertices: " << envCollisionConstraintVertices.size() << std::endl;
-    // std::cout << "Number of candidate meshes: " << m_candidateObjectMeshes.size() << std::endl;
-
     for (size_t meshIdx = 0; meshIdx < m_candidateObjectMeshes.size(); ++meshIdx)
     {
         const auto& cMesh = m_candidateObjectMeshes[meshIdx];
