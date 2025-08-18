@@ -121,11 +121,11 @@ void DebugWindow::update(
 
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-    float& k = scene.getOverpressureFactor();
-    ImGui::Text("k");
-    ImGui::SameLine();
-    ImGui::SliderFloat("##k", &k, 0.001f, 10.0f);
-    ImGui::Separator();
+    // float& k = scene.getOverpressureFactor();
+    // ImGui::Text("k");
+    // ImGui::SameLine();
+    // ImGui::SliderFloat("##k", &k, 0.001f, 10.0f);
+    // ImGui::Separator();
 
 
     // scene objects

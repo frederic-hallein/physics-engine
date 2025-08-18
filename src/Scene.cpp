@@ -141,7 +141,7 @@ void Scene::createObjects()
     );
     sphereTranslationMatrix = glm::scale(
         sphereTranslationMatrix,
-        glm::vec3(1.0f, 1.0f, 1.0f)
+        glm::vec3(3.0f, 3.0f, 3.0f)
     );
     sphereTransform.setModel(sphereTranslationMatrix);
     sphereTransform.setView(*m_camera);
@@ -194,7 +194,8 @@ Scene::Scene(
         m_pbdSubsteps(5),
         m_alpha(0.001f),
         m_beta(5.0f),
-        m_k(1.0f)
+        m_k(1.0f),
+        v_max(15.0f)
 {
     createObjects();
     setupEnvCollisionConstraints();
@@ -281,21 +282,20 @@ void Scene::solveDistanceConstraints(
     for (size_t j = 0; j < distanceConstraints.edges.size(); ++j)
     {
         float C_j = distanceConstraints.C[j](x);
-        if (std::abs(C_j) > 1e-6f)
+        std::vector<glm::vec3> gradC_j = distanceConstraints.gradC[j](x);
+        const Edge& edge = distanceConstraints.edges[j];
+        const std::array<unsigned int, 2> constraintVertices = { edge.v1, edge.v2 };
+
+        float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
+        std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
+
         {
-            std::vector<glm::vec3> gradC_j = distanceConstraints.gradC[j](x);
-
-            const Edge& edge = distanceConstraints.edges[j];
-            const std::array<unsigned int, 2> constraintVertices = { edge.v1, edge.v2 };
-
-            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
-            std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
-
             for (size_t k = 0; k < deltaX.size(); ++k)
             {
                 x[k] += deltaX[k];
             }
         }
+
     }
 }
 
@@ -323,20 +323,16 @@ void Scene::solveVolumeConstraints(
     for (size_t j = 0; j < volumeConstraints.triangles.size(); ++j)
     {
         float C_j = volumeConstraints.C[0](x);
-        if (std::abs(C_j) > 1e-6f)
+        std::vector<glm::vec3> gradC_j = volumeConstraints.gradC[j](x);
+        const Triangle& tri = volumeConstraints.triangles[j];
+        const std::array<unsigned int, 3> constraintVertices = { tri.v1, tri.v2, tri.v3 };
+
+        float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
+        std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
+
+        for (size_t k = 0; k < deltaX.size(); ++k)
         {
-            std::vector<glm::vec3> gradC_j = volumeConstraints.gradC[j](x);
-
-            const Triangle& tri = volumeConstraints.triangles[j];
-            const std::array<unsigned int, 3> constraintVertices = { tri.v1, tri.v2, tri.v3 };
-
-            float deltaLambda = calculateDeltaLambda(C_j, gradC_j, posDiff, constraintVertices, M, alphaTilde, gamma);
-            std::vector<glm::vec3> deltaX = calculateDeltaX(deltaLambda, M, gradC_j, constraintVertices);
-
-            for (size_t k = 0; k < deltaX.size(); ++k)
-            {
-                x[k] += deltaX[k];
-            }
+            x[k] += deltaX[k];
         }
     }
 }
@@ -531,6 +527,22 @@ void Scene::applyPBD(
             posDiff[i] = x[i] - p[i];
         }
 
+        // Environment Collision constraints
+        if (m_enableEnvCollisionConstraints)
+        {
+            alphaTilde = 0.0f;
+            betaTilde = 0.0f;
+            gamma = 0.0f;
+            solveEnvCollisionConstraints(
+                x,
+                posDiff,
+                M,
+                alphaTilde,
+                gamma,
+                perEnvCollisionConstraints
+            );
+        }
+
         // Distance constraints
         if (m_enableDistanceConstraints)
         {
@@ -563,22 +575,6 @@ void Scene::applyPBD(
             );
         }
 
-        // Environment Collision constraints
-        if (m_enableEnvCollisionConstraints)
-        {
-            alphaTilde = 0.0f;
-            betaTilde = 0.0f;
-            gamma = 0.0f;
-            solveEnvCollisionConstraints(
-                x,
-                posDiff,
-                M,
-                alphaTilde,
-                gamma,
-                perEnvCollisionConstraints
-            );
-        }
-
         // // Environment Collision constraints
         // if (m_enableEnvCollisionConstraints)
         // {
@@ -601,6 +597,19 @@ void Scene::applyPBD(
 
             glm::vec3 newX = x[i];
             glm::vec3 newV = (newX - p[i]) / deltaTime_s;
+
+            // if (newX.y < 0.0f && newV.y < 0.0f)
+            // {
+            //     newX.y = 0.0f;
+            //     newV.y = 0.0f;
+            // }
+
+            float speedSq = glm::dot(newV, newV);
+            if (speedSq > v_max * v_max) {
+                newV.x = newV.x * (v_max / sqrt(speedSq));
+                newV.y = newV.y * (v_max / sqrt(speedSq));
+                newV.z = newV.z * (v_max / sqrt(speedSq));
+            }
 
             vertexTransform.setPosition(newX);
             vertexTransform.setVelocity(newV);

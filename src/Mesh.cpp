@@ -116,20 +116,6 @@ std::vector<glm::vec3> Mesh::calculateFaceNormals()
     return faceNormals;
 }
 
-// void Mesh::constructVertexNormals()
-// {
-//     m_vertexNormals.reserve(m_vertices.size());
-//     for (const auto& vertex : m_vertices)
-//     {
-//         m_vertexNormals.push_back(vertex.normal);
-//     }
-// }
-
-// void Mesh::constructFaceNormals()
-// {
-//     m_faceNormals = calculateFaceNormals();
-// }
-
 void Mesh::constructDistanceConstraintVertices()
 {
     struct UniqueEdge
@@ -212,23 +198,6 @@ void Mesh::constructEnvCollisionConstraintVertices()
     );
 }
 
-// void Mesh::constructTriangleFaceNormals()
-// {
-//     // Get triangles and face normals
-//     std::vector<Triangle> triangles = constructTriangles();
-//     std::vector<glm::vec3> faceNormals = calculateFaceNormals();
-
-//     // Combine them
-//     m_triangleFaceNormals.reserve(triangles.size());
-//     for (size_t i = 0; i < triangles.size(); ++i)
-//     {
-//         TriangleFaceNormal tfn;
-//         tfn.triangle = triangles[i];
-//         tfn.faceNormal = faceNormals[i];
-//         m_triangleFaceNormals.push_back(tfn);
-//     }
-// }
-
 void Mesh::loadObjData(const std::string& filePath)
 {
     Assimp::Importer importer;
@@ -249,30 +218,11 @@ void Mesh::loadObjData(const std::string& filePath)
     constructVertices(mesh);
     constructIndices(mesh);
 
-    // // construct m_vertexNormals
-    // constructVertexNormals();
-
-    // // construct m_faceNormals
-    // constructFaceNormals();
-
-
     // construct vertices used for specific constraints
     constructDistanceConstraintVertices();
     constructVolumeConstraintVertices();
     constructEnvCollisionConstraintVertices();
-
-    // // Construct triangle-face normal pairs
-    // constructTriangleFaceNormals();
 }
-
-// void Mesh::setCandidateMeshes(const std::vector<Mesh*>& meshes)
-// {
-//     for (const auto* mesh : meshes)
-//     {
-//         if (mesh == this) continue; // Skip self
-//         m_candidateMeshes.push_back(mesh);
-//     }
-// }
 
 void Mesh::setCandidateObjectMeshes(const std::vector<Object*>& objects)
 {
@@ -432,35 +382,16 @@ void Mesh::initVerticesBuffer()
     glBindVertexArray(0);
 }
 
-void Mesh::initVertexNormalsBuffer()
+void Mesh::initNormalBuffers(GLuint& vao, GLuint& vbo, size_t numElements)
 {
-    glGenVertexArrays(1, &m_vertexNormalVAO);
-    glGenBuffers(1, &m_vertexNormalVBO);
+    glGenVertexArrays(1, &vao);
+    glGenBuffers(1, &vbo);
 
-    glBindVertexArray(m_vertexNormalVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_vertexNormalVBO);
+    glBindVertexArray(vao);
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
 
-    // glBufferData(GL_ARRAY_BUFFER, m_vertexNormals.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
-    glBufferData(GL_ARRAY_BUFFER, m_vertices.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
-
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
-
-    glBindVertexArray(0);
-}
-
-// TODO : combine in 1 function with Mesh::initVertexNormals()
-void Mesh::initFaceNormalsBuffer()
-{
-    glGenVertexArrays(1, &m_faceNormalVAO);
-    glGenBuffers(1, &m_faceNormalVBO);
-
-    glBindVertexArray(m_faceNormalVAO);
-    glBindBuffer(GL_ARRAY_BUFFER, m_faceNormalVBO);
-
-    // glBufferData(GL_ARRAY_BUFFER, m_faceNormals.size() * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
-    size_t numTriangles = m_indices.size() / 3;
-    glBufferData(GL_ARRAY_BUFFER, numTriangles * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+    // Allocate buffer for line segments (start and end points of normals)
+    glBufferData(GL_ARRAY_BUFFER, numElements * 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
@@ -471,13 +402,13 @@ void Mesh::initFaceNormalsBuffer()
 Mesh::Mesh(const std::string& name, const std::string& meshPath)
     : m_name(name),
       m_meshPath(meshPath),
-      m_vertexNormalLength(0.5f),
-      m_faceNormalLength(1.0f)
+      m_vertexNormalLength(0.05f),
+      m_faceNormalLength(0.1f)
 {
     loadObjData(meshPath);
     initVerticesBuffer();
-    initVertexNormalsBuffer();
-    initFaceNormalsBuffer();
+    initNormalBuffers(m_vertexNormalVAO, m_vertexNormalVBO, m_vertices.size());
+    initNormalBuffers(m_faceNormalVAO, m_faceNormalVBO, m_indices.size() / 3);
 }
 
 void Mesh::update()
@@ -497,12 +428,6 @@ void Mesh::update()
     // Recalculate face normals using the helper
     std::vector<glm::vec3> updatedFaceNormals = calculateFaceNormals();
 
-    // // Update m_faceNormals
-    // for (size_t i = 0; i < updatedFaceNormals.size() && i < m_faceNormals.size(); ++i)
-    // {
-    //     m_faceNormals[i] = updatedFaceNormals[i];
-    // }
-
     // Update m_vertices normals
     for (size_t i = 0, tri = 0; i + 2 < m_indices.size(); i += 3, ++tri)
     {
@@ -518,12 +443,6 @@ void Mesh::update()
         m_vertices[idx1].normal = faceNormal;
         m_vertices[idx2].normal = faceNormal;
     }
-
-    // // Update triangle-face normals
-    // for (size_t i = 0; i < updatedFaceNormals.size() && i < m_triangleFaceNormals.size(); ++i)
-    // {
-    //     m_triangleFaceNormals[i].faceNormal = updatedFaceNormals[i];
-    // }
 }
 
 void Mesh::draw()
@@ -566,7 +485,6 @@ void Mesh::drawFaceNormals()
         unsigned int idx2 = m_indices[i + 2];
 
         glm::vec3 centroid = (m_vertices[idx0].position + m_vertices[idx1].position + m_vertices[idx2].position) / 3.0f;
-        // glm::vec3 normal = m_faceNormals[i / 3];
         glm::vec3 normal = m_vertices[idx0].normal;
 
         lineVertices.push_back(centroid);

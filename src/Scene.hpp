@@ -129,17 +129,16 @@ private:
     float m_beta;
     float m_k;
 
+    float v_max;
 
+    // // collision
+    // struct CollisionInfo {
+    //     unsigned int vertex;
+    //     size_t constraintIdx;
+    //     float penetrationDepth;
+    //     const Mesh::EnvCollisionConstraints* constraints;
+    // };
 
-
-    // collision
-    struct CollisionInfo {
-        unsigned int vertex;
-        size_t constraintIdx;
-        float penetrationDepth;
-        const Mesh::EnvCollisionConstraints* constraints;
-    };
-
-    std::vector<CollisionInfo> m_collisions;
-    void detectCollisions(Object& object, float deltaTime);
+    // std::vector<CollisionInfo> m_collisions;
+    // void detectCollisions(Object& object, float deltaTime);
 };

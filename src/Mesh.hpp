@@ -41,12 +41,6 @@ struct Triangle
     unsigned int v3;
 };
 
-// struct TriangleFaceNormal
-// {
-//     Triangle triangle;
-//     glm::vec3 faceNormal;
-// };
-
 
 class Mesh
 {
@@ -66,14 +60,11 @@ public:
     void drawFaceNormals();
     void destroy();
 
-    // void setCandidateMeshes(const std::vector<Mesh*>& meshes);
     void setCandidateObjectMeshes(const std::vector<Object*>& objects);
 
     void constructDistanceConstraints();
     void constructVolumeConstraints(float& k);
     void constructEnvCollisionConstraints();
-
-    // void constructTriangleFaceNormals();
 
 public:
     std::vector<glm::vec3>& getPositions() { return m_positions; }
@@ -110,8 +101,7 @@ private:
     void loadObjData(const std::string& meshPath);
 
     void initVerticesBuffer();
-    void initVertexNormalsBuffer();
-    void initFaceNormalsBuffer();
+    void initNormalBuffers(GLuint& vao, GLuint& vbo, size_t numElements);
 
     void constructVertices(const aiMesh* mesh);
     void constructIndices(const aiMesh* mesh);
