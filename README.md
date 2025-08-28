@@ -32,7 +32,7 @@ sudo apt-get install build-essential cmake libassimp-dev libglm-dev libglfw3-dev
 
 ```sh
 git clone https://github.com/frederic-hallein/xpbd-softbody-implementation.git
-cd xpbd-softbody
+cd xpbd-softbody-implementation
 mkdir Release
 cd Release
 cmake -DCMAKE_BUILD_TYPE=Release ..
