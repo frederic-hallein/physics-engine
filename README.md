@@ -61,8 +61,8 @@ make
 ## Roadmap
 
 - Improved collision detection and response
-- Support for more constraint types
-- Enhanced rendering (shadows, materials)
+- Support for more constraint types (e.g. friction constraint)
+- Enhanced rendering (e.g. shadows, materials)
 - More object primitives and mesh import formats
 - Performance optimizations and parallelization
 
