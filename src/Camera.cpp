@@ -64,7 +64,6 @@ void Camera::updateOrbit()
     m_cameraRight = glm::normalize(glm::cross(m_cameraUp, m_cameraPos));
     // m_cameraUp    = glm::normalize(glm::cross(m_cameraPos, m_cameraRight));
 
-    // m_cameraOrbitPos = glm::vec3(m_orbitRadius, m_orbitPitch, m_orbitYaw);
 }
 
 void cursorPosCallback(GLFWwindow* window, double xpos, double ypos)

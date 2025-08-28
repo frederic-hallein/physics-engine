@@ -1,7 +1,3 @@
-#include <string>
-#include <glad.h>
-#include <GLFW/glfw3.h>
-
 #include "Shader.hpp"
 
 static void checkCompileErrors(unsigned int shader, std::string type)
@@ -74,6 +70,7 @@ void compileShaders(unsigned int& ID, const std::string& vShaderCode, const std:
     glShaderSource(vertex, 1, &vShaderCodeCStr, NULL);
     glCompileShader(vertex);
     checkCompileErrors(vertex, "VERTEX");
+
     // fragment Shader
     fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fShaderCodeCStr, NULL);
@@ -87,7 +84,6 @@ void compileShaders(unsigned int& ID, const std::string& vShaderCode, const std:
     glLinkProgram(ID);
     checkCompileErrors(ID, "PROGRAM");
 
-    // delete the shaders as they're linked into our program now and no longer necessary
     glDeleteShader(vertex);
     glDeleteShader(fragment);
 }
@@ -117,18 +113,8 @@ void Shader::setUniform(const std::string& name, const glm::vec3& color)
     glUniform4f(vertexColorLocation, color[0], color[1], color[2], 1.0f);
 }
 
-// void Shader::setBool(const std::string& name, bool value) const
-// {
-//     glUniform1i(glGetUniformLocation(m_ID, name.c_str()), (int)value);
-// }
-
-// void Shader::setInt(const std::string& name, int value) const
-// {
-//     glUniform1i(glGetUniformLocation(m_ID, name.c_str()), value);
-// }
-
-// void Shader::setFloat(const std::string& name, float value) const
-// {
-//     glUniform1f(glGetUniformLocation(m_ID, name.c_str()), value);
-// }
-
+void Shader::setVec3(const std::string& name, const glm::vec3& value) const
+{
+    int location = glGetUniformLocation(m_ID, name.c_str());
+    glUniform3fv(location, 1, &value[0]);
+}

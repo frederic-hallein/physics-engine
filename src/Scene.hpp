@@ -1,20 +1,17 @@
 #pragma once
 
+#include <span>
 #include <string>
 #include <vector>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-// #include <map>
 
 #include "ShaderManager.hpp"
 #include "MeshManager.hpp"
 #include "TextureManager.hpp"
 #include "Camera.hpp"
 #include "Object.hpp"
-
-#include <span>
-#include <omp.h>
 
 
 class Scene
@@ -64,14 +61,6 @@ public:
         float gamma,
         std::vector<Mesh::EnvCollisionConstraints> perEnvCollisionConstraints
     );
-
-    // void solveEnvCollisionConstraints(
-    //     std::vector<glm::vec3>& x,
-    //     const std::vector<glm::vec3>& posDiff,
-    //     const std::vector<float>& M,
-    //     float alphaTilde,
-    //     float gamma
-    // );
 
     glm::vec3& getGravitationalAcceleration() { return m_gravitationalAcceleration; }
     int& getPBDSubsteps() { return m_pbdSubsteps; }
@@ -128,17 +117,4 @@ private:
     float m_alpha;
     float m_beta;
     float m_k;
-
-    float v_max;
-
-    // // collision
-    // struct CollisionInfo {
-    //     unsigned int vertex;
-    //     size_t constraintIdx;
-    //     float penetrationDepth;
-    //     const Mesh::EnvCollisionConstraints* constraints;
-    // };
-
-    // std::vector<CollisionInfo> m_collisions;
-    // void detectCollisions(Object& object, float deltaTime);
 };

@@ -1,9 +1,5 @@
 #include "Transform.hpp"
 
-#include <iostream>
-#define GLM_ENABLE_EXPERIMENTAL
-#include <glm/gtx/string_cast.hpp>
-
 Transform::Transform()
     : m_mass(1.0f),
       m_position(glm::vec3(0.0f)),

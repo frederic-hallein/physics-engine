@@ -132,9 +132,9 @@ void DebugWindow::update(
     ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "Scene Objects:");
     ImGui::Dummy(ImVec2(0.0f, 5.0f));
 
-    ImGui::Text("Reset Scene [S]");
+    ImGui::Text("Reset Scene [R]");
     ImGui::SameLine();
-    if (ImGui::Button("Reset##ResetScene")  || ImGui::IsKeyPressed(ImGuiKey_S))
+    if (ImGui::Button("Reset##ResetScene")  || ImGui::IsKeyPressed(ImGuiKey_R))
     {
         for (auto& obj : scene.getObjects())
         {
@@ -177,26 +177,26 @@ void DebugWindow::update(
                 ImGui::TreePop();
             }
 
-            if (ImGui::TreeNode(("Polygon Mode##" + std::to_string(i)).c_str()))
-            {
-                GLenum currentMode = object->getPolygonMode();
-                if (ImGui::RadioButton(("Fill##" + std::to_string(i)).c_str(), currentMode == GL_FILL))
-                {
-                    object->setPolygonMode(GL_FILL);
-                }
+            // if (ImGui::TreeNode(("Polygon Mode##" + std::to_string(i)).c_str()))
+            // {
+            //     GLenum currentMode = object->getPolygonMode();
+            //     if (ImGui::RadioButton(("Fill##" + std::to_string(i)).c_str(), currentMode == GL_FILL))
+            //     {
+            //         object->setPolygonMode(GL_FILL);
+            //     }
 
-                if (ImGui::RadioButton(("Wireframe##" + std::to_string(i)).c_str(), currentMode == GL_LINE))
-                {
-                    object->setPolygonMode(GL_LINE);
-                }
+            //     if (ImGui::RadioButton(("Wireframe##" + std::to_string(i)).c_str(), currentMode == GL_LINE))
+            //     {
+            //         object->setPolygonMode(GL_LINE);
+            //     }
 
-                if (ImGui::RadioButton(("Points##" + std::to_string(i)).c_str(), currentMode == GL_POINT))
-                {
-                    object->setPolygonMode(GL_POINT);
-                }
+            //     if (ImGui::RadioButton(("Points##" + std::to_string(i)).c_str(), currentMode == GL_POINT))
+            //     {
+            //         object->setPolygonMode(GL_POINT);
+            //     }
 
-                ImGui::TreePop();
-            }
+            //     ImGui::TreePop();
+            // }
 
 
 

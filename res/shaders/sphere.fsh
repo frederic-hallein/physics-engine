@@ -3,13 +3,6 @@ out vec4 FragColor;
 
 void main()
 {
-    FragColor = vec4(1.0f, 1.0f, 1.0f, 1.0f);
+    vec3 baseColor = vec3(1.0, 1.0, 1.0);
+    FragColor = vec4(baseColor, 1.0);
 }
-
-//uniform vec3 objectColor;
-//uniform vec3 lightColor;
-//
-//void main()
-//{
-//    FragColor = vec4(lightColor * objectColor, 1.0);
-//}

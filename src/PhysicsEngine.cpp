@@ -90,13 +90,9 @@ PhysicsEngine::PhysicsEngine(
         "cube",
         "../res/meshes/cube.obj"
     ));
-    // meshes.push_back(std::make_unique<Mesh>(
-    //     "sphere",
-    //     "../res/meshes/sphere.obj"
-    // ));
     meshes.push_back(std::make_unique<Mesh>(
         "sphere",
-        "../res/meshes/sphere2.obj"
+        "../res/meshes/sphere.obj"
     ));
     meshManager->addResources(std::move(meshes));
 
@@ -114,10 +110,10 @@ PhysicsEngine::PhysicsEngine(
     // create camera
     float FOV = 45.0f;
     float nearPlane = 0.1f;
-    float farPlane = 100.0f;
+    float farPlane = 150.0f;
     float aspectRatio = static_cast<float>(m_screenWidth) / static_cast<float>(m_screenHeight);
     auto camera = std::make_unique<Camera>(
-        glm::vec3(0.0f, 8.5f,  30.0f),
+        glm::vec3(0.0f, 25.0f,  80.0f),
         glm::vec3(0.0f, 0.0f, -1.0f),
         glm::vec3(0.0f, 1.0f,  0.0f),
         FOV,
@@ -127,8 +123,8 @@ PhysicsEngine::PhysicsEngine(
         m_window
     );
 
-    // TODO : REFACTOR SUCH THAT IT CAN CREATE MULTIPLE SCENE ENVIRONMENTS THAT CAN BE SELECTED
     // create scene
+    // TODO : REFACTOR SUCH THAT IT CAN CREATE MULTIPLE SCENE ENVIRONMENTS THAT CAN BE SELECTED
     m_scene = std::make_unique<Scene>(
         "Test Scene",
         std::move(shaderManager),

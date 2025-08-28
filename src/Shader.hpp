@@ -4,7 +4,9 @@
 #include <fstream>
 #include <sstream>
 #include <iostream>
+#include <glad.h>
 #include <glm/glm.hpp>
+#include <GLFW/glfw3.h>
 
 class Shader
 {
@@ -19,11 +21,9 @@ public:
 
     void useProgram();
     void destroy();
-    // void setBool(const std::string& name, bool value) const;
-    // void setInt(const std::string& name, int value) const;
-    // void setFloat(const std::string& name, float value) const;
 
     void setUniform(const std::string& name, const glm::vec3& color);
+    void setVec3(const std::string& name, const glm::vec3& value) const;
 
 private:
     std::string m_name;

@@ -5,7 +5,7 @@ const int unsigned SCREEN_HEIGHT = 720;
 
 int main(int argc, char* argv[])
 {
-    PhysicsEngine physicsEngine("Physics Engine", SCREEN_WIDTH, SCREEN_HEIGHT);
+    PhysicsEngine physicsEngine("XPBD Softbody Implementation", SCREEN_WIDTH, SCREEN_HEIGHT);
     while (physicsEngine.isRunning())
     {
         physicsEngine.handleEvents();

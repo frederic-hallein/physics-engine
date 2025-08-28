@@ -1,92 +1,75 @@
-# Physics Engine
+# XPBD Softbody Implementation
 
-A 3D physics engine written in C++ using OpenGL for rendering. This project implements **Extended Position Based Dynamics (XPBD)** ([Macklin et al., 2019](https://matthias-research.github.io/pages/publications/smallsteps.pdf)) for realistic and efficient physics simulations.
+## Description
 
+**XPBD Softbody Implementation** is a project written in C++ using OpenGL for rendering. The project focuses on simulating softbody dynamics using **Extended Position Based Dynamics (XPBD)** ([Macklin et al., 2019](https://matthias-research.github.io/pages/publications/smallsteps.pdf)), enabling realistic and efficient softbody physics.
 
+### Visuals
 
-## Features
+![Physics Engine Screenshot](res/screenshots/readme-screenshot.png)
 
-- **3D Object Rendering**
-  - Load and render `.obj` files with vertex positions, texture coordinates, and normals using [ASSIMP](https://github.com/assimp/assimp).
-- **Camera System**
-  - Move the camera with the mouse.
-  - Zoom in and out using the scroll wheel.
-- **Physics Simulation**
-  - Gravity applied to non-static objects.
-  - Length constraints implemented with XPBD.
-  - Volume constraints implemented with XPBD.
+---
 
+## Installation
 
-
-## Dependencies
+### Dependencies
 
 - **C++20 Compiler** (e.g., g++ 10+, clang 10+)
 - **CMake** (3.10 or newer)
-- **OpenGL** (for rendering)
-- **GLFW** (window and input handling)
-- **GLM** (math library)
-- **ASSIMP** (model loading)
+- **OpenGL**
+- **GLFW**
+- **GLM**
+- **ASSIMP**
 
-### Install dependencies on Ubuntu/Debian
+### Ubuntu/Debian
 
 ```sh
 sudo apt-get update
 sudo apt-get install build-essential cmake libassimp-dev libglm-dev libglfw3-dev libglew-dev
 ```
 
+### Build Instructions
 
+```sh
+git clone https://github.com/frederic-hallein/physics-engine.git
+cd xpbd-softbody
+mkdir Release
+cd Release
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make
+./xpbd-softbody
+```
 
-## Building the Project
-
-1. **Clone the repository:**
-    ```sh
-    git clone https://github.com/frederic-hallein/physics-engine.git
-    cd physics-engine
-    ```
-
-2. **Create a build directory and configure the project:**
-    ```sh
-    cmake -B build .
-    cd build
-    ```
-
-3. **Build the project:**
-    ```sh
-    make
-    ```
-
-4. **Run the executable:**
-    ```sh
-    ./physics-engine
-    ```
-
-
+---
 
 ## Usage
 
 ### Controls
 
-#### Scene Controls
-
-- **Left Mouse Button + Drag:** Orbit the camera around the origin (scene center).
-    - Drag left/right: Rotate camera horizontally around the origin.
-    - Drag up/down: Rotate camera vertically (pitch) around the origin.
-- **Mouse Scroll Wheel:** Zoom in/out (move camera closer/farther along its front vector).
+- **Left Mouse Button + Drag:** Orbit the camera around the origin.
+- **Mouse Scroll Wheel:** Zoom in/out.
 
 #### ImGui Debug Window
 
-- **Reset Camera Button:** Instantly returns the camera to its original position and orientation (Key shortcut C).
-- **Reset Scene Button:** Resets all objects to their initial positions (Key shortcut S).
-- **Gravity, Alpha, Beta Sliders:** Adjust simulation parameters using the sliders.
-- **PBD Substeps:** Adjust the number of XPBD solver substeps using the slider.
-- **Enable Distance Constraints:** Toggle distance constraint calculations on/off.
-- **Enable Volume Constraints:** Toggle volume constraint calculations on/off.
+- **Reset Camera Button:** Resets camera (shortcut: C).
+- **Reset Scene Button:** Resets all objects (shortcut: R).
+- **Sliders:** Adjust gravity, alpha, beta, and solver substeps.
+- **Toggles:** Enable/disable distance, volume, and collision constraints.
 
+---
 
+## Roadmap
 
-## Screenshot
+- Improved collision detection and response
+- Support for more constraint types
+- Enhanced rendering (shadows, materials)
+- More object primitives and mesh import formats
+- Performance optimizations and parallelization
 
-![Physics Engine Screenshot](res/screenshots/readme-screenshot.png)
+---
 
+## Project Status
 
-
+**Not currently in active development.**
+Core XPBD simulation and rendering features are implemented.
+Additional features and optimizations are planned but not actively worked on.

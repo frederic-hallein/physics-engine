@@ -41,6 +41,8 @@ Object::Object(
 
     if (!m_isStatic)
     {
+        m_polygonMode = GL_LINE;
+
         //create M array
         size_t n = m_vertexTransforms.size();
         m_M = std::vector<float>(n, 0.0f);
@@ -104,7 +106,15 @@ void Object::render()
 
     glPolygonMode(GL_FRONT_AND_BACK, m_polygonMode);
 
+
+    glm::vec3 lightDirection = glm::vec3(
+        1.0f,
+        0.5f,
+        0.0
+    );
+
     m_shader.useProgram();
+    m_shader.setVec3("lightDir", lightDirection);
 
     int projectionLoc = glGetUniformLocation(m_shader.getID(), "projection");
     glUniformMatrix4fv(projectionLoc, 1, GL_FALSE, glm::value_ptr(m_transform.getProjectionMatrix()));

@@ -21,7 +21,7 @@ public:
         GLFWwindow* window
     );
 
-    // void move();
+    void move();
 
     const glm::vec3& getPosition() const { return m_cameraPos; }
     const glm::vec3& getFront()    const { return m_cameraFront; }
@@ -38,8 +38,6 @@ public:
     void setOrbit();
     void updateOrbit();
     void resetPosition();
-
-    // const glm::vec3& getOrbitPosition() const { return m_cameraOrbitPos; }
 
 private:
     glm::vec3 m_originalCameraPos;
@@ -60,7 +58,6 @@ private:
     bool m_isDragging = false;
     double m_lastX = 0.0, m_lastY = 0.0;
 
-    // glm::vec3 m_cameraOrbitPos;
     float m_orbitYaw;
     float m_orbitPitch;
     float m_orbitRadius;

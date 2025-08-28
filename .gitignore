@@ -4,3 +4,5 @@ Debug/
 Release/
 ./main
 notes.txt
+res/cone.obj
+res/torus.obj

@@ -1,7 +1,6 @@
 #include "Mesh.hpp"
 #include "Object.hpp"
 
-
 void Mesh::constructVertices(const aiMesh* mesh)
 {
     for (size_t i = 0; i < mesh->mNumVertices; ++i)
@@ -402,8 +401,8 @@ void Mesh::initNormalBuffers(GLuint& vao, GLuint& vbo, size_t numElements)
 Mesh::Mesh(const std::string& name, const std::string& meshPath)
     : m_name(name),
       m_meshPath(meshPath),
-      m_vertexNormalLength(0.05f),
-      m_faceNormalLength(0.1f)
+      m_vertexNormalLength(0.1f),
+      m_faceNormalLength(0.5f)
 {
     loadObjData(meshPath);
     initVerticesBuffer();
